@@ -18,20 +18,20 @@ Route::middleware('auth')->group(function () {
     
     // Hanya Admin yang bisa akses dashboard
     Route::get('/dashboard', \App\Livewire\Dashboard::class)
-        ->middleware(['role:admin'])
+        ->middleware(['redirect.kasir', 'role:admin'])
         ->name('dashboard');
 
     // Laporan - hanya Admin
     Route::get('/laporan', \App\Livewire\Laporan::class)
-        ->middleware(['role:admin'])
+        ->middleware(['redirect.kasir', 'role:admin'])
         ->name('laporan');
     Route::get('/laporan/export', [\App\Http\Controllers\LaporanController::class, 'export'])
-        ->middleware(['role:admin'])
+        ->middleware(['redirect.kasir', 'role:admin'])
         ->name('laporan.export');
 
     // Produk - hanya Admin
     Route::get('/produk', \App\Livewire\Produk::class)
-        ->middleware(['role:admin'])
+        ->middleware(['redirect.kasir', 'role:admin'])
         ->name('produk');
 
     // Rute Profile dimasukkan ke dalam grup middleware 'auth'
