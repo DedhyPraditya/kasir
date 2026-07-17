@@ -155,7 +155,6 @@ class _PosHomePageState extends State<PosHomePage> {
   Map<String, String> get _apiHeaders => {
     'Content-Type': 'application/json',
     'Accept': 'application/json',
-    'X-Api-Token': widget.apiToken,
     'Authorization': 'Bearer ${widget.apiToken}',
   };
 
