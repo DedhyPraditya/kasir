@@ -38,8 +38,11 @@ class Product {
       name: json['name'] as String,
       description: json['description'] as String? ?? '',
       price: (price is int) ? price.toDouble() : (price as num).toDouble(),
-      variants: (json['variants'] as List<dynamic>?)
-              ?.map((variant) => Variant.fromJson(variant as Map<String, dynamic>))
+      variants:
+          (json['variants'] as List<dynamic>?)
+              ?.map(
+                (variant) => Variant.fromJson(variant as Map<String, dynamic>),
+              )
               .toList() ??
           [],
     );
@@ -97,27 +100,30 @@ class CartItem {
 
   double get unitPrice {
     final productPrice = variant?.price ?? product.price;
-    return productPrice + toppings.fold(0, (sum, topping) => sum + topping.price);
+    return productPrice +
+        toppings.fold(0, (sum, topping) => sum + topping.price);
   }
 
   double get subtotal => unitPrice * quantity;
 
   Map<String, dynamic> toJson() => {
-        'product_id': id,
-        'variant_id': variant?.id,
-        'product_name': product.name,
-        'variant_name': variant?.name,
-        'quantity': quantity,
-        'price': unitPrice,
-        'subtotal': subtotal,
-        'toppings': toppings
-            .map((topping) => {
-                  'topping_id': topping.id,
-                  'topping_name': topping.name,
-                  'price': topping.price,
-                })
-            .toList(),
-      };
+    'product_id': id,
+    'variant_id': variant?.id,
+    'product_name': product.name,
+    'variant_name': variant?.name,
+    'quantity': quantity,
+    'price': unitPrice,
+    'subtotal': subtotal,
+    'toppings': toppings
+        .map(
+          (topping) => {
+            'topping_id': topping.id,
+            'topping_name': topping.name,
+            'price': topping.price,
+          },
+        )
+        .toList(),
+  };
 }
 
 class _PosHomePageState extends State<PosHomePage> {
@@ -134,6 +140,7 @@ class _PosHomePageState extends State<PosHomePage> {
   String _status = 'Menyiapkan printer...';
   String _customerName = '';
   String _paymentMethod = 'cash';
+  String _amountPaid = '';
 
   double get _subtotal => _cart.fold(0, (value, item) => value + item.subtotal);
 
@@ -146,9 +153,11 @@ class _PosHomePageState extends State<PosHomePage> {
   }
 
   Map<String, String> get _apiHeaders => {
-        'Content-Type': 'application/json',
-        'X-Api-Token': widget.apiToken,
-      };
+    'Content-Type': 'application/json',
+    'Accept': 'application/json',
+    'X-Api-Token': widget.apiToken,
+    'Authorization': 'Bearer ${widget.apiToken}',
+  };
 
   Future<void> _fetchProducts() async {
     setState(() {
@@ -269,81 +278,86 @@ class _PosHomePageState extends State<PosHomePage> {
   }
 
   Future<void> _addProductToCart(Product product) async {
-    Variant? selectedVariant =
-        product.variants.isNotEmpty ? product.variants.first : null;
+    Variant? selectedVariant = product.variants.isNotEmpty
+        ? product.variants.first
+        : null;
     final selectedToppingIds = <String>{};
 
     if (product.variants.isNotEmpty || _toppings.isNotEmpty) {
       final confirmed = await showDialog<bool>(
         context: context,
         builder: (context) {
-          return StatefulBuilder(builder: (context, setDialogState) {
-            return AlertDialog(
-              title: Text('Pilih opsi untuk ${product.name}'),
-              content: SingleChildScrollView(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    if (product.variants.isNotEmpty) ...[
-                      const Text('Variant'),
-                      const SizedBox(height: 8),
-                      DropdownButton<Variant>(
-                        value: selectedVariant,
-                        items: product.variants
-                            .map(
-                              (variant) => DropdownMenuItem<Variant>(
-                                value: variant,
-                                child: Text(
-                                  '${variant.name} - Rp ${variant.price.toStringAsFixed(0)}',
+          return StatefulBuilder(
+            builder: (context, setDialogState) {
+              return AlertDialog(
+                title: Text('Pilih opsi untuk ${product.name}'),
+                content: SingleChildScrollView(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      if (product.variants.isNotEmpty) ...[
+                        const Text('Variant'),
+                        const SizedBox(height: 8),
+                        DropdownButton<Variant>(
+                          value: selectedVariant,
+                          items: product.variants
+                              .map(
+                                (variant) => DropdownMenuItem<Variant>(
+                                  value: variant,
+                                  child: Text(
+                                    '${variant.name} - Rp ${variant.price.toStringAsFixed(0)}',
+                                  ),
                                 ),
-                              ),
-                            )
-                            .toList(),
-                        onChanged: (value) {
-                          if (value != null) {
-                            setDialogState(() {
-                              selectedVariant = value;
-                            });
-                          }
-                        },
-                      ),
-                      const SizedBox(height: 16),
-                    ],
-                    if (_toppings.isNotEmpty) ...[
-                      const Text('Toppings'),
-                      const SizedBox(height: 8),
-                      ..._toppings.map(
-                        (topping) => CheckboxListTile(
-                          title: Text('${topping.name} (+Rp ${topping.price.toStringAsFixed(0)})'),
-                          value: selectedToppingIds.contains(topping.id),
-                          onChanged: (checked) {
-                            setDialogState(() {
-                              if (checked == true) {
-                                selectedToppingIds.add(topping.id);
-                              } else {
-                                selectedToppingIds.remove(topping.id);
-                              }
-                            });
+                              )
+                              .toList(),
+                          onChanged: (value) {
+                            if (value != null) {
+                              setDialogState(() {
+                                selectedVariant = value;
+                              });
+                            }
                           },
-                          controlAffinity: ListTileControlAffinity.leading,
                         ),
-                      ),
+                        const SizedBox(height: 16),
+                      ],
+                      if (_toppings.isNotEmpty) ...[
+                        const Text('Toppings'),
+                        const SizedBox(height: 8),
+                        ..._toppings.map(
+                          (topping) => CheckboxListTile(
+                            title: Text(
+                              '${topping.name} (+Rp ${topping.price.toStringAsFixed(0)})',
+                            ),
+                            value: selectedToppingIds.contains(topping.id),
+                            onChanged: (checked) {
+                              setDialogState(() {
+                                if (checked == true) {
+                                  selectedToppingIds.add(topping.id);
+                                } else {
+                                  selectedToppingIds.remove(topping.id);
+                                }
+                              });
+                            },
+                            controlAffinity: ListTileControlAffinity.leading,
+                          ),
+                        ),
+                      ],
                     ],
-                  ],
+                  ),
                 ),
-              ),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.of(context).pop(false),
-                  child: const Text('Batal'),
-                ),
-                ElevatedButton(
-                  onPressed: () => Navigator.of(context).pop(true),
-                  child: const Text('Tambahkan'),
-                ),
-              ],
-            );
-          });
+                actions: [
+                  TextButton(
+                    onPressed: () => Navigator.of(context).pop(false),
+                    child: const Text('Batal'),
+                  ),
+                  ElevatedButton(
+                    onPressed: () => Navigator.of(context).pop(true),
+                    child: const Text('Tambahkan'),
+                  ),
+                ],
+              );
+            },
+          );
         },
       );
 
@@ -370,12 +384,14 @@ class _PosHomePageState extends State<PosHomePage> {
       });
     } else {
       setState(() {
-        _cart.add(CartItem(
-          id: product.id,
-          product: product,
-          variant: selectedVariant,
-          toppings: chosenToppings,
-        ));
+        _cart.add(
+          CartItem(
+            id: product.id,
+            product: product,
+            variant: selectedVariant,
+            toppings: chosenToppings,
+          ),
+        );
       });
     }
   }
@@ -526,48 +542,150 @@ class _PosHomePageState extends State<PosHomePage> {
       return;
     }
 
+    _customerName = '';
+    _paymentMethod = 'cash';
+    _amountPaid = '';
+
     final result = await showDialog<bool>(
       context: context,
       builder: (context) {
-        return AlertDialog(
-          title: const Text('Checkout'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                decoration: const InputDecoration(labelText: 'Nama pelanggan'),
-                onChanged: (value) => _customerName = value,
-              ),
-              const SizedBox(height: 12),
-              DropdownButtonFormField<String>(
-                initialValue: _paymentMethod,
-                items: const [
-                  DropdownMenuItem(value: 'cash', child: Text('Cash')),
-                  DropdownMenuItem(value: 'qris', child: Text('QRIS')),
-                ],
-                onChanged: (value) {
-                  if (value != null) {
-                    setState(() {
-                      _paymentMethod = value;
-                    });
-                  }
-                },
-                decoration: const InputDecoration(
-                  labelText: 'Metode pembayaran',
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            final total = _subtotal;
+            final amountPaidValue = int.tryParse(_amountPaid) ?? 0;
+            final change = amountPaidValue > total
+                ? amountPaidValue - total
+                : 0;
+
+            return AlertDialog(
+              title: const Text('Selesaikan Pembayaran'),
+              content: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      'Total: Rp ${_subtotal.toStringAsFixed(0)}',
+                      style: const TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                    const SizedBox(height: 16),
+                    TextField(
+                      decoration: const InputDecoration(
+                        labelText: 'Nama pelanggan',
+                      ),
+                      onChanged: (value) => setDialogState(() {
+                        _customerName = value;
+                      }),
+                    ),
+                    const SizedBox(height: 16),
+                    InputDecorator(
+                      decoration: const InputDecoration(
+                        labelText: 'Metode pembayaran',
+                        border: OutlineInputBorder(),
+                      ),
+                      child: Column(
+                        children: [
+                          RadioListTile<String>(
+                            title: const Text('Tunai (Cash)'),
+                            value: 'cash',
+                            groupValue: _paymentMethod,
+                            onChanged: (value) {
+                              if (value != null) {
+                                setDialogState(() {
+                                  _paymentMethod = value;
+                                });
+                              }
+                            },
+                          ),
+                          RadioListTile<String>(
+                            title: const Text('QRIS'),
+                            value: 'qris',
+                            groupValue: _paymentMethod,
+                            onChanged: (value) {
+                              if (value != null) {
+                                setDialogState(() {
+                                  _paymentMethod = value;
+                                });
+                              }
+                            },
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    if (_paymentMethod == 'cash') ...[
+                      TextField(
+                        keyboardType: TextInputType.number,
+                        decoration: const InputDecoration(
+                          labelText: 'Nominal Uang (Tunai)',
+                        ),
+                        onChanged: (value) => setDialogState(() {
+                          _amountPaid = value;
+                        }),
+                      ),
+                      const SizedBox(height: 12),
+                      if (amountPaidValue > 0)
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            const Text('Kembalian:'),
+                            Text(
+                              'Rp ${change.toStringAsFixed(0)}',
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ],
+                        ),
+                    ],
+                    if (_paymentMethod == 'qris') ...[
+                      Container(
+                        margin: const EdgeInsets.only(top: 12),
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: Colors.grey.shade100,
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Column(
+                          children: const [
+                            Icon(
+                              Icons.qr_code,
+                              size: 64,
+                              color: Colors.black54,
+                            ),
+                            SizedBox(height: 12),
+                            Text(
+                              'Silakan scan QRIS untuk menyelesaikan pembayaran.',
+                              textAlign: TextAlign.center,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ],
                 ),
               ),
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(false),
-              child: const Text('Batal'),
-            ),
-            ElevatedButton(
-              onPressed: () => Navigator.of(context).pop(true),
-              child: const Text('Bayar'),
-            ),
-          ],
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(false),
+                  child: const Text('Batal'),
+                ),
+                ElevatedButton(
+                  onPressed: () {
+                    if (_customerName.trim().isEmpty) {
+                      _showMessage('Nama pelanggan wajib diisi.');
+                      return;
+                    }
+                    if (_paymentMethod == 'cash' && amountPaidValue < total) {
+                      _showMessage('Nominal uang belum cukup.');
+                      return;
+                    }
+                    Navigator.of(context).pop(true);
+                  },
+                  child: const Text('Bayar'),
+                ),
+              ],
+            );
+          },
         );
       },
     );
@@ -587,6 +705,7 @@ class _PosHomePageState extends State<PosHomePage> {
       _cart.clear();
       _customerName = '';
       _paymentMethod = 'cash';
+      _amountPaid = '';
     });
   }
 
@@ -705,27 +824,94 @@ class _PosHomePageState extends State<PosHomePage> {
                             const SizedBox(height: 10),
                             Expanded(
                               child: _loadingProducts
-                                  ? const Center(child: CircularProgressIndicator())
+                                  ? const Center(
+                                      child: CircularProgressIndicator(),
+                                    )
                                   : _products.isEmpty
-                                      ? const Center(
-                                          child: Text('Tidak ada produk tersedia'),
-                                        )
-                                      : ListView.builder(
-                                          itemCount: _products.length,
-                                          itemBuilder: (context, index) {
-                                            final product = _products[index];
-                                            return ListTile(
-                                              title: Text(product.name),
-                                              subtitle: Text(
-                                                'Rp ${product.price.toStringAsFixed(0)}',
+                                  ? const Center(
+                                      child: Text('Tidak ada produk tersedia'),
+                                    )
+                                  : GridView.builder(
+                                      gridDelegate:
+                                          const SliverGridDelegateWithFixedCrossAxisCount(
+                                            crossAxisCount: 2,
+                                            mainAxisSpacing: 12,
+                                            crossAxisSpacing: 12,
+                                            childAspectRatio: 1.1,
+                                          ),
+                                      itemCount: _products.length,
+                                      itemBuilder: (context, index) {
+                                        final product = _products[index];
+                                        return Card(
+                                          elevation: 2,
+                                          shape: RoundedRectangleBorder(
+                                            borderRadius: BorderRadius.circular(
+                                              16,
+                                            ),
+                                          ),
+                                          child: InkWell(
+                                            borderRadius: BorderRadius.circular(
+                                              16,
+                                            ),
+                                            onTap: () =>
+                                                _addProductToCart(product),
+                                            child: Padding(
+                                              padding: const EdgeInsets.all(12),
+                                              child: Column(
+                                                crossAxisAlignment:
+                                                    CrossAxisAlignment.start,
+                                                children: [
+                                                  Expanded(
+                                                    child: Text(
+                                                      product.name,
+                                                      style: const TextStyle(
+                                                        fontWeight:
+                                                            FontWeight.bold,
+                                                        fontSize: 16,
+                                                      ),
+                                                    ),
+                                                  ),
+                                                  Text(
+                                                    'Rp ${product.price.toStringAsFixed(0)}',
+                                                    style: const TextStyle(
+                                                      color: Colors.green,
+                                                      fontWeight:
+                                                          FontWeight.bold,
+                                                    ),
+                                                  ),
+                                                  const SizedBox(height: 8),
+                                                  Align(
+                                                    alignment:
+                                                        Alignment.bottomRight,
+                                                    child: ElevatedButton.icon(
+                                                      icon: const Icon(
+                                                        Icons.add_shopping_cart,
+                                                        size: 18,
+                                                      ),
+                                                      label: const Text(
+                                                        'Pilih',
+                                                      ),
+                                                      style:
+                                                          ElevatedButton.styleFrom(
+                                                            minimumSize:
+                                                                const Size(
+                                                                  100,
+                                                                  36,
+                                                                ),
+                                                          ),
+                                                      onPressed: () =>
+                                                          _addProductToCart(
+                                                            product,
+                                                          ),
+                                                    ),
+                                                  ),
+                                                ],
                                               ),
-                                              trailing: IconButton(
-                                                icon: const Icon(Icons.add_shopping_cart),
-                                                onPressed: () => _addProductToCart(product),
-                                              ),
-                                            );
-                                          },
-                                        ),
+                                            ),
+                                          ),
+                                        );
+                                      },
+                                    ),
                             ),
                           ],
                         ),
@@ -757,34 +943,72 @@ class _PosHomePageState extends State<PosHomePage> {
                                       itemCount: _cart.length,
                                       itemBuilder: (context, index) {
                                         final item = _cart[index];
-                                        return ListTile(
-                                          title: Text(item.product.name),
-                                          subtitle: Text(
-                                            'Rp ${item.subtotal.toStringAsFixed(0)}',
+                                        return Card(
+                                          elevation: 1,
+                                          margin: const EdgeInsets.symmetric(
+                                            vertical: 6,
                                           ),
-                                          leading: IconButton(
-                                            icon: const Icon(
-                                              Icons.remove_circle_outline,
+                                          shape: RoundedRectangleBorder(
+                                            borderRadius: BorderRadius.circular(
+                                              12,
                                             ),
-                                            onPressed: () => _changeQuantity(item, -1),
                                           ),
-                                          trailing: Row(
-                                            mainAxisSize: MainAxisSize.min,
-                                            children: [
-                                              Text('x${item.quantity}'),
-                                              IconButton(
-                                                icon: const Icon(
-                                                  Icons.add_circle_outline,
+                                          child: ListTile(
+                                            contentPadding:
+                                                const EdgeInsets.symmetric(
+                                                  horizontal: 12,
+                                                  vertical: 10,
                                                 ),
-                                                onPressed: () => _changeQuantity(item, 1),
+                                            title: Text(
+                                              item.product.name,
+                                              style: const TextStyle(
+                                                fontWeight: FontWeight.bold,
                                               ),
-                                              IconButton(
-                                                icon: const Icon(
-                                                  Icons.delete_outline,
+                                            ),
+                                            subtitle: Column(
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.start,
+                                              children: [
+                                                if (item.variant != null)
+                                                  Text(
+                                                    'Varian: ${item.variant!.name}',
+                                                  ),
+                                                if (item.toppings.isNotEmpty)
+                                                  Text(
+                                                    'Topping: ${item.toppings.map((t) => t.name).join(', ')}',
+                                                  ),
+                                                Text(
+                                                  'Rp ${item.subtotal.toStringAsFixed(0)}',
                                                 ),
-                                                onPressed: () => _removeCartItem(item),
+                                              ],
+                                            ),
+                                            leading: Column(
+                                              mainAxisSize: MainAxisSize.min,
+                                              children: [
+                                                IconButton(
+                                                  icon: const Icon(
+                                                    Icons.remove_circle_outline,
+                                                  ),
+                                                  onPressed: () =>
+                                                      _changeQuantity(item, -1),
+                                                ),
+                                                Text('${item.quantity}'),
+                                                IconButton(
+                                                  icon: const Icon(
+                                                    Icons.add_circle_outline,
+                                                  ),
+                                                  onPressed: () =>
+                                                      _changeQuantity(item, 1),
+                                                ),
+                                              ],
+                                            ),
+                                            trailing: IconButton(
+                                              icon: const Icon(
+                                                Icons.delete_outline,
                                               ),
-                                            ],
+                                              onPressed: () =>
+                                                  _removeCartItem(item),
+                                            ),
                                           ),
                                         );
                                       },

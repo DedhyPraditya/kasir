@@ -28,7 +28,10 @@ class _LoginPageState extends State<LoginPage> {
     try {
       final response = await http.post(
         Uri.parse('$backendUrl/login'),
-        headers: {'Content-Type': 'application/json'},
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
         body: jsonEncode({
           'username': _usernameController.text.trim(),
           'password': _passwordController.text.trim(),
@@ -36,17 +39,21 @@ class _LoginPageState extends State<LoginPage> {
       );
 
       final body = jsonDecode(response.body) as Map<String, dynamic>;
-      if (response.statusCode == 200 && body['success'] == true && body['token'] != null) {
+      if (response.statusCode == 200 &&
+          body['success'] == true &&
+          body['token'] != null) {
         Navigator.of(context).pushReplacement(
           MaterialPageRoute(
-            builder: (context) => PosHomePage(apiToken: body['token'] as String),
+            builder: (context) =>
+                PosHomePage(apiToken: body['token'] as String),
           ),
         );
         return;
       }
 
       setState(() {
-        _errorMessage = body['message']?.toString() ?? 'Username atau password salah.';
+        _errorMessage =
+            body['message']?.toString() ?? 'Username atau password salah.';
       });
     } catch (error) {
       setState(() {
@@ -91,10 +98,7 @@ class _LoginPageState extends State<LoginPage> {
             ),
             const SizedBox(height: 16),
             if (_errorMessage != null) ...[
-              Text(
-                _errorMessage!,
-                style: const TextStyle(color: Colors.red),
-              ),
+              Text(_errorMessage!, style: const TextStyle(color: Colors.red)),
               const SizedBox(height: 12),
             ],
             ElevatedButton(
