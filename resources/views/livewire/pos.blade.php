@@ -9,6 +9,7 @@
                 margin: 0;
                 padding: 0;
                 width: 58mm;
+                background: white !important;
             }
             body * {
                 visibility: hidden;
@@ -17,10 +18,8 @@
                 visibility: visible;
             }
             #print-area {
-                position: absolute;
-                left: 0;
-                top: 0;
-                width: 58mm;
+                position: relative !important;
+                width: 58mm !important;
                 padding: 4px !important;
                 margin: 0 !important;
                 color: black !important;
@@ -33,13 +32,16 @@
             #print-area h4 {
                 font-size: 11px !important;
             }
-            .modal {
-                position: absolute;
-                left: 0;
-                top: 0;
-                margin: 0;
-                padding: 0;
-                overflow: visible !important;
+            .modal, .modal-dialog {
+                display: block !important;
+                position: relative !important;
+                top: 0 !important;
+                left: 0 !important;
+                margin: 0 !important;
+                padding: 0 !important;
+                width: 58mm !important;
+                height: auto !important;
+                transform: none !important;
             }
             .d-print-none {
                 display: none !important;
@@ -48,6 +50,9 @@
                 border: none !important;
                 box-shadow: none !important;
                 background: white !important;
+                display: block !important;
+                width: 58mm !important;
+                height: auto !important;
             }
         }
         
