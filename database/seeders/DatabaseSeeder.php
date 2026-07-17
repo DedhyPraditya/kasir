@@ -6,6 +6,7 @@ use App\Models\User;
 // use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 
 class DatabaseSeeder extends Seeder
 {
@@ -16,12 +17,18 @@ class DatabaseSeeder extends Seeder
     {
         User::firstOrCreate(
             ['username' => 'admin'],
-            ['password' => Hash::make('admin123')]
+            [
+                'password' => Hash::make('admin123'),
+                'api_token' => Str::random(80),
+            ]
         );
 
         User::firstOrCreate(
             ['username' => 'kasir1'],
-            ['password' => Hash::make('kasir123')]
+            [
+                'password' => Hash::make('kasir123'),
+                'api_token' => Str::random(80),
+            ]
         );
 
         $this->call([

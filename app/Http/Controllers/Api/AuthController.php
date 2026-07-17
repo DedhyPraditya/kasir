@@ -7,6 +7,7 @@ use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 
 class AuthController extends Controller
 {
@@ -20,9 +21,14 @@ class AuthController extends Controller
         $user = User::where('username', $credentials['username'])->first();
 
         if ($user && Hash::check($credentials['password'], $user->password)) {
+            if (empty($user->api_token)) {
+                $user->api_token = Str::random(80);
+                $user->save();
+            }
+
             return response()->json([
                 'success' => true,
-                'token' => env('API_TOKEN'),
+                'token' => $user->api_token,
             ]);
         }
 
