@@ -54,9 +54,9 @@ Aplikasi POS (Kasir) & Manajemen Toko modern berbasis web yang dirancang khusus 
    ```
 
 4. **Konfigurasi Database (.env):**
-   *Secara default menggunakan SQLite, pastikan file database tersedia:*
+   *Secara default menggunakan mysql, pastikan file database tersedia:*
    ```env
-   DB_CONNECTION=sqlite
+   DB_CONNECTION=mysql
    ```
 
 5. **Jalankan Migrasi & Database Seeder:**
