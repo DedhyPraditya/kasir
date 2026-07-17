@@ -1,6 +1,15 @@
 <div>
     <style>
         @media print {
+            @page {
+                size: 58mm auto;
+                margin: 0;
+            }
+            body {
+                margin: 0;
+                padding: 0;
+                width: 58mm;
+            }
             body * {
                 visibility: hidden;
             }
@@ -11,10 +20,18 @@
                 position: absolute;
                 left: 0;
                 top: 0;
-                width: 100%;
-                padding: 10px !important;
+                width: 58mm;
+                padding: 4px !important;
                 margin: 0 !important;
                 color: black !important;
+                font-size: 10px !important;
+                line-height: 1.2;
+            }
+            #print-area [style*="font-size"] {
+                font-size: 9px !important;
+            }
+            #print-area h4 {
+                font-size: 11px !important;
             }
             .modal {
                 position: absolute;
@@ -27,10 +44,10 @@
             .d-print-none {
                 display: none !important;
             }
-            /* Hilangkan border dan shadow saat print struk */
             .modal-content {
                 border: none !important;
                 box-shadow: none !important;
+                background: white !important;
             }
         }
         
