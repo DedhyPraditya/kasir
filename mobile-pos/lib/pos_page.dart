@@ -1,16 +1,24 @@
 import 'dart:convert';
+import 'dart:math';
 
 import 'package:blue_thermal_printer/blue_thermal_printer.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:permission_handler/permission_handler.dart';
 
+enum SnackBarType { info, success, warning, error }
+
 const String backendUrl = 'https://kasir.madignet.site/api';
 
 class PosHomePage extends StatefulWidget {
   final String apiToken;
+  final String kasirName;
 
-  const PosHomePage({super.key, required this.apiToken});
+  const PosHomePage({
+    super.key,
+    required this.apiToken,
+    required this.kasirName,
+  });
 
   @override
   State<PosHomePage> createState() => _PosHomePageState();
@@ -155,7 +163,7 @@ class _PosHomePageState extends State<PosHomePage> {
   Map<String, String> get _apiHeaders => {
     'Content-Type': 'application/json',
     'Accept': 'application/json',
-    'Authorization': 'Bearer ${widget.apiToken}',
+    'X-Api-Token': widget.apiToken,
   };
 
   Future<void> _fetchProducts() async {
@@ -183,7 +191,9 @@ class _PosHomePageState extends State<PosHomePage> {
             ..addAll(products);
         });
       } else {
-        _showMessage('Gagal memuat produk: ${response.statusCode}');
+        _showMessage(
+          'Gagal memuat produk: ${response.statusCode} ${response.body}',
+        );
       }
     } catch (error) {
       _showMessage('Gagal memuat produk: $error');
@@ -216,7 +226,9 @@ class _PosHomePageState extends State<PosHomePage> {
             ..addAll(toppings);
         });
       } else {
-        _showMessage('Gagal memuat topping: ${response.statusCode}');
+        _showMessage(
+          'Gagal memuat topping: ${response.statusCode} ${response.body}',
+        );
       }
     } catch (error) {
       _showMessage('Gagal memuat topping: $error');
@@ -447,31 +459,47 @@ class _PosHomePageState extends State<PosHomePage> {
     }
 
     try {
-      await _printer.printCustom('NYEMIL BEBS', 3, 1);
-      await _printer.printNewLine();
-      await _printer.printCustom('Invoice: $invoiceNumber', 1, 1);
-      await _printer.printCustom('--------------------------', 1, 1);
+      final now = DateTime.now();
+      final tanggal =
+          '${now.day.toString().padLeft(2, '0')}/${now.month.toString().padLeft(2, '0')}/${now.year} '
+          '${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}';
 
+      final amountPaidValue = int.tryParse(_amountPaid) ?? 0;
+      final change = amountPaidValue > _subtotal
+          ? amountPaidValue - _subtotal
+          : 0;
+
+      // Header toko
+      await _printer.printCustom('NYEMIL BEBS', 3, 1);
+      await _printer.printCustom('Purnama Town House Blok H/1', 1, 1);
+      await _printer.printCustom('Telp: +62 823-9943-0312', 1, 1);
+      await _printer.printNewLine();
+
+      // Info transaksi
+      await _printer.printCustom('No: $invoiceNumber', 1, 0);
+      await _printer.printCustom('Tgl: $tanggal', 1, 0);
+      await _printer.printCustom('Kasir: ${widget.kasirName}', 1, 0);
+      await _printer.printCustom('Pelanggan: $_customerName', 1, 0);
+      await _printer.printNewLine();
+
+      // Daftar item
       for (final item in _cart) {
         final label = item.variant != null
-            ? '${item.product.name} (${item.variant!.name})'
+            ? '${item.product.name} - ${item.variant!.name}'
             : item.product.name;
 
-        await _printer.printLeftRight(
-          label,
-          item.subtotal.toStringAsFixed(0),
-          1,
-        );
+        await _printer.printCustom(label, 1, 0);
 
-        await _printer.printCustom(
-          '  x${item.quantity} @ Rp ${item.unitPrice.toStringAsFixed(0)}',
-          1,
+        final baseUnitPrice = (item.variant?.price ?? item.product.price);
+        await _printer.printLeftRight(
+          '${item.quantity} x ${baseUnitPrice.toStringAsFixed(0)}',
+          item.subtotal.toStringAsFixed(0),
           0,
         );
 
         for (final topping in item.toppings) {
           await _printer.printCustom(
-            '    + ${topping.name} Rp ${topping.price.toStringAsFixed(0)}',
+            '+ ${topping.name} (${topping.price.toStringAsFixed(0)})',
             1,
             0,
           );
@@ -479,9 +507,35 @@ class _PosHomePageState extends State<PosHomePage> {
       }
 
       await _printer.printCustom('--------------------------', 1, 1);
-      await _printer.printLeftRight('TOTAL', _subtotal.toStringAsFixed(0), 2);
+
+      // Total & pembayaran
+      await _printer.printLeftRight(
+        'TOTAL',
+        'Rp ${_subtotal.toStringAsFixed(0)}',
+        1,
+      );
+      await _printer.printLeftRight(
+        'Metode',
+        _paymentMethod == 'cash' ? 'CASH' : 'QRIS',
+        0,
+      );
+
+      if (_paymentMethod == 'cash') {
+        await _printer.printLeftRight(
+          'Tunai',
+          'Rp ${amountPaidValue.toStringAsFixed(0)}',
+          0,
+        );
+        await _printer.printLeftRight(
+          'Kembali',
+          'Rp ${change.toStringAsFixed(0)}',
+          0,
+        );
+      }
+
       await _printer.printNewLine();
-      await _printer.printCustom('Terima kasih atas pembelian Anda!', 1, 1);
+      await _printer.printCustom('Terima Kasih atas Kunjungan Anda!', 1, 1);
+      await _printer.printCustom('~ Nyemil Bebs ~', 1, 1);
       await _printer.printNewLine();
       await _printer.printNewLine();
       await _printer.paperCut();
@@ -693,7 +747,7 @@ class _PosHomePageState extends State<PosHomePage> {
       return;
     }
 
-    final invoiceNumber = 'INV-${DateTime.now().millisecondsSinceEpoch}';
+    final invoiceNumber = _generateInvoiceNumber();
     await _syncOrder(invoiceNumber);
 
     if (_connected) {
@@ -708,110 +762,180 @@ class _PosHomePageState extends State<PosHomePage> {
     });
   }
 
-  void _showMessage(String message) {
+  String _generateInvoiceNumber() {
+    final now = DateTime.now();
+    final datePart =
+        '${now.year}${now.month.toString().padLeft(2, '0')}${now.day.toString().padLeft(2, '0')}';
+
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    final random = Random();
+    final randomPart = List.generate(
+      4,
+      (_) => chars[random.nextInt(chars.length)],
+    ).join();
+
+    return 'INV-$datePart-$randomPart';
+  }
+
+  void _showMessage(String message, {SnackBarType type = SnackBarType.info}) {
     if (!mounted) return;
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(SnackBar(content: Text(message)));
+
+    final backgroundColor = switch (type) {
+      SnackBarType.success => Colors.green.shade700,
+      SnackBarType.error => Colors.red.shade700,
+      SnackBarType.warning => Colors.orange.shade800,
+      SnackBarType.info => Colors.blueGrey.shade700,
+    };
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: backgroundColor,
+        behavior: SnackBarBehavior.floating,
+        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+      ),
+    );
+  }
+
+  void _openPrinterSettings() {
+    showDialog<void>(
+      context: context,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            return AlertDialog(
+              title: const Text('Pengaturan Printer'),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text('Pilih printer Bluetooth dari daftar berikut:'),
+                  const SizedBox(height: 12),
+                  if (_devices.isEmpty)
+                    const Text(
+                      'Belum ada printer terdeteksi. Tekan Refresh untuk mencoba lagi.',
+                    )
+                  else
+                    DropdownButtonFormField<BluetoothDevice>(
+                      value: _selectedDevice,
+                      items: _devices
+                          .map(
+                            (device) => DropdownMenuItem<BluetoothDevice>(
+                              value: device,
+                              child: Text(
+                                device.name ?? device.address ?? 'Unknown',
+                              ),
+                            ),
+                          )
+                          .toList(),
+                      onChanged: (device) {
+                        setDialogState(() {
+                          _selectedDevice = device;
+                        });
+                      },
+                      decoration: const InputDecoration(
+                        border: OutlineInputBorder(),
+                      ),
+                    ),
+                  const SizedBox(height: 16),
+                  Text(
+                    'Status printer: ${_connected ? 'Terkoneksi' : 'Tidak terhubung'}',
+                    style: TextStyle(
+                      fontWeight: FontWeight.w600,
+                      color: _connected
+                          ? Colors.green.shade700
+                          : Colors.orange.shade700,
+                    ),
+                  ),
+                ],
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                  child: const Text('Tutup'),
+                ),
+                TextButton(
+                  onPressed: () {
+                    _refreshDevices();
+                    setDialogState(() {});
+                  },
+                  child: const Text('Refresh'),
+                ),
+                ElevatedButton(
+                  onPressed: _selectedDevice == null
+                      ? null
+                      : () {
+                          Navigator.of(context).pop();
+                          if (_connected) {
+                            _disconnectPrinter();
+                          } else {
+                            _connectPrinter();
+                          }
+                        },
+                  child: Text(_connected ? 'Disconnect' : 'Connect'),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('NYEMIL BEBS POS')),
+      appBar: AppBar(
+        title: const Text('NYEMIL BEBS POS'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.settings),
+            tooltip: 'Pengaturan printer',
+            onPressed: _openPrinterSettings,
+          ),
+        ],
+      ),
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
           children: [
-            Card(
-              child: Padding(
-                padding: const EdgeInsets.all(14),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(_status),
-                    const SizedBox(height: 12),
-                    DropdownButtonFormField<BluetoothDevice>(
-                      initialValue: _selectedDevice,
-                      items: _devices.isEmpty
-                          ? const [
-                              DropdownMenuItem<BluetoothDevice>(
-                                value: null,
-                                child: Text('Tidak ada printer terpasang'),
-                              ),
-                            ]
-                          : _devices
-                                .map(
-                                  (device) => DropdownMenuItem<BluetoothDevice>(
-                                    value: device,
-                                    child: Text(
-                                      device.name ??
-                                          device.address ??
-                                          'Unknown',
-                                    ),
-                                  ),
-                                )
-                                .toList(),
-                      onChanged: (device) {
-                        setState(() {
-                          _selectedDevice = device;
-                        });
-                      },
-                      decoration: const InputDecoration(
-                        labelText: 'Printer Bluetooth',
-                        border: OutlineInputBorder(),
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: ElevatedButton(
-                            onPressed: _refreshDevices,
-                            child: const Text('Refresh'),
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: ElevatedButton(
-                            onPressed: _connected
-                                ? _disconnectPrinter
-                                : _connectPrinter,
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: _connected
-                                  ? Colors.red
-                                  : Colors.green,
-                            ),
-                            child: Text(_connected ? 'Disconnect' : 'Connect'),
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 12),
-                    ElevatedButton(
-                      onPressed: _syncing ? null : _checkout,
-                      child: _syncing
-                          ? const SizedBox(
-                              height: 18,
-                              width: 18,
-                              child: CircularProgressIndicator(strokeWidth: 2),
-                            )
-                          : const Text('Bayar & Sync'),
-                    ),
-                  ],
+            if (!_connected)
+              Card(
+                color: Colors.orange.shade50,
+                margin: const EdgeInsets.only(bottom: 16),
+                child: ListTile(
+                  leading: Icon(
+                    Icons.warning_amber_rounded,
+                    color: Colors.orange.shade800,
+                  ),
+                  title: const Text('Printer belum terhubung'),
+                  subtitle: const Text(
+                    'Silakan buka Pengaturan Printer lalu sambungkan printer sekarang.',
+                  ),
+                  trailing: TextButton(
+                    onPressed: _openPrinterSettings,
+                    child: const Text('Setting'),
+                  ),
                 ),
               ),
-            ),
             const SizedBox(height: 16),
             Expanded(
-              child: Row(
-                children: [
-                  Expanded(
-                    child: Card(
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  final isWide = constraints.maxWidth >= 840;
+                  final productColumns = isWide ? 3 : 2;
+                  final aspectRatio = isWide ? 1.35 : 1.15;
+
+                  Widget buildProductCard() {
+                    return Card(
                       child: Padding(
-                        padding: const EdgeInsets.all(12),
+                        padding: const EdgeInsets.all(10),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisSize: MainAxisSize
+                              .min, // <-- penting: card tinggi sesuai isi
                           children: [
                             const Text(
                               'Produk',
@@ -820,106 +944,111 @@ class _PosHomePageState extends State<PosHomePage> {
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
-                            const SizedBox(height: 10),
-                            Expanded(
-                              child: _loadingProducts
-                                  ? const Center(
+                            const SizedBox(height: 8),
+                            _loadingProducts
+                                ? const Padding(
+                                    padding: EdgeInsets.all(24),
+                                    child: Center(
                                       child: CircularProgressIndicator(),
-                                    )
-                                  : _products.isEmpty
-                                  ? const Center(
-                                      child: Text('Tidak ada produk tersedia'),
-                                    )
-                                  : GridView.builder(
-                                      gridDelegate:
-                                          const SliverGridDelegateWithFixedCrossAxisCount(
-                                            crossAxisCount: 2,
-                                            mainAxisSpacing: 12,
-                                            crossAxisSpacing: 12,
-                                            childAspectRatio: 1.1,
-                                          ),
-                                      itemCount: _products.length,
-                                      itemBuilder: (context, index) {
-                                        final product = _products[index];
-                                        return Card(
-                                          elevation: 2,
-                                          shape: RoundedRectangleBorder(
-                                            borderRadius: BorderRadius.circular(
-                                              16,
-                                            ),
-                                          ),
-                                          child: InkWell(
-                                            borderRadius: BorderRadius.circular(
-                                              16,
-                                            ),
-                                            onTap: () =>
-                                                _addProductToCart(product),
-                                            child: Padding(
-                                              padding: const EdgeInsets.all(12),
-                                              child: Column(
-                                                crossAxisAlignment:
-                                                    CrossAxisAlignment.start,
-                                                children: [
-                                                  Expanded(
-                                                    child: Text(
-                                                      product.name,
-                                                      style: const TextStyle(
-                                                        fontWeight:
-                                                            FontWeight.bold,
-                                                        fontSize: 16,
-                                                      ),
-                                                    ),
-                                                  ),
-                                                  Text(
-                                                    'Rp ${product.price.toStringAsFixed(0)}',
-                                                    style: const TextStyle(
-                                                      color: Colors.green,
-                                                      fontWeight:
-                                                          FontWeight.bold,
-                                                    ),
-                                                  ),
-                                                  const SizedBox(height: 8),
-                                                  Align(
-                                                    alignment:
-                                                        Alignment.bottomRight,
-                                                    child: ElevatedButton.icon(
-                                                      icon: const Icon(
-                                                        Icons.add_shopping_cart,
-                                                        size: 18,
-                                                      ),
-                                                      label: const Text(
-                                                        'Pilih',
-                                                      ),
-                                                      style:
-                                                          ElevatedButton.styleFrom(
-                                                            minimumSize:
-                                                                const Size(
-                                                                  100,
-                                                                  36,
-                                                                ),
-                                                          ),
-                                                      onPressed: () =>
-                                                          _addProductToCart(
-                                                            product,
-                                                          ),
-                                                    ),
-                                                  ),
-                                                ],
-                                              ),
-                                            ),
-                                          ),
-                                        );
-                                      },
                                     ),
-                            ),
+                                  )
+                                : _products.isEmpty
+                                ? const Padding(
+                                    padding: EdgeInsets.all(24),
+                                    child: Center(
+                                      child: Text('Tidak ada produk tersedia'),
+                                    ),
+                                  )
+                                : GridView.builder(
+                                    padding: EdgeInsets.zero,
+                                    shrinkWrap:
+                                        true, // <-- grid tinggi sesuai isi, bukan maksa penuh
+                                    physics:
+                                        const NeverScrollableScrollPhysics(), // grid ini gak perlu scroll sendiri
+                                    gridDelegate:
+                                        SliverGridDelegateWithFixedCrossAxisCount(
+                                          crossAxisCount: productColumns,
+                                          mainAxisSpacing: 12,
+                                          crossAxisSpacing: 12,
+                                          childAspectRatio: aspectRatio,
+                                        ),
+                                    itemCount: _products.length,
+                                    itemBuilder: (context, index) {
+                                      final product = _products[index];
+                                      return Card(
+                                        elevation: 2,
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(
+                                            16,
+                                          ),
+                                        ),
+                                        child: InkWell(
+                                          borderRadius: BorderRadius.circular(
+                                            16,
+                                          ),
+                                          onTap: () =>
+                                              _addProductToCart(product),
+                                          child: Padding(
+                                            padding: const EdgeInsets.all(12),
+                                            child: Column(
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.start,
+                                              mainAxisSize: MainAxisSize.min,
+                                              children: [
+                                                Text(
+                                                  product.name,
+                                                  style: const TextStyle(
+                                                    fontWeight: FontWeight.bold,
+                                                    fontSize: 16,
+                                                  ),
+                                                ),
+                                                const SizedBox(height: 6),
+                                                Text(
+                                                  'Rp ${product.price.toStringAsFixed(0)}',
+                                                  style: const TextStyle(
+                                                    color: Colors.green,
+                                                    fontWeight: FontWeight.bold,
+                                                  ),
+                                                ),
+                                                const SizedBox(height: 8),
+                                                Align(
+                                                  alignment:
+                                                      Alignment.bottomRight,
+                                                  child: ElevatedButton.icon(
+                                                    icon: const Icon(
+                                                      Icons.add_shopping_cart,
+                                                      size: 18,
+                                                    ),
+                                                    label: const Text('Pilih'),
+                                                    style:
+                                                        ElevatedButton.styleFrom(
+                                                          minimumSize:
+                                                              const Size(
+                                                                72,
+                                                                36,
+                                                              ),
+                                                        ),
+                                                    onPressed: () =>
+                                                        _addProductToCart(
+                                                          product,
+                                                        ),
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                        ),
+                                      );
+                                    },
+                                  ),
                           ],
                         ),
                       ),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Card(
+                    );
+                  }
+
+                  Widget buildCartCard() {
+                    return Card(
                       child: Padding(
                         padding: const EdgeInsets.all(12),
                         child: Column(
@@ -1020,9 +1149,47 @@ class _PosHomePageState extends State<PosHomePage> {
                           ],
                         ),
                       ),
-                    ),
-                  ),
-                ],
+                    );
+                  }
+
+                  if (isWide) {
+                    return Row(
+                      children: [
+                        Expanded(child: buildProductCard()),
+                        const SizedBox(width: 12),
+                        Expanded(child: buildCartCard()),
+                      ],
+                    );
+                  }
+
+                  return Column(
+                    children: [
+                      buildProductCard(), // tanpa Expanded, tinggi menyesuaikan isi
+                      const SizedBox(height: 12),
+                      Expanded(
+                        child: buildCartCard(),
+                      ), // ini yang ambil sisa ruang
+                    ],
+                  );
+                },
+              ),
+            ),
+            const SizedBox(height: 16),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                onPressed: _syncing ? null : _checkout,
+                icon: const Icon(Icons.payment),
+                label: _syncing
+                    ? const SizedBox(
+                        height: 18,
+                        width: 18,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : const Text('Bayar & Sync'),
+                style: ElevatedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                ),
               ),
             ),
           ],

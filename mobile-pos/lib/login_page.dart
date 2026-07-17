@@ -44,8 +44,11 @@ class _LoginPageState extends State<LoginPage> {
           body['token'] != null) {
         Navigator.of(context).pushReplacement(
           MaterialPageRoute(
-            builder: (context) =>
-                PosHomePage(apiToken: body['token'] as String),
+            builder: (context) => PosHomePage(
+              apiToken: body['token'] as String,
+              kasirName:
+                  (body['user']?['name'] ?? body['name'] ?? 'Kasir') as String,
+            ),
           ),
         );
         return;
