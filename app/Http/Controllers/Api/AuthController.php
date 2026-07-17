@@ -3,8 +3,10 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
 
 class AuthController extends Controller
 {
@@ -15,10 +17,9 @@ class AuthController extends Controller
             'password' => ['required', 'string'],
         ]);
 
-        if (
-            $credentials['username'] === env('CASHIER_USERNAME') &&
-            $credentials['password'] === env('CASHIER_PASSWORD')
-        ) {
+        $user = User::where('username', $credentials['username'])->first();
+
+        if ($user && Hash::check($credentials['password'], $user->password)) {
             return response()->json([
                 'success' => true,
                 'token' => env('API_TOKEN'),

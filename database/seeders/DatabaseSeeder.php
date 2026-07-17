@@ -14,10 +14,15 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        User::create([
-            'username' => 'admin',
-            'password' => Hash::make('admin123'),
-        ]);
+        User::firstOrCreate(
+            ['username' => 'admin'],
+            ['password' => Hash::make('admin123')]
+        );
+
+        User::firstOrCreate(
+            ['username' => 'kasir1'],
+            ['password' => Hash::make('kasir123')]
+        );
 
         $this->call([
             RoleSeeder::class,
