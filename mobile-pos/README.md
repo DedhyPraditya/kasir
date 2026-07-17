@@ -1,16 +1,17 @@
-# Nyemil Bebs POS Mobile
+# mobile_pos
 
-Proyek Android terpisah untuk membuka POS Laravel production dan menjadi tempat integrasi printer thermal Bluetooth.
+A new Flutter project.
 
-## Persiapan
+## Getting Started
 
-1. Salin `.env.example` menjadi `.env`.
-2. Isi `CAPACITOR_SERVER_URL` dengan domain HTTPS production Laravel, misalnya `https://pos.nyemilbebs.id`.
-3. Jalankan `npm install`.
-4. Jalankan `npm run sync`, lalu `npm run android` untuk membuka Android Studio.
+This project is a starting point for a Flutter application.
 
-Folder `android/` adalah proyek Android yang dibuka dan dibuild melalui Android Studio.
+A few resources to get you started if this is your first Flutter project:
 
-## Printer thermal
+- [Learn Flutter](https://docs.flutter.dev/get-started/learn-flutter)
+- [Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
+- [Flutter learning resources](https://docs.flutter.dev/reference/learning-resources)
 
-Target integrasi berikutnya adalah Bluetooth Classic (SPP) dengan perintah ESC/POS, supaya struk dikirim langsung ke RPP02N setelah printer dipilih satu kali pada aplikasi Android.
+For help getting started with Flutter development, view the
+[online documentation](https://docs.flutter.dev/), which offers tutorials,
+samples, guidance on mobile development, and a full API reference.
