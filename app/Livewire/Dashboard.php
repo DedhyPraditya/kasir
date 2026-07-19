@@ -6,6 +6,7 @@ use Livewire\Component;
 use Livewire\WithPagination;
 use App\Models\Order;
 use App\Models\OrderItem;
+use App\Models\OrderItemTopping;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 
@@ -27,10 +28,17 @@ class Dashboard extends Component
 
         $recentOrders = Order::with('items')->latest()->paginate(10);
 
-        // Best Seller: top 5 produk berdasarkan total qty terjual
+        // Best Seller Produk: top 5 berdasarkan total qty terjual
         $bestSellers = OrderItem::select('product_name', DB::raw('SUM(quantity) as total_qty'))
             ->groupBy('product_name')
             ->orderByDesc('total_qty')
+            ->limit(5)
+            ->get();
+
+        // Best Seller Topping: top 5 berdasarkan jumlah pemakaian
+        $bestToppings = OrderItemTopping::select('topping_name', DB::raw('COUNT(*) as total_used'))
+            ->groupBy('topping_name')
+            ->orderByDesc('total_used')
             ->limit(5)
             ->get();
 
@@ -50,6 +58,7 @@ class Dashboard extends Component
             'totalIncomeMonth' => $totalIncomeMonth,
             'orders'           => $recentOrders,
             'bestSellers'      => $bestSellers,
+            'bestToppings'     => $bestToppings,
             'dailyIncome'      => $dailyIncome,
         ])->layout('layouts.app');
     }

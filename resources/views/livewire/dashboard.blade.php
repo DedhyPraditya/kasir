@@ -50,8 +50,8 @@
         {{-- Charts Row --}}
         <div class="row g-4 mb-4">
             {{-- Grafik Pendapatan Harian --}}
-            <div class="col-lg-8">
-                <div class="card border-0 shadow-sm h-100">
+            <div class="col-12">
+                <div class="card border-0 shadow-sm">
                     <div class="card-header bg-white border-bottom-0 pt-4 pb-0">
                         <h5 class="fw-bold mb-0">
                             <i class="bi bi-bar-chart-line text-success me-2"></i>
@@ -59,25 +59,25 @@
                         </h5>
                     </div>
                     <div class="card-body">
-                        <canvas id="dailyIncomeChart" height="100"></canvas>
+                        <canvas id="dailyIncomeChart" height="80"></canvas>
                     </div>
                 </div>
             </div>
 
-            {{-- Best Seller Pie Chart --}}
-            <div class="col-lg-4">
+            {{-- Best Seller Produk --}}
+            <div class="col-lg-6">
                 <div class="card border-0 shadow-sm h-100">
                     <div class="card-header bg-white border-bottom-0 pt-4 pb-0">
                         <h5 class="fw-bold mb-0">
                             <i class="bi bi-trophy text-warning me-2"></i>
-                            Best Seller
+                            Best Seller Produk
                         </h5>
                     </div>
                     <div class="card-body d-flex flex-column align-items-center justify-content-center">
                         @if($bestSellers->isEmpty())
-                            <p class="text-muted text-center">Belum ada data penjualan</p>
+                            <p class="text-muted text-center py-4">Belum ada data penjualan</p>
                         @else
-                            <canvas id="bestSellerChart" style="max-height: 260px;"></canvas>
+                            <canvas id="bestSellerChart" style="max-height: 230px;"></canvas>
                             <ul class="list-unstyled mt-3 w-100 small">
                                 @foreach($bestSellers as $index => $item)
                                 <li class="d-flex justify-content-between align-items-center py-1 border-bottom">
@@ -96,7 +96,41 @@
                     </div>
                 </div>
             </div>
+
+            {{-- Best Seller Topping --}}
+            <div class="col-lg-6">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-header bg-white border-bottom-0 pt-4 pb-0">
+                        <h5 class="fw-bold mb-0">
+                            <i class="bi bi-stars text-danger me-2"></i>
+                            Best Seller Topping
+                        </h5>
+                    </div>
+                    <div class="card-body d-flex flex-column align-items-center justify-content-center">
+                        @if($bestToppings->isEmpty())
+                            <p class="text-muted text-center py-4">Belum ada data topping</p>
+                        @else
+                            <canvas id="bestToppingChart" style="max-height: 230px;"></canvas>
+                            <ul class="list-unstyled mt-3 w-100 small">
+                                @foreach($bestToppings as $index => $item)
+                                <li class="d-flex justify-content-between align-items-center py-1 border-bottom">
+                                    <span>
+                                        <span class="badge rounded-pill me-1"
+                                            style="background-color: {{ ['#FF6384','#FF9F40','#FFCD56','#4BC0C0','#9966FF'][$index] ?? '#888' }}">
+                                            {{ $index + 1 }}
+                                        </span>
+                                        {{ $item->topping_name }}
+                                    </span>
+                                    <span class="fw-bold">{{ number_format($item->total_used) }}x dipakai</span>
+                                </li>
+                                @endforeach
+                            </ul>
+                        @endif
+                    </div>
+                </div>
+            </div>
         </div>
+
 
         {{-- Riwayat Transaksi --}}
         <div class="card border-0 shadow-sm">
@@ -224,6 +258,43 @@
                             tooltip: {
                                 callbacks: {
                                     label: (ctx) => ctx.label + ': ' + ctx.raw + ' pcs'
+                                }
+                            }
+                        },
+                        cutout: '60%',
+                    }
+                });
+            }
+            @endif
+
+            // ── Best Seller Topping Doughnut Chart ─────────────────────
+            @if($bestToppings->isNotEmpty())
+            const toppingLabels = @json($bestToppings->pluck('topping_name'));
+            const toppingData   = @json($bestToppings->pluck('total_used'));
+
+            const ctxTopping = document.getElementById('bestToppingChart');
+            if (ctxTopping) {
+                new Chart(ctxTopping, {
+                    type: 'doughnut',
+                    data: {
+                        labels: toppingLabels,
+                        datasets: [{
+                            data: toppingData,
+                            backgroundColor: [
+                                '#FF6384', '#FF9F40', '#FFCD56', '#4BC0C0', '#9966FF'
+                            ],
+                            borderWidth: 2,
+                            borderColor: '#fff',
+                            hoverOffset: 8,
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            legend: { display: false },
+                            tooltip: {
+                                callbacks: {
+                                    label: (ctx) => ctx.label + ': ' + ctx.raw + 'x dipakai'
                                 }
                             }
                         },
