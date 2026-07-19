@@ -141,6 +141,18 @@ class _PosHomePageState extends State<PosHomePage> {
   final List<Product> _products = [];
   final List<Topping> _toppings = [];
 
+  /// Format angka menjadi format Rupiah: Rp. 1.000.000
+  String _formatRp(num value) {
+    final parts = value.toStringAsFixed(0).split('');
+    final buffer = StringBuffer();
+    final start = parts.length % 3;
+    for (int i = 0; i < parts.length; i++) {
+      if (i != 0 && (i - start) % 3 == 0) buffer.write('.');
+      buffer.write(parts[i]);
+    }
+    return 'Rp. ${buffer.toString()}';
+  }
+
   BluetoothDevice? _selectedDevice;
   bool _connected = false;
   bool _syncing = false;
@@ -316,7 +328,7 @@ class _PosHomePageState extends State<PosHomePage> {
                                 (variant) => DropdownMenuItem<Variant>(
                                   value: variant,
                                   child: Text(
-                                    '${variant.name} - Rp ${variant.price.toStringAsFixed(0)}',
+                                    '${variant.name} - ${_formatRp(variant.price)}',
                                   ),
                                 ),
                               )
@@ -337,7 +349,7 @@ class _PosHomePageState extends State<PosHomePage> {
                         ..._toppings.map(
                           (topping) => CheckboxListTile(
                             title: Text(
-                              '${topping.name} (+Rp ${topping.price.toStringAsFixed(0)})',
+                              '${topping.name} (+${_formatRp(topping.price)})',
                             ),
                             value: selectedToppingIds.contains(topping.id),
                             onChanged: (checked) {
@@ -415,7 +427,11 @@ class _PosHomePageState extends State<PosHomePage> {
 
   void _changeQuantity(CartItem item, int delta) {
     setState(() {
-      item.quantity = (item.quantity + delta).clamp(1, 999);
+      final newQty = item.quantity + delta;
+      if (newQty >= 1) {
+        item.quantity = newQty.clamp(1, 999);
+      }
+      // Jika newQty < 1, tidak lakukan apa-apa (tombol sudah di-disable dari UI)
     });
   }
 
@@ -511,7 +527,7 @@ class _PosHomePageState extends State<PosHomePage> {
       // Total & pembayaran
       await _printer.printLeftRight(
         'TOTAL',
-        'Rp ${_subtotal.toStringAsFixed(0)}',
+        '${_formatRp(_subtotal)}',
         1,
       );
       await _printer.printLeftRight(
@@ -523,12 +539,12 @@ class _PosHomePageState extends State<PosHomePage> {
       if (_paymentMethod == 'cash') {
         await _printer.printLeftRight(
           'Tunai',
-          'Rp ${amountPaidValue.toStringAsFixed(0)}',
+          '${_formatRp(amountPaidValue)}',
           0,
         );
         await _printer.printLeftRight(
           'Kembali',
-          'Rp ${change.toStringAsFixed(0)}',
+          '${_formatRp(change)}',
           0,
         );
       }
@@ -617,7 +633,7 @@ class _PosHomePageState extends State<PosHomePage> {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Text(
-                      'Total: Rp ${_subtotal.toStringAsFixed(0)}',
+                      'Total: ${_formatRp(_subtotal)}',
                       style: const TextStyle(fontWeight: FontWeight.bold),
                     ),
                     const SizedBox(height: 16),
@@ -682,7 +698,7 @@ class _PosHomePageState extends State<PosHomePage> {
                           children: [
                             const Text('Kembalian:'),
                             Text(
-                              'Rp ${change.toStringAsFixed(0)}',
+                              '${_formatRp(change)}',
                               style: const TextStyle(
                                 fontWeight: FontWeight.bold,
                               ),
@@ -1004,7 +1020,7 @@ class _PosHomePageState extends State<PosHomePage> {
                                                 ),
                                                 const SizedBox(height: 6),
                                                 Text(
-                                                  'Rp ${product.price.toStringAsFixed(0)}',
+                                                  '${_formatRp(product.price)}',
                                                   style: const TextStyle(
                                                     color: Colors.green,
                                                     fontWeight: FontWeight.bold,
@@ -1081,61 +1097,120 @@ class _PosHomePageState extends State<PosHomePage> {
                                               12,
                                             ),
                                           ),
-                                          child: ListTile(
-                                            contentPadding:
-                                                const EdgeInsets.symmetric(
-                                                  horizontal: 12,
-                                                  vertical: 10,
-                                                ),
-                                            title: Text(
-                                              item.product.name,
-                                              style: const TextStyle(
-                                                fontWeight: FontWeight.bold,
-                                              ),
+                                          child: Padding(
+                                            padding: const EdgeInsets.symmetric(
+                                              horizontal: 12,
+                                              vertical: 10,
                                             ),
-                                            subtitle: Column(
+                                            child: Row(
                                               crossAxisAlignment:
-                                                  CrossAxisAlignment.start,
+                                                  CrossAxisAlignment.center,
                                               children: [
-                                                if (item.variant != null)
-                                                  Text(
-                                                    'Varian: ${item.variant!.name}',
-                                                  ),
-                                                if (item.toppings.isNotEmpty)
-                                                  Text(
-                                                    'Topping: ${item.toppings.map((t) => t.name).join(', ')}',
-                                                  ),
-                                                Text(
-                                                  'Rp ${item.subtotal.toStringAsFixed(0)}',
+                                                // Kontrol qty: ➖ angka ➕
+                                                Column(
+                                                  mainAxisSize: MainAxisSize.min,
+                                                  mainAxisAlignment:
+                                                      MainAxisAlignment.center,
+                                                  children: [
+                                                    SizedBox(
+                                                      width: 32,
+                                                      height: 32,
+                                                      child: IconButton(
+                                                        padding: EdgeInsets.zero,
+                                                        constraints:
+                                                            const BoxConstraints(),
+                                                        icon: Icon(
+                                                          Icons
+                                                              .remove_circle_outline,
+                                                          size: 22,
+                                                          color: item.quantity <= 1
+                                                              ? Colors.grey.shade300
+                                                              : null,
+                                                        ),
+                                                        onPressed:
+                                                            item.quantity <= 1
+                                                                ? null
+                                                                : () =>
+                                                                    _changeQuantity(
+                                                                      item,
+                                                                      -1,
+                                                                    ),
+                                                      ),
+                                                    ),
+                                                    Padding(
+                                                      padding:
+                                                          const EdgeInsets.symmetric(
+                                                            vertical: 2,
+                                                          ),
+                                                      child: Text(
+                                                        '${item.quantity}',
+                                                        style: const TextStyle(
+                                                          fontWeight:
+                                                              FontWeight.bold,
+                                                        ),
+                                                      ),
+                                                    ),
+                                                    SizedBox(
+                                                      width: 32,
+                                                      height: 32,
+                                                      child: IconButton(
+                                                        padding: EdgeInsets.zero,
+                                                        constraints:
+                                                            const BoxConstraints(),
+                                                        icon: const Icon(
+                                                          Icons.add_circle_outline,
+                                                          size: 22,
+                                                        ),
+                                                        onPressed: () =>
+                                                            _changeQuantity(
+                                                              item,
+                                                              1,
+                                                            ),
+                                                      ),
+                                                    ),
+                                                  ],
                                                 ),
-                                              ],
-                                            ),
-                                            leading: Column(
-                                              mainAxisSize: MainAxisSize.min,
-                                              children: [
+                                                const SizedBox(width: 12),
+                                                // Info produk
+                                                Expanded(
+                                                  child: Column(
+                                                    crossAxisAlignment:
+                                                        CrossAxisAlignment.start,
+                                                    mainAxisSize: MainAxisSize.min,
+                                                    children: [
+                                                      Text(
+                                                        item.product.name,
+                                                        style: const TextStyle(
+                                                          fontWeight:
+                                                              FontWeight.bold,
+                                                        ),
+                                                      ),
+                                                      if (item.variant != null)
+                                                        Text(
+                                                          'Varian: ${item.variant!.name}',
+                                                        ),
+                                                      if (item.toppings.isNotEmpty)
+                                                        Text(
+                                                          'Topping: ${item.toppings.map((t) => t.name).join(', ')}',
+                                                        ),
+                                                      Text(
+                                                        '${_formatRp(item.subtotal)}',
+                                                      ),
+                                                    ],
+                                                  ),
+                                                ),
+                                                // Tombol hapus
                                                 IconButton(
+                                                  padding: EdgeInsets.zero,
+                                                  constraints:
+                                                      const BoxConstraints(),
                                                   icon: const Icon(
-                                                    Icons.remove_circle_outline,
+                                                    Icons.delete_outline,
                                                   ),
                                                   onPressed: () =>
-                                                      _changeQuantity(item, -1),
-                                                ),
-                                                Text('${item.quantity}'),
-                                                IconButton(
-                                                  icon: const Icon(
-                                                    Icons.add_circle_outline,
-                                                  ),
-                                                  onPressed: () =>
-                                                      _changeQuantity(item, 1),
+                                                      _removeCartItem(item),
                                                 ),
                                               ],
-                                            ),
-                                            trailing: IconButton(
-                                              icon: const Icon(
-                                                Icons.delete_outline,
-                                              ),
-                                              onPressed: () =>
-                                                  _removeCartItem(item),
                                             ),
                                           ),
                                         );
@@ -1144,7 +1219,7 @@ class _PosHomePageState extends State<PosHomePage> {
                             ),
                             const Divider(),
                             Text(
-                              'Subtotal: Rp ${_subtotal.toStringAsFixed(0)}',
+                              'Subtotal: ${_formatRp(_subtotal)}',
                             ),
                           ],
                         ),
