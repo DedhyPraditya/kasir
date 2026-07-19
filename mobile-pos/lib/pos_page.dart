@@ -4,6 +4,8 @@ import 'dart:math';
 import 'package:blue_thermal_printer/blue_thermal_printer.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'login_page.dart';
+
 import 'package:permission_handler/permission_handler.dart';
 
 enum SnackBarType { info, success, warning, error }
@@ -899,6 +901,39 @@ class _PosHomePageState extends State<PosHomePage> {
       },
     );
   }
+  void _logout() {
+    showDialog<bool>(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Konfirmasi Keluar'),
+          content: const Text('Apakah Anda yakin ingin keluar dari akun kasir ini?'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: const Text('Batal'),
+            ),
+            ElevatedButton(
+              onPressed: () => Navigator.of(context).pop(true),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.red.shade700,
+                foregroundColor: Colors.white,
+              ),
+              child: const Text('Keluar'),
+            ),
+          ],
+        );
+      },
+    ).then((confirmed) {
+      if (confirmed == true) {
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(
+            builder: (context) => const LoginPage(),
+          ),
+        );
+      }
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -910,6 +945,11 @@ class _PosHomePageState extends State<PosHomePage> {
             icon: const Icon(Icons.settings),
             tooltip: 'Pengaturan printer',
             onPressed: _openPrinterSettings,
+          ),
+          IconButton(
+            icon: const Icon(Icons.logout),
+            tooltip: 'Keluar',
+            onPressed: _logout,
           ),
         ],
       ),
