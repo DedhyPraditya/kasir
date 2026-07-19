@@ -2,12 +2,13 @@
 
 namespace App\Livewire;
 
-use Livewire\Component;
-use Livewire\WithPagination;
-use App\Models\Product;
 use App\Models\Category;
+use App\Models\Product;
 use App\Models\Topping;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
+use Livewire\Component;
+use Livewire\WithPagination;
 
 class Produk extends Component
 {
@@ -15,9 +16,17 @@ class Produk extends Component
 
     protected $paginationTheme = 'bootstrap';
 
-    public $activeTab = 'produk'; // 'produk' or 'topping'
+    public $activeTab = 'kategori'; // Default tab: 'kategori', 'produk', or 'topping'
     public $search = '';
     public $categoryFilter = '';
+
+    // Category Form fields
+    public $categoryId;
+    public $categoryName;
+
+    // Category Modal state
+    public $isOpenCategory = false;
+    public $isEditCategory = false;
 
     // Product Form fields
     public $productId;
@@ -42,11 +51,11 @@ class Produk extends Component
     public $isEditTopping = false;
 
     protected $rules = [
-        'name' => 'required|string|max:255',
+        'name'        => 'required|string|max:255',
         'category_id' => 'required|exists:categories,id',
-        'base_price' => 'required|numeric|min:0',
+        'base_price'  => 'required|numeric|min:0',
         'description' => 'nullable|string',
-        'is_active' => 'boolean',
+        'is_active'   => 'boolean',
     ];
 
     public function switchTab($tab)
@@ -64,6 +73,80 @@ class Produk extends Component
     public function updatingCategoryFilter(): void
     {
         $this->resetPage();
+    }
+
+    // --- Category CRUD ---
+    public function openModalCategory()
+    {
+        $this->resetFormCategory();
+        $this->isOpenCategory = true;
+        $this->isEditCategory = false;
+    }
+
+    public function closeModalCategory()
+    {
+        $this->isOpenCategory = false;
+        $this->resetFormCategory();
+    }
+
+    private function resetFormCategory()
+    {
+        $this->categoryId = null;
+        $this->categoryName = '';
+        $this->resetErrorBag();
+    }
+
+    public function editCategory($id)
+    {
+        $this->resetFormCategory();
+        $category = Category::findOrFail($id);
+        $this->categoryId = $category->id;
+        $this->categoryName = $category->name;
+
+        $this->isEditCategory = true;
+        $this->isOpenCategory = true;
+    }
+
+    public function saveCategory()
+    {
+        $this->validate([
+            'categoryName' => [
+                'required',
+                'string',
+                'max:255',
+                Rule::unique('categories', 'name')->ignore($this->categoryId),
+            ],
+        ], [
+            'categoryName.required' => 'Nama kategori wajib diisi.',
+            'categoryName.unique'   => 'Nama kategori sudah digunakan.',
+        ]);
+
+        $data = [
+            'name' => $this->categoryName,
+            'slug' => Str::slug($this->categoryName),
+        ];
+
+        if ($this->isEditCategory) {
+            $category = Category::findOrFail($this->categoryId);
+            $category->update($data);
+            session()->flash('message', 'Kategori berhasil diperbarui.');
+        } else {
+            Category::create($data);
+            session()->flash('message', 'Kategori berhasil ditambahkan.');
+        }
+
+        $this->closeModalCategory();
+    }
+
+    public function deleteCategory($id)
+    {
+        $category = Category::findOrFail($id);
+        if ($category->products()->count() > 0) {
+            session()->flash('error', 'Kategori tidak dapat dihapus karena masih memiliki produk.');
+            return;
+        }
+        $category->delete();
+        session()->flash('message', 'Kategori berhasil dihapus.');
     }
 
     // --- Product CRUD ---
@@ -100,7 +183,7 @@ class Produk extends Component
         $this->category_id = $product->category_id;
         $this->base_price = $product->base_price;
         $this->description = $product->description;
-        $this->is_active = (bool)$product->is_active;
+        $this->is_active = (bool) $product->is_active;
 
         $this->isEdit = true;
         $this->isOpen = true;
@@ -111,12 +194,12 @@ class Produk extends Component
         $this->validate();
 
         $data = [
-            'name' => $this->name,
-            'slug' => Str::slug($this->name),
+            'name'        => $this->name,
+            'slug'        => Str::slug($this->name),
             'category_id' => $this->category_id,
-            'base_price' => $this->base_price,
+            'base_price'  => $this->base_price,
             'description' => $this->description,
-            'is_active' => $this->is_active,
+            'is_active'   => $this->is_active,
         ];
 
         if ($this->isEdit) {
@@ -168,7 +251,7 @@ class Produk extends Component
         $this->toppingId = $topping->id;
         $this->toppingName = $topping->name;
         $this->toppingPrice = $topping->price;
-        $this->toppingIsActive = (bool)$topping->is_active;
+        $this->toppingIsActive = (bool) $topping->is_active;
 
         $this->isEditTopping = true;
         $this->isOpenTopping = true;
@@ -177,14 +260,14 @@ class Produk extends Component
     public function saveTopping()
     {
         $this->validate([
-            'toppingName' => 'required|string|max:255',
-            'toppingPrice' => 'required|numeric|min:0',
+            'toppingName'     => 'required|string|max:255',
+            'toppingPrice'    => 'required|numeric|min:0',
             'toppingIsActive' => 'boolean',
         ]);
 
         $data = [
-            'name' => $this->toppingName,
-            'price' => $this->toppingPrice,
+            'name'      => $this->toppingName,
+            'price'     => $this->toppingPrice,
             'is_active' => $this->toppingIsActive,
         ];
 
@@ -209,11 +292,18 @@ class Produk extends Component
 
     public function render()
     {
-        $categories = Category::all();
+        $categoriesList = Category::all();
+        $categories = collect();
         $products = collect();
         $toppings = collect();
 
-        if ($this->activeTab === 'produk') {
+        if ($this->activeTab === 'kategori') {
+            $query = Category::query();
+            if ($this->search) {
+                $query->where('name', 'like', '%' . $this->search . '%');
+            }
+            $categories = $query->latest()->paginate(10);
+        } elseif ($this->activeTab === 'produk') {
             $query = Product::with('category');
             if ($this->search) {
                 $query->where('name', 'like', '%' . $this->search . '%');
@@ -231,9 +321,10 @@ class Produk extends Component
         }
 
         return view('livewire.produk', [
-            'products' => $products,
-            'categories' => $categories,
-            'toppings' => $toppings,
+            'products'       => $products,
+            'categories'     => $categories,
+            'categoriesList' => $categoriesList,
+            'toppings'       => $toppings,
         ])->layout('layouts.app');
     }
 }

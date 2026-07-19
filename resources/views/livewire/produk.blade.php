@@ -1,24 +1,19 @@
 <div>
     <div class="container-fluid py-4">
-        {{-- Header & Switcher --}}
-        <div class="d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center gap-3 mb-4">
-            <div>
-                <h3 class="fw-bold mb-0">Kelola Menu & Topping</h3>
-                <p class="text-muted mb-0 small">Ubah harga dasar menu, tambah produk baru, atau kelola variasi topping di sini.</p>
-            </div>
-            @if($activeTab === 'produk')
-                <button type="button" class="btn btn-success shadow-sm" wire:click="openModal">
-                    <i class="bi bi-plus-lg me-1"></i> Tambah Produk
-                </button>
-            @else
-                <button type="button" class="btn btn-primary shadow-sm" wire:click="openModalTopping">
-                    <i class="bi bi-plus-lg me-1"></i> Tambah Topping
-                </button>
-            @endif
+        {{-- Header --}}
+        <div class="mb-4">
+            <h3 class="fw-bold mb-0">Kelola Menu & Topping</h3>
+            <p class="text-muted mb-0 small">Ubah kategori, produk baru, harga dasar, atau kelola variasi topping di sini.</p>
         </div>
 
         {{-- Nav Tabs --}}
         <ul class="nav nav-tabs border-bottom mb-4">
+            <li class="nav-item">
+                <button class="nav-link py-2.5 px-4 fw-bold border-0 {{ $activeTab === 'kategori' ? 'active text-warning border-bottom border-warning border-3' : 'text-muted' }}" 
+                        wire:click="switchTab('kategori')">
+                    <i class="bi bi-tags-fill me-2"></i>Kelola Kategori
+                </button>
+            </li>
             <li class="nav-item">
                 <button class="nav-link py-2.5 px-4 fw-bold border-0 {{ $activeTab === 'produk' ? 'active text-success border-bottom border-success border-3' : 'text-muted' }}" 
                         wire:click="switchTab('produk')">
@@ -40,7 +35,96 @@
             </div>
         @endif
 
-        @if($activeTab === 'produk')
+        @if (session()->has('error'))
+            <div class="alert alert-danger alert-dismissible fade show shadow-sm border-0" role="alert">
+                <i class="bi bi-exclamation-triangle-fill me-2"></i> {{ session('error') }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        @endif
+
+        @if($activeTab === 'kategori')
+            {{-- Kategori Header Action --}}
+            <div class="d-flex justify-content-end mb-3">
+                <button type="button" class="btn btn-warning text-white shadow-sm" wire:click="openModalCategory">
+                    <i class="bi bi-plus-lg me-1"></i> Tambah Kategori
+                </button>
+            </div>
+            {{-- Search - Kategori --}}
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-body">
+                    <div class="input-group">
+                        <span class="input-group-text bg-white"><i class="bi bi-search"></i></span>
+                        <input type="text" class="form-control" placeholder="Cari nama kategori..." wire:model.live.debounce.300ms="search">
+                    </div>
+                </div>
+            </div>
+
+            {{-- Category Table --}}
+            <div class="card border-0 shadow-sm">
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th class="ps-4">No.</th>
+                                    <th>Nama Kategori</th>
+                                    <th>Slug</th>
+                                    <th>Jumlah Produk</th>
+                                    <th class="text-end pe-4">Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @forelse($categories as $category)
+                                <tr>
+                                    <td class="ps-4 text-muted">{{ $categories->firstItem() + $loop->index }}</td>
+                                    <td>
+                                        <span class="fw-bold text-dark">{{ $category->name }}</span>
+                                    </td>
+                                    <td>
+                                        <span class="text-muted">{{ $category->slug }}</span>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-info bg-opacity-10 text-info">
+                                            {{ $category->products->count() }} Produk
+                                        </span>
+                                    </td>
+                                    <td class="text-end pe-4">
+                                        <button class="btn btn-sm btn-outline-warning me-1" wire:click="editCategory('{{ $category->id }}')">
+                                            <i class="bi bi-pencil-fill"></i> Edit
+                                        </button>
+                                        <button class="btn btn-sm btn-outline-danger" 
+                                                onclick="confirm('Apakah Anda yakin ingin menghapus kategori ini?') || event.stopImmediatePropagation()"
+                                                wire:click="deleteCategory('{{ $category->id }}')">
+                                            <i class="bi bi-trash-fill"></i> Hapus
+                                        </button>
+                                    </td>
+                                </tr>
+                                @empty
+                                <tr>
+                                    <td colspan="5" class="text-center py-5 text-muted">
+                                        <i class="bi bi-tags fs-1 d-block mb-2 opacity-50"></i>
+                                        Tidak ada kategori ditemukan.
+                                    </td>
+                                </tr>
+                                @endforelse
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                @if($categories->hasPages())
+                <div class="card-footer bg-white border-top-0">
+                    {{ $categories->links() }}
+                </div>
+                @endif
+            </div>
+
+        @elseif($activeTab === 'produk')
+            {{-- Produk Header Action --}}
+            <div class="d-flex justify-content-end mb-3">
+                <button type="button" class="btn btn-success shadow-sm" wire:click="openModal">
+                    <i class="bi bi-plus-lg me-1"></i> Tambah Produk
+                </button>
+            </div>
             {{-- Filter & Search - Produk --}}
             <div class="card border-0 shadow-sm mb-4">
                 <div class="card-body">
@@ -54,7 +138,7 @@
                         <div class="col-md-6">
                             <select class="form-select" wire:model.live="categoryFilter">
                                 <option value="">Semua Kategori</option>
-                                @foreach($categories as $category)
+                                @foreach($categoriesList as $category)
                                     <option value="{{ $category->id }}">{{ $category->name }}</option>
                                 @endforeach
                             </select>
@@ -131,6 +215,12 @@
                 @endif
             </div>
         @else
+            {{-- Topping Header Action --}}
+            <div class="d-flex justify-content-end mb-3">
+                <button type="button" class="btn btn-primary shadow-sm" wire:click="openModalTopping">
+                    <i class="bi bi-plus-lg me-1"></i> Tambah Topping
+                </button>
+            </div>
             {{-- Search - Topping --}}
             <div class="card border-0 shadow-sm mb-4">
                 <div class="card-body">
@@ -202,6 +292,34 @@
         @endif
     </div>
 
+    {{-- Category Modal --}}
+    @if($isOpenCategory)
+    <div class="modal-backdrop fade show" style="z-index: 1040;"></div>
+    <div class="modal fade show d-block" tabindex="-1" style="z-index: 1050;" aria-modal="true" role="dialog">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow">
+                <div class="modal-header bg-white border-bottom-0 pt-4 px-4 pb-0">
+                    <h5 class="modal-title fw-bold text-warning">{{ $isEditCategory ? 'Edit Kategori' : 'Tambah Kategori Baru' }}</h5>
+                    <button type="button" class="btn-close" wire:click="closeModalCategory" aria-label="Close"></button>
+                </div>
+                <form wire:submit.prevent="saveCategory">
+                    <div class="modal-body px-4 pb-4">
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Nama Kategori <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control @error('categoryName') is-invalid @enderror" wire:model="categoryName" placeholder="Contoh: Snack / Dessert / Drink">
+                            @error('categoryName') <span class="text-danger small mt-1 d-block">{{ $message }}</span> @enderror
+                        </div>
+                    </div>
+                    <div class="modal-footer border-top-0 pt-0 px-4 pb-4">
+                        <button type="button" class="btn btn-light" wire:click="closeModalCategory">Batal</button>
+                        <button type="submit" class="btn btn-warning text-white px-4">Simpan</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    @endif
+
     {{-- Product Modal --}}
     @if($isOpen)
     <div class="modal-backdrop fade show" style="z-index: 1040;"></div>
@@ -224,7 +342,7 @@
                             <label class="form-label fw-bold">Kategori <span class="text-danger">*</span></label>
                             <select class="form-select @error('category_id') is-invalid @enderror" wire:model="category_id">
                                 <option value="">Pilih Kategori</option>
-                                @foreach($categories as $category)
+                                @foreach($categoriesList as $category)
                                     <option value="{{ $category->id }}">{{ $category->name }}</option>
                                 @endforeach
                             </select>
