@@ -108,9 +108,14 @@
 
     <div class="container-fluid py-4 d-print-none">
         @if (session()->has('success'))
-            <div class="alert alert-success alert-dismissible fade show shadow-sm border-0" role="alert">
-                <i class="bi bi-check-circle-fill me-2"></i> {{ session('success') }}
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            <div class="position-fixed top-0 start-50 translate-middle-x p-3 d-print-none" style="z-index: 9999; width: 90%; max-width: 400px;">
+                <div class="alert alert-success alert-dismissible fade show shadow border-0" role="alert" style="background-color: #198754; color: white;">
+                    <div class="d-flex align-items-center">
+                        <i class="bi bi-check-circle-fill me-2 fs-5"></i>
+                        <div>{{ session('success') }}</div>
+                    </div>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
             </div>
         @endif
 

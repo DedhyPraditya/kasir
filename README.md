@@ -1,12 +1,13 @@
-# NYEMIL BEBS - Point of Sale (POS) & Management System + mobile apps (mobile_pos)
+# NYEMIL BEBS - Point of Sale (POS) & Management System + Mobile Apps
 
-Aplikasi POS (Kasir) & Manajemen Toko modern berbasis web yang dirancang khusus untuk mengelola transaksi penjualan produk kuliner (seperti Gabin Fla dan Banana Roll) lengkap dengan pilihan topping, sistem struk belanja, dan laporan keuangan.
+Aplikasi POS (Kasir) & Manajemen Toko modern berbasis web yang dirancang khusus untuk mengelola transaksi penjualan produk kuliner (seperti Gabin Fla dan Banana Roll) lengkap dengan pilihan topping, sistem struk belanja, dan laporan keuangan. Dilengkapi juga dengan **aplikasi mobile Android** berbasis Flutter.
 
 ## 🚀 Fitur Utama
 
+### 🌐 Aplikasi Web (Laravel + Livewire)
 - **Interactive POS (Kasir):**
-  - Pemilihan menu instan secara visual.
-  - Kustomisasi varian produk dan topping tambahan (dengan penambahan harga otomatis).
+  - Pemilihan menu instan secara visual — hanya menampilkan produk/varian/topping yang berstatus **Aktif**.
+  - Kustomisasi varian rasa produk dan topping tambahan (dengan penambahan harga otomatis).
   - Metode pembayaran ganda: **Tunai (Cash)** dan **QRIS**.
   - Cetak struk belanja thermal/kasir langsung menggunakan fitur cetak bawaan browser (`window.print()`).
 - **Multi-Role Authentication (Spatie Permission):**
@@ -16,29 +17,53 @@ Aplikasi POS (Kasir) & Manajemen Toko modern berbasis web yang dirancang khusus 
   - Pemantauan total pendapatan, jumlah transaksi, pendapatan tunai, dan QRIS.
   - Filter pencarian berdasarkan rentang tanggal dan kata kunci invoice/nama pelanggan.
   - Fitur **Ekspor PDF** untuk mencetak laporan transaksi periode terpilih.
-- **Kelola Produk & Topping (Centralized CRUD):**
-  - Tab manajemen produk untuk mengubah harga dasar dan status menu.
-  - Tab manajemen topping untuk menambah/mengubah harga topping tambahan.
+- **Kelola Produk, Varian Rasa & Topping (Centralized CRUD):**
+  - Tab manajemen produk: ubah harga dasar, status menu aktif/nonaktif.
+  - **Manajemen Varian Rasa per Produk:** Tambah, edit, hapus varian rasa (misal: Coklat, Keju, Stroberi) dengan harga khusus dan status aktif/nonaktif per varian.
+  - Tab manajemen topping: tambah/ubah harga topping tambahan beserta status aktifnya.
+  - Status **Aktif/Nonaktif** pada produk, varian, dan topping langsung mempengaruhi tampilan di halaman kasir.
+- **Notifikasi Floating Terdepan:**
+  - Notifikasi sukses/error menggunakan `position: fixed` dengan `z-index: 9999`, selalu tampil di atas semua elemen termasuk modal, pada posisi tengah-atas layar.
+
+### 📱 Aplikasi Mobile (Flutter — `mobile-pos/`)
+- Kasir via smartphone Android dengan antarmuka yang ringan dan cepat.
+- Koneksi langsung ke backend Laravel via REST API (token-based authentication).
+- Pemilihan varian rasa dan topping, keranjang belanja, dan proses pembayaran (Cash/QRIS).
+- Sinkronisasi otomatis order ke dashboard web setelah transaksi selesai.
+- Cetak struk langsung ke **printer thermal Bluetooth** (menggunakan `blue_thermal_printer`).
+- **Notifikasi Overlay:** Notifikasi selalu tampil di lapisan terdepan (di atas dialog, modal, atau layar manapun) menggunakan Flutter `Navigator Overlay` — dilengkapi animasi fade-in/out, auto-dismiss 3 detik, dan bisa ditutup manual.
 
 ---
 
 ## 🛠️ Tech Stack
 
-- **Framework:** Laravel 13
-- **Front-End:** Livewire v4 (Single Page Application feel tanpa reload) & Alpine.js
-- **Styling:** Bootstrap 5 & Bootstrap Icons
-- **Authorization:** Spatie Laravel-Permission
-- **PDF Generator:** Barryvdh Laravel DomPDF
-- **Database:** SQLite / MySQL
+### Web
+| Komponen | Teknologi |
+|---|---|
+| Framework | Laravel 13 |
+| Reaktivitas | Livewire v4 + Alpine.js |
+| Styling | Bootstrap 5 + Bootstrap Icons |
+| Authorization | Spatie Laravel-Permission |
+| PDF Generator | Barryvdh Laravel DomPDF |
+| Database | MySQL / SQLite |
+
+### Mobile
+| Komponen | Teknologi |
+|---|---|
+| Framework | Flutter (Dart) |
+| HTTP Client | `package:http` |
+| Cetak Struk | `blue_thermal_printer` |
+| Permissions | `permission_handler` |
 
 ---
 
 ## 💻 Cara Install & Menjalankan Project
 
+### Web
 1. **Clone repository:**
    ```bash
-   git clone https://github.com/username/nyemilbebs.git
-   cd nyemilbebs
+   git clone https://github.com/DedhyPraditya/kasir.git
+   cd kasir
    ```
 
 2. **Install dependensi PHP & Assets:**
@@ -54,9 +79,13 @@ Aplikasi POS (Kasir) & Manajemen Toko modern berbasis web yang dirancang khusus 
    ```
 
 4. **Konfigurasi Database (.env):**
-   *Secara default menggunakan mysql, pastikan file database tersedia:*
    ```env
    DB_CONNECTION=mysql
+   DB_HOST=127.0.0.1
+   DB_PORT=3306
+   DB_DATABASE=nyemilbebs
+   DB_USERNAME=root
+   DB_PASSWORD=
    ```
 
 5. **Jalankan Migrasi & Database Seeder:**
@@ -69,7 +98,24 @@ Aplikasi POS (Kasir) & Manajemen Toko modern berbasis web yang dirancang khusus 
    npm run build
    php artisan serve
    ```
-   Aplikasi dapat diakses melalui link `http://127.0.0.1:8000`.
+   Aplikasi dapat diakses melalui `http://127.0.0.1:8000`.
+
+### Mobile (Flutter)
+1. Masuk ke folder mobile:
+   ```bash
+   cd mobile-pos
+   ```
+2. Install dependensi Flutter:
+   ```bash
+   flutter pub get
+   ```
+3. Sesuaikan `backendUrl` di `lib/pos_page.dart` dengan URL server Anda.
+4. Build & jalankan:
+   ```bash
+   flutter run
+   # atau untuk build APK release:
+   flutter build apk --release
+   ```
 
 ---
 
@@ -81,4 +127,22 @@ Aplikasi POS (Kasir) & Manajemen Toko modern berbasis web yang dirancang khusus 
 | **Kasir** | `kasir1` | `kasir123` |
 
 ---
+
+## 📋 Changelog
+
+### [2026-07-31] — Session Update
+- **[Fix] Filter status produk di kasir web & mobile:**
+  Halaman kasir (POS) web kini hanya menampilkan produk, varian rasa, dan topping yang berstatus **Aktif** (`is_active = true`). Produk/varian/topping yang dinonaktifkan otomatis tersembunyi dari tampilan kasir tanpa perlu dihapus dari database.
+
+- **[Feature] Manajemen Varian Rasa Produk:**
+  Formulir tambah/edit produk di dasbor admin kini dilengkapi section **Varian Rasa (Opsional)**. Admin dapat menambah, mengedit, dan menghapus varian rasa (contoh: Coklat, Keju, Stroberi) dengan harga khusus dan status aktif/nonaktif per varian secara dinamis tanpa reload halaman. Jumlah varian juga ditampilkan sebagai badge di daftar produk.
+
+- **[Fix] Notifikasi Floating Terdepan (Web):**
+  Notifikasi sukses/error di halaman kasir dan kelola produk diubah menjadi `position: fixed` dengan `z-index: 9999`, memastikan notifikasi selalu tampil di atas semua elemen termasuk modal dan overlay.
+
+- **[Fix] Notifikasi Overlay Terdepan (Mobile Flutter):**
+  Sistem notifikasi di aplikasi Flutter diubah dari `ScaffoldMessenger.showSnackBar()` menjadi widget `_ToastOverlay` kustom yang dimasukkan langsung ke `Navigator Overlay`. Notifikasi kini selalu tampil di atas semua lapisan termasuk `AlertDialog`, dilengkapi animasi fade, auto-dismiss 3 detik, ikon sesuai tipe pesan, dan dapat ditutup manual.
+
+---
+
 *Dibuat untuk kebutuhan operasional kasir dan pencatatan keuangan toko Nyemil Bebs.*

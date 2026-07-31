@@ -798,21 +798,35 @@ class _PosHomePageState extends State<PosHomePage> {
   void _showMessage(String message, {SnackBarType type = SnackBarType.info}) {
     if (!mounted) return;
 
-    final backgroundColor = switch (type) {
+    final Color backgroundColor = switch (type) {
       SnackBarType.success => Colors.green.shade700,
-      SnackBarType.error => Colors.red.shade700,
+      SnackBarType.error   => Colors.red.shade700,
       SnackBarType.warning => Colors.orange.shade800,
-      SnackBarType.info => Colors.blueGrey.shade700,
+      SnackBarType.info    => Colors.blueGrey.shade700,
     };
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
+    final IconData icon = switch (type) {
+      SnackBarType.success => Icons.check_circle,
+      SnackBarType.error   => Icons.error,
+      SnackBarType.warning => Icons.warning_amber_rounded,
+      SnackBarType.info    => Icons.info,
+    };
+
+    // Insert directly into the Navigator Overlay — always above dialogs.
+    final overlay = Navigator.of(context, rootNavigator: true).overlay;
+    if (overlay == null) return;
+
+    late OverlayEntry entry;
+    entry = OverlayEntry(
+      builder: (ctx) => _ToastOverlay(
+        message: message,
         backgroundColor: backgroundColor,
-        behavior: SnackBarBehavior.floating,
-        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+        icon: icon,
+        onDismissed: () => entry.remove(),
       ),
     );
+
+    overlay.insert(entry);
   }
 
   void _openPrinterSettings() {
@@ -1308,6 +1322,102 @@ class _PosHomePageState extends State<PosHomePage> {
               ),
             ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Toast widget yang muncul di atas semua lapisan (termasuk Dialog),
+/// karena dimasukkan langsung ke Navigator Overlay.
+class _ToastOverlay extends StatefulWidget {
+  final String message;
+  final Color backgroundColor;
+  final IconData icon;
+  final VoidCallback onDismissed;
+
+  const _ToastOverlay({
+    required this.message,
+    required this.backgroundColor,
+    required this.icon,
+    required this.onDismissed,
+  });
+
+  @override
+  State<_ToastOverlay> createState() => _ToastOverlayState();
+}
+
+class _ToastOverlayState extends State<_ToastOverlay> {
+  double _opacity = 0.0;
+
+  @override
+  void initState() {
+    super.initState();
+    // Fade in
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) setState(() => _opacity = 1.0);
+    });
+    // Auto-dismiss setelah 3 detik
+    Future.delayed(const Duration(seconds: 3), () {
+      if (mounted) {
+        setState(() => _opacity = 0.0);
+        Future.delayed(const Duration(milliseconds: 400), widget.onDismissed);
+      }
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final safeTop = MediaQuery.of(context).padding.top;
+    return Positioned(
+      top: safeTop + 12,
+      left: 16,
+      right: 16,
+      child: Material(
+        color: Colors.transparent,
+        child: AnimatedOpacity(
+          opacity: _opacity,
+          duration: const Duration(milliseconds: 350),
+          child: GestureDetector(
+            onTap: () {
+              setState(() => _opacity = 0.0);
+              Future.delayed(
+                const Duration(milliseconds: 350),
+                widget.onDismissed,
+              );
+            },
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              decoration: BoxDecoration(
+                color: widget.backgroundColor,
+                borderRadius: BorderRadius.circular(12),
+                boxShadow: const [
+                  BoxShadow(
+                    color: Colors.black26,
+                    blurRadius: 10,
+                    offset: Offset(0, 4),
+                  ),
+                ],
+              ),
+              child: Row(
+                children: [
+                  Icon(widget.icon, color: Colors.white, size: 22),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      widget.message,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ),
+                  const Icon(Icons.close, color: Colors.white70, size: 18),
+                ],
+              ),
+            ),
+          ),
         ),
       ),
     );
