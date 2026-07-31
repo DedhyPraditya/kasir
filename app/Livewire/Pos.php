@@ -32,7 +32,9 @@ class Pos extends Component
 
     public function selectProduct($productId)
     {
-        $this->selectedProduct = Product::with('variants')->find($productId);
+        $this->selectedProduct = Product::with(['variants' => function($query) {
+            $query->where('is_active', true);
+        }])->find($productId);
         if ($this->selectedProduct) {
             if ($this->selectedProduct->variants->count() > 0) {
                 $this->selectedVariant = $this->selectedProduct->variants->first()->id;
@@ -178,8 +180,11 @@ class Pos extends Component
     public function render()
     {
         return view('livewire.pos', [
-            'products' => Product::with(['category', 'variants'])->get(),
-            'toppings' => Topping::all(),
+            'products' => Product::where('is_active', true)
+                ->with(['category', 'variants' => function($query) {
+                    $query->where('is_active', true);
+                }])->get(),
+            'toppings' => Topping::where('is_active', true)->get(),
         ])->layout('layouts.app');
     }
 }
