@@ -35,6 +35,7 @@ class Produk extends Component
     public $base_price;
     public $description;
     public $is_active = true;
+    public $variants = []; // Array of flavor variants
 
     // Product Modal state
     public $isOpen = false;
@@ -171,27 +172,69 @@ class Produk extends Component
         $this->base_price = '';
         $this->description = '';
         $this->is_active = true;
+        $this->variants = [];
         $this->resetErrorBag();
     }
 
     public function edit($id)
     {
         $this->resetForm();
-        $product = Product::findOrFail($id);
+        $product = Product::with('variants')->findOrFail($id);
         $this->productId = $product->id;
         $this->name = $product->name;
         $this->category_id = $product->category_id;
         $this->base_price = $product->base_price;
         $this->description = $product->description;
         $this->is_active = (bool) $product->is_active;
+        $this->variants = $product->variants->map(function($variant) {
+            return [
+                'id' => $variant->id,
+                'name' => $variant->name,
+                'price' => (float)$variant->price,
+                'is_active' => (bool)$variant->is_active,
+            ];
+        })->toArray();
 
         $this->isEdit = true;
         $this->isOpen = true;
     }
 
+    public function addVariant()
+    {
+        $this->variants[] = [
+            'id' => null,
+            'name' => '',
+            'price' => '',
+            'is_active' => true,
+        ];
+    }
+
+    public function removeVariant($index)
+    {
+        unset($this->variants[$index]);
+        $this->variants = array_values($this->variants);
+    }
+
     public function save()
     {
-        $this->validate();
+        $this->validate([
+            'name'        => 'required|string|max:255',
+            'category_id' => 'required|exists:categories,id',
+            'base_price'  => 'required|numeric|min:0',
+            'description' => 'nullable|string',
+            'is_active'   => 'boolean',
+            'variants.*.name' => 'required|string|max:255',
+            'variants.*.price' => 'required|numeric|min:0',
+            'variants.*.is_active' => 'boolean',
+        ], [
+            'name.required' => 'Nama produk wajib diisi.',
+            'category_id.required' => 'Kategori wajib diisi.',
+            'base_price.required' => 'Harga dasar wajib diisi.',
+            'variants.*.name.required' => 'Nama varian rasa wajib diisi.',
+            'variants.*.price.required' => 'Harga varian wajib diisi.',
+            'variants.*.price.numeric' => 'Harga varian harus berupa angka.',
+            'variants.*.price.min' => 'Harga varian tidak boleh kurang dari 0.',
+        ]);
 
         $data = [
             'name'        => $this->name,
@@ -207,9 +250,31 @@ class Produk extends Component
             $product->update($data);
             session()->flash('message', 'Produk berhasil diperbarui.');
         } else {
-            Product::create($data);
+            $product = Product::create($data);
             session()->flash('message', 'Produk berhasil ditambahkan.');
         }
+
+        // Sync Variants
+        $keptIds = [];
+        foreach ($this->variants as $variantData) {
+            if (!empty($variantData['id'])) {
+                $variant = $product->variants()->findOrFail($variantData['id']);
+                $variant->update([
+                    'name' => $variantData['name'],
+                    'price' => $variantData['price'],
+                    'is_active' => $variantData['is_active'],
+                ]);
+                $keptIds[] = $variant->id;
+            } else {
+                $newVariant = $product->variants()->create([
+                    'name' => $variantData['name'],
+                    'price' => $variantData['price'],
+                    'is_active' => $variantData['is_active'],
+                ]);
+                $keptIds[] = $newVariant->id;
+            }
+        }
+        $product->variants()->whereNotIn('id', $keptIds)->delete();
 
         $this->closeModal();
     }
@@ -304,7 +369,7 @@ class Produk extends Component
             }
             $categories = $query->latest()->paginate(10);
         } elseif ($this->activeTab === 'produk') {
-            $query = Product::with('category');
+            $query = Product::with(['category', 'variants']);
             if ($this->search) {
                 $query->where('name', 'like', '%' . $this->search . '%');
             }

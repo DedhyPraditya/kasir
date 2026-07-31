@@ -171,6 +171,13 @@
                                         @if($product->description)
                                             <small class="text-muted d-block">{{ Str::limit($product->description, 50) }}</small>
                                         @endif
+                                        @if($product->variants->count() > 0)
+                                            <div class="mt-1">
+                                                <span class="badge bg-primary bg-opacity-10 text-primary" style="font-size: 10px;">
+                                                    <i class="bi bi-gear-wide-connected me-1"></i>{{ $product->variants->count() }} Varian Rasa
+                                                </span>
+                                            </div>
+                                        @endif
                                     </td>
                                     <td>
                                         <span class="badge bg-secondary bg-opacity-10 text-secondary">
@@ -362,6 +369,64 @@
                             <label class="form-label fw-bold">Deskripsi</label>
                             <textarea class="form-control" rows="3" wire:model="description" placeholder="Deskripsi opsional..."></textarea>
                         </div>
+
+                        <hr class="my-4">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h6 class="fw-bold mb-0 text-success"><i class="bi bi-gear-wide-connected me-2"></i>Varian Rasa (Opsional)</h6>
+                            <button type="button" class="btn btn-sm btn-outline-success rounded-pill" wire:click="addVariant">
+                                <i class="bi bi-plus-lg me-1"></i>Tambah Varian
+                            </button>
+                        </div>
+
+                        @if(count($variants) > 0)
+                            <div class="table-responsive mb-3" style="max-height: 250px; overflow-y: auto;">
+                                <table class="table table-sm align-middle table-borderless">
+                                    <thead>
+                                        <tr class="text-muted small">
+                                            <th style="width: 50%;">Nama Varian Rasa</th>
+                                            <th style="width: 30%;">Harga</th>
+                                            <th style="width: 10%;" class="text-center">Aktif</th>
+                                            <th style="width: 10%;" class="text-center">Hapus</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach($variants as $index => $variant)
+                                            <tr wire:key="variant-form-{{ $index }}">
+                                                <td>
+                                                    <input type="text" class="form-control form-control-sm @error('variants.'.$index.'.name') is-invalid @enderror" 
+                                                           wire:model="variants.{{ $index }}.name" placeholder="Contoh: Coklat / Keju">
+                                                    @error('variants.'.$index.'.name') 
+                                                        <span class="text-danger small d-block" style="font-size: 10px;">{{ $message }}</span> 
+                                                    @enderror
+                                                </td>
+                                                <td>
+                                                    <div class="input-group input-group-sm">
+                                                        <span class="input-group-text">Rp</span>
+                                                        <input type="number" class="form-control form-control-sm @error('variants.'.$index.'.price') is-invalid @enderror" 
+                                                               wire:model="variants.{{ $index }}.price" placeholder="0">
+                                                    </div>
+                                                    @error('variants.'.$index.'.price') 
+                                                        <span class="text-danger small d-block" style="font-size: 10px;">{{ $message }}</span> 
+                                                    @enderror
+                                                </td>
+                                                <td class="text-center">
+                                                    <div class="form-check form-switch d-inline-block">
+                                                        <input class="form-check-input" type="checkbox" role="switch" wire:model="variants.{{ $index }}.is_active">
+                                                    </div>
+                                                </td>
+                                                <td class="text-center">
+                                                    <button type="button" class="btn btn-sm btn-link text-danger p-0 border-0" wire:click="removeVariant({{ $index }})">
+                                                        <i class="bi bi-trash-fill fs-5"></i>
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                        @endforeach
+                                    </tbody>
+                                </table>
+                            </div>
+                        @else
+                            <p class="text-muted small text-center my-3">Belum ada varian rasa. Produk akan menggunakan Harga Dasar.</p>
+                        @endif
 
                         <div class="form-check form-switch mt-3">
                             <input class="form-check-input" type="checkbox" role="switch" id="product_active" wire:model="is_active">
