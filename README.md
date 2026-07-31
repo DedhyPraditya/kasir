@@ -1,4 +1,4 @@
-# NYEMIL BEBS - Point of Sale (POS) & Management System
+# NYEMIL BEBS - Point of Sale (POS) & Management System + mobile apps (mobile_pos)
 
 Aplikasi POS (Kasir) & Manajemen Toko modern berbasis web yang dirancang khusus untuk mengelola transaksi penjualan produk kuliner (seperti Gabin Fla dan Banana Roll) lengkap dengan pilihan topping, sistem struk belanja, dan laporan keuangan.
 
