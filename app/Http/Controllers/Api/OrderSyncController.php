@@ -77,7 +77,35 @@ class OrderSyncController extends Controller
         $orders = Order::with(['items.toppings'])
             ->latest()
             ->take(50)
-            ->get();
+            ->get()
+            ->map(function (Order $order) {
+                return [
+                    'id' => $order->id,
+                    'invoice_number' => $order->invoice_number,
+                    'customer_name' => $order->customer_name,
+                    'subtotal' => (float) $order->subtotal,
+                    'total' => (float) $order->total,
+                    'payment_method' => $order->payment_method,
+                    'status' => $order->status,
+                    'created_at' => $order->created_at ? $order->created_at->format('d/m/Y H:i') : '',
+                    'items' => $order->items->map(function ($item) {
+                        return [
+                            'id' => $item->id,
+                            'product_name' => $item->product_name,
+                            'variant_name' => $item->variant_name,
+                            'quantity' => (int) $item->quantity,
+                            'price' => (float) $item->price,
+                            'subtotal' => (float) $item->subtotal,
+                            'toppings' => $item->toppings->map(function ($topping) {
+                                return [
+                                    'topping_name' => $topping->topping_name,
+                                    'price' => (float) $topping->price,
+                                ];
+                            })->values(),
+                        ];
+                    })->values(),
+                ];
+            });
 
         return response()->json([
             'data' => $orders,

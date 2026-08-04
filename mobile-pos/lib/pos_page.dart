@@ -566,6 +566,13 @@ class _PosHomePageState extends State<PosHomePage> {
     }
   }
 
+  double _parseDouble(dynamic val) {
+    if (val == null) return 0.0;
+    if (val is num) return val.toDouble();
+    if (val is String) return double.tryParse(val) ?? 0.0;
+    return 0.0;
+  }
+
   Future<void> _printReceiptCustom({
     required String invoiceNumber,
     required String customerName,
@@ -685,7 +692,7 @@ class _PosHomePageState extends State<PosHomePage> {
                     final order = ordersJson[index];
                     final invoice = order['invoice_number'] ?? '';
                     final customer = order['customer_name'] ?? 'Umum';
-                    final total = (order['total'] as num?)?.toDouble() ?? 0;
+                    final total = _parseDouble(order['total']);
                     final method = order['payment_method'] ?? 'cash';
                     final rawDate = order['created_at'] ?? '';
                     String formattedDate = rawDate;
@@ -699,11 +706,11 @@ class _PosHomePageState extends State<PosHomePage> {
                     return ListTile(
                       contentPadding: EdgeInsets.zero,
                       title: Text(
-                        '$invoice (${customer.isEmpty ? 'Umum' : customer})',
+                        '$invoice (${customer.toString().isEmpty ? 'Umum' : customer})',
                         style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
                       ),
                       subtitle: Text(
-                        '${_formatRp(total)} • ${method.toUpperCase()} • $formattedDate',
+                        '${_formatRp(total)} • ${method.toString().toUpperCase()} • $formattedDate',
                         style: const TextStyle(fontSize: 12),
                       ),
                       trailing: ElevatedButton.icon(
@@ -725,17 +732,17 @@ class _PosHomePageState extends State<PosHomePage> {
                             final List toppings = i['toppings'] ?? [];
                             return {
                               'name': fullName,
-                              'quantity': i['quantity'] ?? 1,
-                              'price': (i['price'] as num?)?.toDouble() ?? 0,
-                              'subtotal': (i['subtotal'] as num?)?.toDouble() ?? 0,
+                              'quantity': (i['quantity'] is num) ? (i['quantity'] as num).toInt() : (int.tryParse(i['quantity']?.toString() ?? '1') ?? 1),
+                              'price': _parseDouble(i['price']),
+                              'subtotal': _parseDouble(i['subtotal']),
                               'toppings': toppings,
                             };
                           }).toList();
 
                           await _printReceiptCustom(
                             invoiceNumber: invoice,
-                            customerName: customer,
-                            paymentMethod: method,
+                            customerName: customer.toString(),
+                            paymentMethod: method.toString(),
                             subtotal: total,
                             amountPaid: total,
                             change: 0,
