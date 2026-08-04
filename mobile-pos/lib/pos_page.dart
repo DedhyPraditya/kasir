@@ -171,7 +171,7 @@ class _PosHomePageState extends State<PosHomePage> {
 
   double get _subtotal => _cart.fold(0, (value, item) => value + item.subtotal);
 
-  static const String _currentAppVersion = '1.0.0';
+  static const String _currentAppVersion = '1.1.0';
 
   @override
   void initState() {

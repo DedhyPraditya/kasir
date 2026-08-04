@@ -123,4 +123,7 @@ return [
         'store' => env('APP_MAINTENANCE_STORE', 'database'),
     ],
 
+    'mobile_version' => '1.1.0',
+    'mobile_build_number' => 2,
+    'mobile_changelog' => 'v1.1.0: Riwayat transaksi hari ini + cetak ulang & share struk gambar, preview thermal presisi, indikator status printer.',
 ];
