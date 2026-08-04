@@ -4,6 +4,7 @@ import 'dart:math';
 import 'package:blue_thermal_printer/blue_thermal_printer.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:url_launcher/url_launcher.dart';
 import 'login_page.dart';
 import 'history_page.dart';
 
@@ -170,12 +171,106 @@ class _PosHomePageState extends State<PosHomePage> {
 
   double get _subtotal => _cart.fold(0, (value, item) => value + item.subtotal);
 
+  static const String _currentAppVersion = '1.0.0';
+
   @override
   void initState() {
     super.initState();
     _refreshDevices();
     _fetchProducts();
     _fetchToppings();
+    _checkAppUpdate();
+  }
+
+  Future<void> _checkAppUpdate() async {
+    try {
+      final response = await http.get(Uri.parse('$backendUrl/app-version'));
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        final latestVersion = data['latest_version'] ?? '1.0.0';
+        final downloadUrl = data['download_url'] ?? 'https://kasir.madignet.site/download-apk';
+        final changelog = data['changelog'] ?? 'Peningkatan performa dan perbaikan bug.';
+
+        if (_isVersionNewer(_currentAppVersion, latestVersion)) {
+          if (!mounted) return;
+          _showUpdateDialog(latestVersion: latestVersion, downloadUrl: downloadUrl, changelog: changelog);
+        }
+      }
+    } catch (_) {}
+  }
+
+  bool _isVersionNewer(String current, String latest) {
+    try {
+      final currentParts = current.split('.').map((e) => int.tryParse(e) ?? 0).toList();
+      final latestParts = latest.split('.').map((e) => int.tryParse(e) ?? 0).toList();
+
+      for (int i = 0; i < latestParts.length; i++) {
+        final c = i < currentParts.length ? currentParts[i] : 0;
+        final l = latestParts[i];
+        if (l > c) return true;
+        if (l < c) return false;
+      }
+    } catch (_) {}
+    return false;
+  }
+
+  void _showUpdateDialog({
+    required String latestVersion,
+    required String downloadUrl,
+    required String changelog,
+  }) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          title: Row(
+            children: const [
+              Icon(Icons.system_update, color: Colors.green),
+              SizedBox(width: 8),
+              Text('Update Tersedia'),
+            ],
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('Versi Baru: v$latestVersion (Versi Anda: v$_currentAppVersion)',
+                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+              const SizedBox(height: 8),
+              Text(changelog, style: const TextStyle(fontSize: 12, color: Colors.black87)),
+              const SizedBox(height: 12),
+              const Text('Tekan "Update Sekarang" untuk mengunduh dan menginstal pembaruan.',
+                  style: TextStyle(fontSize: 11, color: Colors.grey)),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('Nanti Saja'),
+            ),
+            ElevatedButton.icon(
+              icon: const Icon(Icons.download),
+              label: const Text('Update Sekarang'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.green,
+                foregroundColor: Colors.white,
+              ),
+              onPressed: () async {
+                Navigator.of(context).pop();
+                final uri = Uri.parse(downloadUrl);
+                if (await canLaunchUrl(uri)) {
+                  await launchUrl(uri, mode: LaunchMode.externalApplication);
+                } else {
+                  _showMessage('Gagal membuka link download update.');
+                }
+              },
+            ),
+          ],
+        );
+      },
+    );
   }
 
   Map<String, String> get _apiHeaders => {

@@ -3,6 +3,8 @@
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 
+Route::get('/download-apk', [\App\Http\Controllers\Api\AppVersionController::class, 'download']);
+
 Route::get('/', function () {
     if (!auth()->check()) {
         return redirect()->route('login');
