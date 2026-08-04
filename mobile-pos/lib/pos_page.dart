@@ -482,6 +482,77 @@ class _PosHomePageState extends State<PosHomePage> {
     return 0.0;
   }
 
+  // Lebar karakter 58mm thermal = ~32 karakter
+  static const int _thermalWidth = 32;
+
+  /// Menghasilkan baris-baris teks persis seperti output printer thermal
+  List<_ThermalLine> _buildThermalLines({
+    required String invoiceNumber,
+    required String customerName,
+    required String paymentMethod,
+    required double subtotal,
+    required double amountPaid,
+    required double change,
+    required String createdAt,
+    required List<Map<String, dynamic>> items,
+  }) {
+    final lines = <_ThermalLine>[];
+
+    // Header
+    lines.add(_ThermalLine('NYEMIL BEBS', align: TextAlign.center, bold: true, large: true));
+    lines.add(_ThermalLine('Purnama Town House Blok H/1', align: TextAlign.center));
+    lines.add(_ThermalLine('Telp: +62 823-9943-0312', align: TextAlign.center));
+    lines.add(_ThermalLine(''));
+
+    // Info transaksi
+    lines.add(_ThermalLine('No: $invoiceNumber'));
+    lines.add(_ThermalLine('Tgl: $createdAt'));
+    lines.add(_ThermalLine('Kasir: ${widget.kasirName}'));
+    lines.add(_ThermalLine('Pelanggan: ${customerName.isEmpty ? 'Umum' : customerName}'));
+    lines.add(_ThermalLine(''));
+
+    // Daftar item
+    for (final item in items) {
+      final String label = item['name'] ?? 'Produk';
+      final int qty = (item['quantity'] as num?)?.toInt() ?? 1;
+      final double price = _parseDouble(item['price']);
+      final double itemSubtotal = _parseDouble(item['subtotal'] != null && _parseDouble(item['subtotal']) > 0 ? item['subtotal'] : null);
+      final double realSubtotal = itemSubtotal > 0 ? itemSubtotal : qty * price;
+
+      lines.add(_ThermalLine(label, bold: true));
+      lines.add(_ThermalLine.leftRight(
+        '$qty x ${price.toStringAsFixed(0)}',
+        realSubtotal.toStringAsFixed(0),
+        width: _thermalWidth,
+      ));
+
+      final List<dynamic> toppings = item['toppings'] ?? [];
+      for (final top in toppings) {
+        final String topName = top is String ? top : (top['topping_name'] as String? ?? '');
+        if (topName.isNotEmpty) {
+          lines.add(_ThermalLine('+ $topName'));
+        }
+      }
+    }
+
+    lines.add(_ThermalLine('-' * _thermalWidth, align: TextAlign.center));
+
+    // Total & pembayaran
+    lines.add(_ThermalLine.leftRight('TOTAL', _formatRp(subtotal), width: _thermalWidth, bold: true));
+    lines.add(_ThermalLine.leftRight('Metode', paymentMethod.toLowerCase() == 'cash' ? 'CASH' : 'QRIS', width: _thermalWidth));
+
+    if (paymentMethod.toLowerCase() == 'cash' && amountPaid > 0) {
+      lines.add(_ThermalLine.leftRight('Tunai', _formatRp(amountPaid), width: _thermalWidth));
+      lines.add(_ThermalLine.leftRight('Kembalian', _formatRp(change), width: _thermalWidth));
+    }
+
+    lines.add(_ThermalLine(''));
+    lines.add(_ThermalLine('Terima Kasih atas Kunjungan Anda!', align: TextAlign.center));
+    lines.add(_ThermalLine('~ Nyemil Bebs ~', align: TextAlign.center));
+
+    return lines;
+  }
+
   Future<void> _showReceiptPreviewDialog({
     required String invoiceNumber,
     required String customerName,
@@ -492,6 +563,17 @@ class _PosHomePageState extends State<PosHomePage> {
     required String createdAt,
     required List<Map<String, dynamic>> items,
   }) async {
+    final thermalLines = _buildThermalLines(
+      invoiceNumber: invoiceNumber,
+      customerName: customerName,
+      paymentMethod: paymentMethod,
+      subtotal: subtotal,
+      amountPaid: amountPaid,
+      change: change,
+      createdAt: createdAt,
+      items: items,
+    );
+
     showDialog(
       context: context,
       builder: (context) {
@@ -506,124 +588,64 @@ class _PosHomePageState extends State<PosHomePage> {
           ),
           content: SingleChildScrollView(
             child: Container(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
               decoration: BoxDecoration(
-                color: Colors.grey.shade50,
-                borderRadius: BorderRadius.circular(12),
+                color: const Color(0xFFFAFAF8),
+                borderRadius: BorderRadius.circular(8),
                 border: Border.all(color: Colors.grey.shade300),
               ),
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
                 mainAxisSize: MainAxisSize.min,
-                children: [
-                  const Text(
-                    'NYEMIL BEBS',
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, fontFamily: 'Courier', letterSpacing: 0.5),
-                  ),
-                  const Text(
-                    'Purnama Town House Blok H/1',
-                    style: TextStyle(fontSize: 11, fontFamily: 'Courier', letterSpacing: 0.3),
-                  ),
-                  const Text(
-                    'Telp: +62 823-9943-0312',
-                    style: TextStyle(fontSize: 11, fontFamily: 'Courier', letterSpacing: 0.3),
-                  ),
-                  const SizedBox(height: 8),
-                  const Text('------------------------------------', style: TextStyle(fontFamily: 'Courier', color: Colors.grey, letterSpacing: 0.3)),
-                  Align(
-                    alignment: Alignment.centerLeft,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text('No: $invoiceNumber', style: const TextStyle(fontSize: 11, fontFamily: 'Courier', letterSpacing: 0.3)),
-                        Text('Tgl: $createdAt', style: const TextStyle(fontSize: 11, fontFamily: 'Courier', letterSpacing: 0.3)),
-                        Text('Kasir: ${widget.kasirName}', style: const TextStyle(fontSize: 11, fontFamily: 'Courier', letterSpacing: 0.3)),
-                        Text('Pelanggan: ${customerName.isEmpty ? 'Umum' : customerName}', style: const TextStyle(fontSize: 11, fontFamily: 'Courier', letterSpacing: 0.3)),
-                      ],
-                    ),
-                  ),
-                  const Text('------------------------------------', style: TextStyle(fontFamily: 'Courier', color: Colors.grey, letterSpacing: 0.3)),
-                  ...items.map((item) {
-                    final String name = item['name'] ?? '';
-                    final int qty = (item['quantity'] as num?)?.toInt() ?? 1;
-                    final double price = (item['price'] as num?)?.toDouble() ?? 0;
-                    final double itemSubtotal = (item['subtotal'] as num?)?.toDouble() ?? (qty * price);
-                    final List toppings = item['toppings'] ?? [];
-
+                children: thermalLines.map((line) {
+                  if (line.isLeftRight) {
                     return Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 2),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+                      padding: const EdgeInsets.symmetric(vertical: 0.5),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Expanded(
-                                child: Text(
-                                  name,
-                                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12, fontFamily: 'Courier', letterSpacing: 0.3),
-                                ),
-                              ),
-                            ],
+                          Text(
+                            line.left!,
+                            style: TextStyle(
+                              fontFamily: 'Courier',
+                              fontSize: line.bold ? 13 : 11,
+                              fontWeight: line.bold ? FontWeight.bold : FontWeight.normal,
+                              letterSpacing: 0.3,
+                              color: Colors.black87,
+                            ),
                           ),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text(
-                                '  $qty x ${_formatRp(price)}',
-                                style: const TextStyle(fontSize: 11, fontFamily: 'Courier', letterSpacing: 0.3),
-                              ),
-                              Text(
-                                _formatRp(itemSubtotal),
-                                style: const TextStyle(fontSize: 11, fontFamily: 'Courier', letterSpacing: 0.3),
-                              ),
-                            ],
+                          Text(
+                            line.right!,
+                            style: TextStyle(
+                              fontFamily: 'Courier',
+                              fontSize: line.bold ? 13 : 11,
+                              fontWeight: line.bold ? FontWeight.bold : FontWeight.normal,
+                              letterSpacing: 0.3,
+                              color: Colors.black87,
+                            ),
                           ),
-                          ...toppings.map((top) {
-                            final String topName = top is String ? top : (top['topping_name'] ?? '');
-                            return Text(
-                              '   + $topName',
-                              style: TextStyle(fontSize: 10, fontFamily: 'Courier', color: Colors.grey.shade700, letterSpacing: 0.3),
-                            );
-                          }).toList(),
                         ],
                       ),
                     );
-                  }).toList(),
-                  const Text('------------------------------------', style: TextStyle(fontFamily: 'Courier', color: Colors.grey, letterSpacing: 0.3)),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      const Text('TOTAL', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, fontFamily: 'Courier', letterSpacing: 0.3)),
-                      Text(_formatRp(subtotal), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, fontFamily: 'Courier', color: Colors.green, letterSpacing: 0.3)),
-                    ],
-                  ),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      const Text('Metode', style: TextStyle(fontSize: 11, fontFamily: 'Courier', letterSpacing: 0.3)),
-                      Text(paymentMethod.toLowerCase() == 'cash' ? 'CASH' : 'QRIS', style: const TextStyle(fontSize: 11, fontFamily: 'Courier', letterSpacing: 0.3)),
-                    ],
-                  ),
-                  if (paymentMethod.toLowerCase() == 'cash' && amountPaid > 0) ...[
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        const Text('Tunai', style: TextStyle(fontSize: 11, fontFamily: 'Courier', letterSpacing: 0.3)),
-                        Text(_formatRp(amountPaid), style: const TextStyle(fontSize: 11, fontFamily: 'Courier', letterSpacing: 0.3)),
-                      ],
+                  }
+                  if (line.text.isEmpty) {
+                    return const SizedBox(height: 6);
+                  }
+                  return Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 0.5),
+                    child: Text(
+                      line.text,
+                      textAlign: line.align,
+                      style: TextStyle(
+                        fontFamily: 'Courier',
+                        fontSize: line.large ? 15 : 11,
+                        fontWeight: line.bold ? FontWeight.bold : FontWeight.normal,
+                        letterSpacing: 0.3,
+                        color: line.text.startsWith('-') ? Colors.grey.shade500 : Colors.black87,
+                      ),
                     ),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        const Text('Kembalian', style: TextStyle(fontSize: 11, fontFamily: 'Courier', letterSpacing: 0.3)),
-                        Text(_formatRp(change), style: const TextStyle(fontSize: 11, fontFamily: 'Courier', letterSpacing: 0.3)),
-                      ],
-                    ),
-                  ],
-                  const SizedBox(height: 12),
-                  const Text('Terima Kasih atas Kunjungan Anda!', style: TextStyle(fontSize: 10, fontFamily: 'Courier', fontStyle: FontStyle.italic, letterSpacing: 0.3)),
-                ],
+                  );
+                }).toList(),
               ),
             ),
           ),
@@ -1810,4 +1832,36 @@ class _ToastOverlayState extends State<_ToastOverlay> {
       ),
     );
   }
+}
+
+/// Model baris teks untuk simulasi printer thermal
+class _ThermalLine {
+  final String text;
+  final TextAlign align;
+  final bool bold;
+  final bool large;
+
+  // Untuk baris left-right (printLeftRight)
+  final String? left;
+  final String? right;
+  bool get isLeftRight => left != null && right != null;
+
+  const _ThermalLine(
+    this.text, {
+    this.align = TextAlign.left,
+    this.bold = false,
+    this.large = false,
+  })  : left = null,
+        right = null;
+
+  _ThermalLine.leftRight(
+    String leftText,
+    String rightText, {
+    int width = 32,
+    this.bold = false,
+  })  : left = leftText,
+        right = rightText,
+        text = '',
+        align = TextAlign.left,
+        large = false;
 }
