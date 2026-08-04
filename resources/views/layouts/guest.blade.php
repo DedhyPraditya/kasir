@@ -16,16 +16,23 @@
         <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     </head>
     <body class="bg-light">
-        <div class="container d-flex flex-column justify-content-center align-items-center min-vh-100">
-            <div class="mb-4 text-center">
-                <h2 class="text-success fw-bold">NYEMIL BEBS</h2>
+        <div class="d-flex flex-column justify-content-center align-items-center min-vh-100">
+
+            <!-- Logo & Title -->
+            <div class="text-center mb-4">
+                <img src="{{ asset('logo.png') }}"
+                     alt="Nyemil Bebs Logo"
+                     style="width: 150px; height: 150px; object-fit: contain; display: block; margin: 0 auto;">
+                <h2 class="fw-bold mt-3 mb-1 text-success" style="letter-spacing: 2px;">NYEMIL BEBS</h2>
             </div>
 
-            <div class="card shadow-sm w-100" style="max-width: 400px;">
+            <!-- Form dalam Card -->
+            <div class="card shadow-sm w-100" style="max-width: 400px; border-radius: 12px;">
                 <div class="card-body p-4">
                     {{ $slot }}
                 </div>
             </div>
+
         </div>
     </body>
 </html>
