@@ -518,31 +518,31 @@ class _PosHomePageState extends State<PosHomePage> {
                 children: [
                   const Text(
                     'NYEMIL BEBS',
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, fontFamily: 'monospace'),
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, fontFamily: 'Courier', letterSpacing: 0.5),
                   ),
                   const Text(
                     'Purnama Town House Blok H/1',
-                    style: TextStyle(fontSize: 11, fontFamily: 'monospace'),
+                    style: TextStyle(fontSize: 11, fontFamily: 'Courier', letterSpacing: 0.3),
                   ),
                   const Text(
                     'Telp: +62 823-9943-0312',
-                    style: TextStyle(fontSize: 11, fontFamily: 'monospace'),
+                    style: TextStyle(fontSize: 11, fontFamily: 'Courier', letterSpacing: 0.3),
                   ),
                   const SizedBox(height: 8),
-                  const Text('------------------------------------', style: TextStyle(fontFamily: 'monospace', color: Colors.grey)),
+                  const Text('------------------------------------', style: TextStyle(fontFamily: 'Courier', color: Colors.grey, letterSpacing: 0.3)),
                   Align(
                     alignment: Alignment.centerLeft,
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('No: $invoiceNumber', style: const TextStyle(fontSize: 11, fontFamily: 'monospace')),
-                        Text('Tgl: $createdAt', style: const TextStyle(fontSize: 11, fontFamily: 'monospace')),
-                        Text('Kasir: ${widget.kasirName}', style: const TextStyle(fontSize: 11, fontFamily: 'monospace')),
-                        Text('Pelanggan: ${customerName.isEmpty ? 'Umum' : customerName}', style: const TextStyle(fontSize: 11, fontFamily: 'monospace')),
+                        Text('No: $invoiceNumber', style: const TextStyle(fontSize: 11, fontFamily: 'Courier', letterSpacing: 0.3)),
+                        Text('Tgl: $createdAt', style: const TextStyle(fontSize: 11, fontFamily: 'Courier', letterSpacing: 0.3)),
+                        Text('Kasir: ${widget.kasirName}', style: const TextStyle(fontSize: 11, fontFamily: 'Courier', letterSpacing: 0.3)),
+                        Text('Pelanggan: ${customerName.isEmpty ? 'Umum' : customerName}', style: const TextStyle(fontSize: 11, fontFamily: 'Courier', letterSpacing: 0.3)),
                       ],
                     ),
                   ),
-                  const Text('------------------------------------', style: TextStyle(fontFamily: 'monospace', color: Colors.grey)),
+                  const Text('------------------------------------', style: TextStyle(fontFamily: 'Courier', color: Colors.grey, letterSpacing: 0.3)),
                   ...items.map((item) {
                     final String name = item['name'] ?? '';
                     final int qty = (item['quantity'] as num?)?.toInt() ?? 1;
@@ -561,7 +561,7 @@ class _PosHomePageState extends State<PosHomePage> {
                               Expanded(
                                 child: Text(
                                   name,
-                                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12, fontFamily: 'monospace'),
+                                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12, fontFamily: 'Courier', letterSpacing: 0.3),
                                 ),
                               ),
                             ],
@@ -571,11 +571,11 @@ class _PosHomePageState extends State<PosHomePage> {
                             children: [
                               Text(
                                 '  $qty x ${_formatRp(price)}',
-                                style: const TextStyle(fontSize: 11, fontFamily: 'monospace'),
+                                style: const TextStyle(fontSize: 11, fontFamily: 'Courier', letterSpacing: 0.3),
                               ),
                               Text(
                                 _formatRp(itemSubtotal),
-                                style: const TextStyle(fontSize: 11, fontFamily: 'monospace'),
+                                style: const TextStyle(fontSize: 11, fontFamily: 'Courier', letterSpacing: 0.3),
                               ),
                             ],
                           ),
@@ -583,46 +583,46 @@ class _PosHomePageState extends State<PosHomePage> {
                             final String topName = top is String ? top : (top['topping_name'] ?? '');
                             return Text(
                               '   + $topName',
-                              style: TextStyle(fontSize: 10, fontFamily: 'monospace', color: Colors.grey.shade700),
+                              style: TextStyle(fontSize: 10, fontFamily: 'Courier', color: Colors.grey.shade700, letterSpacing: 0.3),
                             );
                           }).toList(),
                         ],
                       ),
                     );
                   }).toList(),
-                  const Text('------------------------------------', style: TextStyle(fontFamily: 'monospace', color: Colors.grey)),
+                  const Text('------------------------------------', style: TextStyle(fontFamily: 'Courier', color: Colors.grey, letterSpacing: 0.3)),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Text('TOTAL', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, fontFamily: 'monospace')),
-                      Text(_formatRp(subtotal), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, fontFamily: 'monospace', color: Colors.green)),
+                      const Text('TOTAL', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, fontFamily: 'Courier', letterSpacing: 0.3)),
+                      Text(_formatRp(subtotal), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, fontFamily: 'Courier', color: Colors.green, letterSpacing: 0.3)),
                     ],
                   ),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Text('Metode', style: TextStyle(fontSize: 11, fontFamily: 'monospace')),
-                      Text(paymentMethod.toLowerCase() == 'cash' ? 'CASH' : 'QRIS', style: const TextStyle(fontSize: 11, fontFamily: 'monospace')),
+                      const Text('Metode', style: TextStyle(fontSize: 11, fontFamily: 'Courier', letterSpacing: 0.3)),
+                      Text(paymentMethod.toLowerCase() == 'cash' ? 'CASH' : 'QRIS', style: const TextStyle(fontSize: 11, fontFamily: 'Courier', letterSpacing: 0.3)),
                     ],
                   ),
                   if (paymentMethod.toLowerCase() == 'cash' && amountPaid > 0) ...[
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const Text('Tunai', style: TextStyle(fontSize: 11, fontFamily: 'monospace')),
-                        Text(_formatRp(amountPaid), style: const TextStyle(fontSize: 11, fontFamily: 'monospace')),
+                        const Text('Tunai', style: TextStyle(fontSize: 11, fontFamily: 'Courier', letterSpacing: 0.3)),
+                        Text(_formatRp(amountPaid), style: const TextStyle(fontSize: 11, fontFamily: 'Courier', letterSpacing: 0.3)),
                       ],
                     ),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const Text('Kembalian', style: TextStyle(fontSize: 11, fontFamily: 'monospace')),
-                        Text(_formatRp(change), style: const TextStyle(fontSize: 11, fontFamily: 'monospace')),
+                        const Text('Kembalian', style: TextStyle(fontSize: 11, fontFamily: 'Courier', letterSpacing: 0.3)),
+                        Text(_formatRp(change), style: const TextStyle(fontSize: 11, fontFamily: 'Courier', letterSpacing: 0.3)),
                       ],
                     ),
                   ],
                   const SizedBox(height: 12),
-                  const Text('Terima Kasih atas Kunjungan Anda!', style: TextStyle(fontSize: 10, fontFamily: 'monospace', fontStyle: FontStyle.italic)),
+                  const Text('Terima Kasih atas Kunjungan Anda!', style: TextStyle(fontSize: 10, fontFamily: 'Courier', fontStyle: FontStyle.italic, letterSpacing: 0.3)),
                 ],
               ),
             ),

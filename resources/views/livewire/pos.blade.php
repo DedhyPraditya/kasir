@@ -101,8 +101,11 @@
             }
         }
         
+        @import url('https://fonts.googleapis.com/css2?family=Courier+Prime:ital,wght@0,400;0,700;1,400;1,700&display=swap');
+
         .struk-font {
-            font-family: 'Courier New', Courier, monospace;
+            font-family: 'Courier Prime', 'Consolas', 'Courier New', Courier, monospace !important;
+            letter-spacing: 0.3px;
         }
     </style>
 
