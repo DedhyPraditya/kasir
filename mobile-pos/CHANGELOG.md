@@ -1,8 +1,15 @@
-﻿# Changelog - Mobile POS Nyemil Bebs
+# Changelog - Mobile POS Nyemil Bebs
 
 Semua perubahan pada aplikasi Mobile POS dicatat di file ini.
 
-## [1.1.0] - 2026-08-04
+## [Unreleased / Planned v1.2.0] - Rencana Pembaruan Mendatang
+
+### 🍰 Pilihan Topping Berdasarkan Kategori (Makanan vs Minuman)
+- **Opsi Topping per Kategori**: Menambahkan pengatur `allow_topping` (Izinkan Topping) pada Kategori/Produk di Dashboard Admin.
+- **Kategori Makanan (Food)**: Opsi topping aktif & ditampilkan di modal kasir web & mobile.
+- **Kategori Minuman (Drink)**: Opsi topping disembunyikan secara otomatis pada tampilan kasir Web POS & Mobile POS.
+
+## [1.1.1] - 2026-08-04
 
 ### 🎨 Tampilan & Branding (UI/UX)
 - **Icon Aplikasi Baru**: Mengganti icon bawaan Flutter dengan logo resmi Nyemil Bebs (lengkap dengan adaptive icon Android).

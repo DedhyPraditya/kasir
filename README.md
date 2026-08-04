@@ -130,7 +130,11 @@ Aplikasi POS (Kasir) & Manajemen Toko modern berbasis web yang dirancang khusus 
 
 ## 📋 Changelog
 
-### [1.1.0] — 2026-08-04 (Mobile POS Update)
+### [Unreleased / Planned v1.2.0] — Rencana Pembaruan Mendatang
+- **[Planned] Opsi Topping Berdasarkan Kategori (Makanan vs Minuman):**
+  Opsi saklar `allow_topping` pada Kategori / Produk di Dashboard Admin. Kategori Makanan menampilkan opsi topping, sedangkan Kategori Minuman menyembunyikan opsi topping secara otomatis di tampilan kasir Web & Mobile POS.
+
+### [1.1.1] — 2026-08-04 (Mobile POS Update)
 - **[Feature] Icon Aplikasi Logo Nyemil Bebs:** App icon Flutter resmi menggunakan logo Nyemil Bebs (lengkap dengan adaptive icon Android).
 - **[Feature] Halaman Penuh Riwayat Transaksi (`HistoryPage`):** Tampilan riwayat berdiri sendiri dengan Card ringkas, badge metode pembayaran (CASH/QRIS), dan filter transaksi khusus hari ini.
 - **[Feature] Print Ulang & Share Struk (JPG):** Tombol aksi per transaksi untuk cetak ulang ke printer Bluetooth atau share gambar struk fisik ke WhatsApp/media lain.
