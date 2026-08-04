@@ -573,7 +573,7 @@ class _PosHomePageState extends State<PosHomePage> {
     return 0.0;
   }
 
-  Future<void> _printReceiptCustom({
+  Future<void> _showReceiptPreviewDialog({
     required String invoiceNumber,
     required String customerName,
     required String paymentMethod,
@@ -583,6 +583,172 @@ class _PosHomePageState extends State<PosHomePage> {
     required String createdAt,
     required List<Map<String, dynamic>> items,
   }) async {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          title: Row(
+            children: const [
+              Icon(Icons.receipt_long, color: Colors.green),
+              SizedBox(width: 8),
+              Text('Preview Struk Belanja'),
+            ],
+          ),
+          content: SingleChildScrollView(
+            child: Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.grey.shade50,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: Colors.grey.shade300),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Text(
+                    'NYEMIL BEBS',
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, fontFamily: 'monospace'),
+                  ),
+                  const Text(
+                    'Purnama Town House Blok H/1',
+                    style: TextStyle(fontSize: 11, fontFamily: 'monospace'),
+                  ),
+                  const Text(
+                    'Telp: +62 823-9943-0312',
+                    style: TextStyle(fontSize: 11, fontFamily: 'monospace'),
+                  ),
+                  const SizedBox(height: 8),
+                  const Text('------------------------------------', style: TextStyle(fontFamily: 'monospace', color: Colors.grey)),
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('No: $invoiceNumber', style: const TextStyle(fontSize: 11, fontFamily: 'monospace')),
+                        Text('Tgl: $createdAt', style: const TextStyle(fontSize: 11, fontFamily: 'monospace')),
+                        Text('Kasir: ${widget.kasirName}', style: const TextStyle(fontSize: 11, fontFamily: 'monospace')),
+                        Text('Pelanggan: ${customerName.isEmpty ? 'Umum' : customerName}', style: const TextStyle(fontSize: 11, fontFamily: 'monospace')),
+                      ],
+                    ),
+                  ),
+                  const Text('------------------------------------', style: TextStyle(fontFamily: 'monospace', color: Colors.grey)),
+                  ...items.map((item) {
+                    final String name = item['name'] ?? '';
+                    final int qty = (item['quantity'] as num?)?.toInt() ?? 1;
+                    final double price = (item['price'] as num?)?.toDouble() ?? 0;
+                    final double itemSubtotal = (item['subtotal'] as num?)?.toDouble() ?? (qty * price);
+                    final List toppings = item['toppings'] ?? [];
+
+                    return Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 2),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  name,
+                                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12, fontFamily: 'monospace'),
+                                ),
+                              ),
+                            ],
+                          ),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                '  $qty x ${_formatRp(price)}',
+                                style: const TextStyle(fontSize: 11, fontFamily: 'monospace'),
+                              ),
+                              Text(
+                                _formatRp(itemSubtotal),
+                                style: const TextStyle(fontSize: 11, fontFamily: 'monospace'),
+                              ),
+                            ],
+                          ),
+                          ...toppings.map((top) {
+                            final String topName = top is String ? top : (top['topping_name'] ?? '');
+                            return Text(
+                              '   + $topName',
+                              style: TextStyle(fontSize: 10, fontFamily: 'monospace', color: Colors.grey.shade700),
+                            );
+                          }).toList(),
+                        ],
+                      ),
+                    );
+                  }).toList(),
+                  const Text('------------------------------------', style: TextStyle(fontFamily: 'monospace', color: Colors.grey)),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text('TOTAL', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, fontFamily: 'monospace')),
+                      Text(_formatRp(subtotal), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, fontFamily: 'monospace', color: Colors.green)),
+                    ],
+                  ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text('Metode', style: TextStyle(fontSize: 11, fontFamily: 'monospace')),
+                      Text(paymentMethod.toLowerCase() == 'cash' ? 'CASH' : 'QRIS', style: const TextStyle(fontSize: 11, fontFamily: 'monospace')),
+                    ],
+                  ),
+                  if (paymentMethod.toLowerCase() == 'cash' && amountPaid > 0) ...[
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text('Tunai', style: TextStyle(fontSize: 11, fontFamily: 'monospace')),
+                        Text(_formatRp(amountPaid), style: const TextStyle(fontSize: 11, fontFamily: 'monospace')),
+                      ],
+                    ),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text('Kembalian', style: TextStyle(fontSize: 11, fontFamily: 'monospace')),
+                        Text(_formatRp(change), style: const TextStyle(fontSize: 11, fontFamily: 'monospace')),
+                      ],
+                    ),
+                  ],
+                  const SizedBox(height: 12),
+                  const Text('Terima Kasih atas Kunjungan Anda!', style: TextStyle(fontSize: 10, fontFamily: 'monospace', fontStyle: FontStyle.italic)),
+                ],
+              ),
+            ),
+          ),
+          actions: [
+            OutlinedButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('Batal / Tutup'),
+            ),
+            ElevatedButton.icon(
+              icon: const Icon(Icons.print),
+              label: const Text('Cetak Ke Printer'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.green,
+                foregroundColor: Colors.white,
+              ),
+              onPressed: () async {
+                Navigator.of(context).pop();
+                await _printReceiptCustom(
+                  invoiceNumber: invoiceNumber,
+                  customerName: customerName,
+                  paymentMethod: paymentMethod,
+                  subtotal: subtotal,
+                  amountPaid: amountPaid,
+                  change: change,
+                  createdAt: createdAt,
+                  items: items,
+                );
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
     if (!_connected) {
       _showMessage('Printer belum terhubung. Silakan sambungkan di Pengaturan Printer.', type: SnackBarType.warning);
       return;
@@ -739,7 +905,7 @@ class _PosHomePageState extends State<PosHomePage> {
                             };
                           }).toList();
 
-                          await _printReceiptCustom(
+                          await _showReceiptPreviewDialog(
                             invoiceNumber: invoice,
                             customerName: customer.toString(),
                             paymentMethod: method.toString(),
@@ -1051,7 +1217,7 @@ class _PosHomePageState extends State<PosHomePage> {
               ),
               onPressed: () async {
                 Navigator.of(context).pop();
-                await _printReceiptCustom(
+                await _showReceiptPreviewDialog(
                   invoiceNumber: invoiceNumber,
                   customerName: currentCustomer,
                   paymentMethod: currentPayment,
