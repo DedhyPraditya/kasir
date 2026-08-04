@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 
 namespace App\Http\Controllers\Api;
 
@@ -7,9 +7,6 @@ use Illuminate\Http\JsonResponse;
 
 class AppVersionController extends Controller
 {
-    /**
-     * Memeriksa versi terbaru aplikasi Mobile POS
-     */
     public function check(): JsonResponse
     {
         return response()->json([
@@ -21,9 +18,6 @@ class AppVersionController extends Controller
         ]);
     }
 
-    /**
-     * Mengunduh file APK terbaru
-     */
     public function download()
     {
         $path = storage_path('app/public/mobile-pos-latest.apk');
@@ -31,7 +25,7 @@ class AppVersionController extends Controller
             return response()->download($path, 'nyemilbebs-pos-latest.apk');
         }
         return response()->json([
-            'message' => 'File APK belum diunggah ke server (storage/app/public/mobile-pos-latest.apk).'
+            'message' => 'File APK belum tersedia di server.'
         ], 404);
     }
 }
