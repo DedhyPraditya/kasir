@@ -75,8 +75,8 @@ class OrderSyncController extends Controller
     public function history(): JsonResponse
     {
         $orders = Order::with(['items.toppings'])
+            ->whereDate('created_at', today())
             ->latest()
-            ->take(50)
             ->get()
             ->map(function (Order $order) {
                 return [

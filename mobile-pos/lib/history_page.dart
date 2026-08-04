@@ -215,7 +215,7 @@ class _HistoryPageState extends State<HistoryPage> {
     return Scaffold(
       backgroundColor: Colors.grey.shade100,
       appBar: AppBar(
-        title: const Text('Riwayat Transaksi'),
+        title: const Text('Riwayat Hari Ini'),
         backgroundColor: Colors.green,
         foregroundColor: Colors.white,
         leading: const BackButton(),
@@ -253,7 +253,7 @@ class _HistoryPageState extends State<HistoryPage> {
             return const Center(child: Column(mainAxisSize: MainAxisSize.min, children: [
               Icon(Icons.receipt_long, size: 64, color: Colors.grey),
               SizedBox(height: 12),
-              Text('Belum ada riwayat transaksi.', style: TextStyle(color: Colors.grey)),
+              Text('Belum ada transaksi hari ini.', style: TextStyle(color: Colors.grey)),
             ]));
           }
 
