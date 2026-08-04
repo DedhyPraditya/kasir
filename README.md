@@ -158,4 +158,4 @@ Aplikasi POS (Kasir) & Manajemen Toko modern berbasis web yang dirancang khusus 
 
 ---
 
-*Dibuat untuk kebutuhan operasional kasir dan pencatatan keuangan toko Nyemil Bebs.*
+*Dibuat untuk kebutuhan operasional kasir dan pencatatan keuangan toko.*
