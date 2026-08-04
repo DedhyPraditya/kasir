@@ -401,7 +401,24 @@
                             @if ($image)
                                 <div class="mt-2">
                                     <span class="small text-muted d-block mb-1">Preview Foto Baru:</span>
-                                    <img src="{{ $image->temporaryUrl() }}" class="img-thumbnail rounded" style="max-height: 100px;">
+                                    @php
+                                        $previewUrl = null;
+                                        try {
+                                            $previewUrl = $image->temporaryUrl();
+                                        } catch (\Throwable $e) {
+                                            $previewUrl = null;
+                                        }
+                                    @endphp
+                                    @if($previewUrl)
+                                        <img src="{{ $previewUrl }}" class="img-thumbnail rounded" style="max-height: 100px;" onerror="this.style.display='none'; if(this.nextElementSibling) this.nextElementSibling.style.display='block';">
+                                        <div class="alert alert-success py-1 px-2 small mb-0 mt-1" style="display: none;">
+                                            <i class="bi bi-check-circle me-1"></i> Foto berhasil terpilih & siap disimpan!
+                                        </div>
+                                    @else
+                                        <div class="alert alert-success py-1 px-2 small mb-0">
+                                            <i class="bi bi-check-circle me-1"></i> Foto berhasil terpilih & siap disimpan!
+                                        </div>
+                                    @endif
                                 </div>
                             @elseif ($old_image)
                                 <div class="mt-2">
