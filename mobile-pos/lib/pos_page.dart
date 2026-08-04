@@ -1381,6 +1381,28 @@ class _PosHomePageState extends State<PosHomePage> {
       appBar: AppBar(
         title: const Text('NYEMIL BEBS'),
         actions: [
+          // Indikator status printer
+          Tooltip(
+            message: _connected ? 'Printer terhubung' : 'Printer belum terhubung',
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 18, horizontal: 4),
+              child: Container(
+                width: 12,
+                height: 12,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: _connected ? Colors.greenAccent : Colors.orangeAccent,
+                  boxShadow: [
+                    BoxShadow(
+                      color: (_connected ? Colors.green : Colors.orange).withAlpha(160),
+                      blurRadius: 6,
+                      spreadRadius: 1,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
           IconButton(
             icon: const Icon(Icons.logout),
             tooltip: 'Keluar',
@@ -1395,22 +1417,22 @@ class _PosHomePageState extends State<PosHomePage> {
           mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: [
             _buildBottomNavItem(
-              icon: _connected ? Icons.print : Icons.print_disabled,
-              label: _connected ? 'Printer Terhubung' : 'Printer Terputus',
-              color: _connected ? Colors.green : Colors.orange,
-              onTap: _openPrinterSettings,
-            ),
-            _buildBottomNavItem(
-              icon: Icons.settings,
-              label: 'Printer',
-              color: Colors.blueGrey,
-              onTap: _openPrinterSettings,
+              icon: Icons.home_rounded,
+              label: 'Home',
+              color: Colors.green,
+              onTap: () {},
             ),
             _buildBottomNavItem(
               icon: Icons.history,
               label: 'Riwayat',
-              color: Colors.green,
+              color: Colors.blueGrey,
               onTap: _showHistoryDialog,
+            ),
+            _buildBottomNavItem(
+              icon: Icons.settings,
+              label: 'Setting',
+              color: Colors.blueGrey,
+              onTap: _openPrinterSettings,
             ),
           ],
         ),
@@ -1419,26 +1441,7 @@ class _PosHomePageState extends State<PosHomePage> {
         padding: const EdgeInsets.all(16),
         child: Column(
           children: [
-            if (!_connected)
-              Card(
-                color: Colors.orange.shade50,
-                margin: const EdgeInsets.only(bottom: 16),
-                child: ListTile(
-                  leading: Icon(
-                    Icons.warning_amber_rounded,
-                    color: Colors.orange.shade800,
-                  ),
-                  title: const Text('Printer belum terhubung'),
-                  subtitle: const Text(
-                    'Silakan buka Pengaturan Printer lalu sambungkan printer sekarang.',
-                  ),
-                  trailing: TextButton(
-                    onPressed: _openPrinterSettings,
-                    child: const Text('Setting'),
-                  ),
-                ),
-              ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 8),
             Expanded(
               child: LayoutBuilder(
                 builder: (context, constraints) {
