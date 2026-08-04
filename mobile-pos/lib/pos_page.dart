@@ -566,6 +566,201 @@ class _PosHomePageState extends State<PosHomePage> {
     }
   }
 
+  Future<void> _printReceiptCustom({
+    required String invoiceNumber,
+    required String customerName,
+    required String paymentMethod,
+    required double subtotal,
+    required double amountPaid,
+    required double change,
+    required String createdAt,
+    required List<Map<String, dynamic>> items,
+  }) async {
+    if (!_connected) {
+      _showMessage('Printer belum terhubung. Silakan sambungkan di Pengaturan Printer.', type: SnackBarType.warning);
+      return;
+    }
+
+    try {
+      // Header toko
+      await _printer.printCustom('NYEMIL BEBS', 3, 1);
+      await _printer.printCustom('Purnama Town House Blok H/1', 1, 1);
+      await _printer.printCustom('Telp: +62 823-9943-0312', 1, 1);
+      await _printer.printNewLine();
+
+      // Info transaksi
+      await _printer.printCustom('No: $invoiceNumber', 1, 0);
+      await _printer.printCustom('Tgl: $createdAt', 1, 0);
+      await _printer.printCustom('Kasir: ${widget.kasirName}', 1, 0);
+      await _printer.printCustom('Pelanggan: ${customerName.isEmpty ? 'Umum' : customerName}', 1, 0);
+      await _printer.printNewLine();
+
+      // Daftar item
+      for (final item in items) {
+        final String label = item['name'] ?? 'Produk';
+        await _printer.printCustom(label, 1, 0);
+
+        final int qty = (item['quantity'] as num?)?.toInt() ?? 1;
+        final double price = (item['price'] as num?)?.toDouble() ?? 0;
+        final double itemSubtotal = (item['subtotal'] as num?)?.toDouble() ?? (qty * price);
+
+        await _printer.printLeftRight(
+          '$qty x ${price.toStringAsFixed(0)}',
+          itemSubtotal.toStringAsFixed(0),
+          0,
+        );
+
+        final List<dynamic> toppings = item['toppings'] ?? [];
+        for (final top in toppings) {
+          final String topName = top is String ? top : (top['topping_name'] as String? ?? '');
+          if (topName.isNotEmpty) {
+            await _printer.printCustom('+ $topName', 1, 0);
+          }
+        }
+      }
+
+      await _printer.printCustom('--------------------------', 1, 1);
+
+      // Total & pembayaran
+      await _printer.printLeftRight('TOTAL', _formatRp(subtotal), 1);
+      await _printer.printLeftRight('Metode', paymentMethod.toLowerCase() == 'cash' ? 'CASH' : 'QRIS', 0);
+
+      if (paymentMethod.toLowerCase() == 'cash' && amountPaid > 0) {
+        await _printer.printLeftRight('Tunai', _formatRp(amountPaid), 0);
+        await _printer.printLeftRight('Kembalian', _formatRp(change), 0);
+      }
+
+      await _printer.printNewLine();
+      await _printer.printCustom('Terima Kasih atas Kunjungan Anda!', 1, 1);
+      await _printer.printCustom('~ Nyemil Bebs ~', 1, 1);
+      await _printer.printNewLine();
+      await _printer.printNewLine();
+      await _printer.paperCut();
+      _showMessage('Struk berhasil dicetak.', type: SnackBarType.success);
+    } catch (error) {
+      _showMessage('Gagal mencetak struk: $error', type: SnackBarType.error);
+    }
+  }
+
+  Future<void> _showHistoryDialog() async {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          title: Row(
+            children: const [
+              Icon(Icons.history, color: Colors.green),
+              SizedBox(width: 8),
+              Text('Riwayat Transaksi'),
+            ],
+          ),
+          content: SizedBox(
+            width: double.maxFinite,
+            height: 400,
+            child: FutureBuilder<http.Response>(
+              future: http.get(
+                Uri.parse('$backendUrl/orders'),
+                headers: _apiHeaders,
+              ),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+                if (snapshot.hasError || snapshot.data?.statusCode != 200) {
+                  return const Center(child: Text('Gagal memuat riwayat transaksi.'));
+                }
+
+                final data = jsonDecode(snapshot.data!.body);
+                final List ordersJson = data['data'] ?? [];
+
+                if (ordersJson.isEmpty) {
+                  return const Center(child: Text('Belum ada riwayat transaksi.'));
+                }
+
+                return ListView.separated(
+                  itemCount: ordersJson.length,
+                  separatorBuilder: (context, index) => const Divider(),
+                  itemBuilder: (context, index) {
+                    final order = ordersJson[index];
+                    final invoice = order['invoice_number'] ?? '';
+                    final customer = order['customer_name'] ?? 'Umum';
+                    final total = (order['total'] as num?)?.toDouble() ?? 0;
+                    final method = order['payment_method'] ?? 'cash';
+                    final rawDate = order['created_at'] ?? '';
+                    String formattedDate = rawDate;
+                    try {
+                      final dt = DateTime.parse(rawDate);
+                      formattedDate = '${dt.day.toString().padLeft(2, '0')}/${dt.month.toString().padLeft(2, '0')}/${dt.year} ${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}';
+                    } catch (_) {}
+
+                    final List items = order['items'] ?? [];
+
+                    return ListTile(
+                      contentPadding: EdgeInsets.zero,
+                      title: Text(
+                        '$invoice (${customer.isEmpty ? 'Umum' : customer})',
+                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                      ),
+                      subtitle: Text(
+                        '${_formatRp(total)} • ${method.toUpperCase()} • $formattedDate',
+                        style: const TextStyle(fontSize: 12),
+                      ),
+                      trailing: ElevatedButton.icon(
+                        icon: const Icon(Icons.print, size: 16),
+                        label: const Text('Cetak Ulang', style: TextStyle(fontSize: 11)),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.green,
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        ),
+                        onPressed: () async {
+                          final formattedItems = items.map<Map<String, dynamic>>((i) {
+                            final pName = i['product_name'] ?? 'Produk';
+                            final vName = i['variant_name'];
+                            final fullName = (vName != null && vName.toString().isNotEmpty)
+                                ? '$pName - $vName'
+                                : pName;
+
+                            final List toppings = i['toppings'] ?? [];
+                            return {
+                              'name': fullName,
+                              'quantity': i['quantity'] ?? 1,
+                              'price': (i['price'] as num?)?.toDouble() ?? 0,
+                              'subtotal': (i['subtotal'] as num?)?.toDouble() ?? 0,
+                              'toppings': toppings,
+                            };
+                          }).toList();
+
+                          await _printReceiptCustom(
+                            invoiceNumber: invoice,
+                            customerName: customer,
+                            paymentMethod: method,
+                            subtotal: total,
+                            amountPaid: total,
+                            change: 0,
+                            createdAt: formattedDate,
+                            items: formattedItems,
+                          );
+                        },
+                      ),
+                    );
+                  },
+                );
+              },
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('Tutup'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   bool _areToppingsEqual(List<Topping> a, List<Topping> b) {
     if (a.length != b.length) return false;
     final aIds = a.map((t) => t.id).toSet();
@@ -771,9 +966,31 @@ class _PosHomePageState extends State<PosHomePage> {
     final invoiceNumber = _generateInvoiceNumber();
     await _syncOrder(invoiceNumber);
 
-    if (_connected) {
-      await _printReceipt(invoiceNumber);
-    }
+    final now = DateTime.now();
+    final tanggalStr = '${now.day.toString().padLeft(2, '0')}/${now.month.toString().padLeft(2, '0')}/${now.year} ${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}';
+
+    final currentCart = List<CartItem>.from(_cart);
+    final currentCustomer = _customerName;
+    final currentPayment = _paymentMethod;
+    final currentAmountPaidStr = _amountPaid;
+    final currentSubtotal = _subtotal;
+    final amountPaidVal = (int.tryParse(currentAmountPaidStr) ?? 0).toDouble();
+    final changeVal = amountPaidVal > currentSubtotal ? amountPaidVal - currentSubtotal : 0.0;
+
+    final formattedItems = currentCart.map<Map<String, dynamic>>((item) {
+      final label = item.variant != null
+          ? '${item.product.name} - ${item.variant!.name}'
+          : item.product.name;
+
+      final baseUnitPrice = (item.variant?.price ?? item.product.price);
+      return {
+        'name': label,
+        'quantity': item.quantity,
+        'price': baseUnitPrice,
+        'subtotal': item.subtotal,
+        'toppings': item.toppings.map((t) => {'topping_name': t.name, 'price': t.price}).toList(),
+      };
+    }).toList();
 
     setState(() {
       _cart.clear();
@@ -781,6 +998,68 @@ class _PosHomePageState extends State<PosHomePage> {
       _paymentMethod = 'cash';
       _amountPaid = '';
     });
+
+    if (!mounted) return;
+
+    await showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          title: Row(
+            children: const [
+              Icon(Icons.check_circle, color: Colors.green, size: 28),
+              SizedBox(width: 8),
+              Text('Transaksi Berhasil'),
+            ],
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('No. Invoice: $invoiceNumber', style: const TextStyle(fontWeight: FontWeight.bold)),
+              const SizedBox(height: 6),
+              Text('Total: ${_formatRp(currentSubtotal)}', style: const TextStyle(color: Colors.green, fontWeight: FontWeight.bold, fontSize: 16)),
+              Text('Metode: ${currentPayment == 'cash' ? 'Tunai' : 'QRIS'}'),
+              if (currentPayment == 'cash') ...[
+                Text('Uang Diterima: ${_formatRp(amountPaidVal)}'),
+                Text('Kembalian: ${_formatRp(changeVal)}', style: const TextStyle(fontWeight: FontWeight.bold)),
+              ],
+              const Divider(height: 24),
+              const Text('Apakah Anda ingin mencetak struk belanja?', style: TextStyle(fontWeight: FontWeight.w500)),
+            ],
+          ),
+          actions: [
+            OutlinedButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('Tanpa Cetak'),
+            ),
+            ElevatedButton.icon(
+              icon: const Icon(Icons.print),
+              label: const Text('Cetak Struk'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.green,
+                foregroundColor: Colors.white,
+              ),
+              onPressed: () async {
+                Navigator.of(context).pop();
+                await _printReceiptCustom(
+                  invoiceNumber: invoiceNumber,
+                  customerName: currentCustomer,
+                  paymentMethod: currentPayment,
+                  subtotal: currentSubtotal,
+                  amountPaid: amountPaidVal,
+                  change: changeVal,
+                  createdAt: tanggalStr,
+                  items: formattedItems,
+                );
+              },
+            ),
+          ],
+        );
+      },
+    );
   }
 
   String _generateInvoiceNumber() {
@@ -958,6 +1237,11 @@ class _PosHomePageState extends State<PosHomePage> {
       appBar: AppBar(
         title: const Text('NYEMIL BEBS POS'),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.history),
+            tooltip: 'Riwayat Transaksi',
+            onPressed: _showHistoryDialog,
+          ),
           IconButton(
             icon: const Icon(Icons.settings),
             tooltip: 'Pengaturan printer',

@@ -71,4 +71,16 @@ class OrderSyncController extends Controller
             'invoice_number' => $order->invoice_number,
         ], 201);
     }
+
+    public function history(): JsonResponse
+    {
+        $orders = Order::with(['items.toppings'])
+            ->latest()
+            ->take(50)
+            ->get();
+
+        return response()->json([
+            'data' => $orders,
+        ]);
+    }
 }
