@@ -87,7 +87,7 @@ class OrderSyncController extends Controller
                     'total' => (float) $order->total,
                     'payment_method' => $order->payment_method,
                     'status' => $order->status,
-                    'created_at' => $order->created_at ? $order->created_at->toIso8601String() : '',
+                    'created_at' => $order->created_at ? $order->created_at->format('Y-m-d H:i:s') : '',
                     'items' => $order->items->map(function ($item) {
                         return [
                             'id' => $item->id,
