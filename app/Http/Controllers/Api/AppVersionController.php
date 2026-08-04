@@ -22,7 +22,11 @@ class AppVersionController extends Controller
     {
         $path = storage_path('app/public/mobile-pos-latest.apk');
         if (file_exists($path)) {
-            return response()->download($path, 'nyemilbebs-pos-latest.apk');
+            return response()->download(
+                $path,
+                'nyemilbebs-pos-latest.apk',
+                ['Content-Type' => 'application/vnd.android.package-archive']
+            );
         }
         return response()->json([
             'message' => 'File APK belum tersedia di server.'
