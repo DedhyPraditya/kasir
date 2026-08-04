@@ -130,6 +130,15 @@ Aplikasi POS (Kasir) & Manajemen Toko modern berbasis web yang dirancang khusus 
 
 ## 📋 Changelog
 
+### [1.1.0] — 2026-08-04 (Mobile POS Update)
+- **[Feature] Icon Aplikasi Logo Nyemil Bebs:** App icon Flutter resmi menggunakan logo Nyemil Bebs (lengkap dengan adaptive icon Android).
+- **[Feature] Halaman Penuh Riwayat Transaksi (`HistoryPage`):** Tampilan riwayat berdiri sendiri dengan Card ringkas, badge metode pembayaran (CASH/QRIS), dan filter transaksi khusus hari ini.
+- **[Feature] Print Ulang & Share Struk (JPG):** Tombol aksi per transaksi untuk cetak ulang ke printer Bluetooth atau share gambar struk fisik ke WhatsApp/media lain.
+- **[Feature] Preview Struk Thermal Presisi 100%:** Preview struk baris-per-baris (Courier, 32 kolom) yang presisi dan identik dengan hasil cetakan printer 58mm.
+- **[Feature] In-App Auto Update & Direct APK Download:** Pengecekan versi aplikasi otomatis dari server VPS dan link download langsung `/download-apk`.
+- **[Feature] Presisi Multi-Timezone (WIB/WITA/WIT):** Menyesuaikan jam transaksi secara otomatis dengan waktu lokal smartphone pengguna tanpa pergeseran offset ganda.
+- **[UI/UX] Bottom Navigation Bar & Indikator Printer:** Menata ulang navigasi ke bagian bawah (Home, Riwayat, Setting) dan indikator status printer (🟢 Hijau / 🟠 Oranye) di AppBar.
+
 ### [2026-07-31] — Session Update
 - **[Fix] Filter status produk di kasir web & mobile:**
   Halaman kasir (POS) web kini hanya menampilkan produk, varian rasa, dan topping yang berstatus **Aktif** (`is_active = true`). Produk/varian/topping yang dinonaktifkan otomatis tersembunyi dari tampilan kasir tanpa perlu dihapus dari database.
