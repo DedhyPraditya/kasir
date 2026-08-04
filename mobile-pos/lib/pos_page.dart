@@ -5,6 +5,7 @@ import 'package:blue_thermal_printer/blue_thermal_printer.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'login_page.dart';
+import 'history_page.dart';
 
 import 'package:permission_handler/permission_handler.dart';
 
@@ -758,121 +759,14 @@ class _PosHomePageState extends State<PosHomePage> {
   }
 
   Future<void> _showHistoryDialog() async {
-    showDialog(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-          title: Row(
-            children: const [
-              Icon(Icons.history, color: Colors.green),
-              SizedBox(width: 8),
-              Text('Riwayat Transaksi'),
-            ],
-          ),
-          content: SizedBox(
-            width: double.maxFinite,
-            height: 400,
-            child: FutureBuilder<http.Response>(
-              future: http.get(
-                Uri.parse('$backendUrl/orders'),
-                headers: _apiHeaders,
-              ),
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(child: CircularProgressIndicator());
-                }
-                if (snapshot.hasError || snapshot.data?.statusCode != 200) {
-                  return const Center(child: Text('Gagal memuat riwayat transaksi.'));
-                }
-
-                final data = jsonDecode(snapshot.data!.body);
-                final List ordersJson = data['data'] ?? [];
-
-                if (ordersJson.isEmpty) {
-                  return const Center(child: Text('Belum ada riwayat transaksi.'));
-                }
-
-                return ListView.separated(
-                  itemCount: ordersJson.length,
-                  separatorBuilder: (context, index) => const Divider(),
-                  itemBuilder: (context, index) {
-                    final order = ordersJson[index];
-                    final invoice = order['invoice_number'] ?? '';
-                    final customer = order['customer_name'] ?? 'Umum';
-                    final total = _parseDouble(order['total']);
-                    final method = order['payment_method'] ?? 'cash';
-                    final rawDate = order['created_at'] ?? '';
-                    String formattedDate = rawDate;
-                    try {
-                      final dt = DateTime.parse(rawDate);
-                      formattedDate = '${dt.day.toString().padLeft(2, '0')}/${dt.month.toString().padLeft(2, '0')}/${dt.year} ${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}';
-                    } catch (_) {}
-
-                    final List items = order['items'] ?? [];
-
-                    return ListTile(
-                      contentPadding: EdgeInsets.zero,
-                      title: Text(
-                        '$invoice (${customer.toString().isEmpty ? 'Umum' : customer})',
-                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
-                      ),
-                      subtitle: Text(
-                        '${_formatRp(total)} • ${method.toString().toUpperCase()} • $formattedDate',
-                        style: const TextStyle(fontSize: 12),
-                      ),
-                      trailing: ElevatedButton.icon(
-                        icon: const Icon(Icons.print, size: 16),
-                        label: const Text('Cetak Ulang', style: TextStyle(fontSize: 11)),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.green,
-                          foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                        ),
-                        onPressed: () async {
-                          final formattedItems = items.map<Map<String, dynamic>>((i) {
-                            final pName = i['product_name'] ?? 'Produk';
-                            final vName = i['variant_name'];
-                            final fullName = (vName != null && vName.toString().isNotEmpty)
-                                ? '$pName - $vName'
-                                : pName;
-
-                            final List toppings = i['toppings'] ?? [];
-                            return {
-                              'name': fullName,
-                              'quantity': (i['quantity'] is num) ? (i['quantity'] as num).toInt() : (int.tryParse(i['quantity']?.toString() ?? '1') ?? 1),
-                              'price': _parseDouble(i['price']),
-                              'subtotal': _parseDouble(i['subtotal']),
-                              'toppings': toppings,
-                            };
-                          }).toList();
-
-                          await _showReceiptPreviewDialog(
-                            invoiceNumber: invoice,
-                            customerName: customer.toString(),
-                            paymentMethod: method.toString(),
-                            subtotal: total,
-                            amountPaid: total,
-                            change: 0,
-                            createdAt: formattedDate,
-                            items: formattedItems,
-                          );
-                        },
-                      ),
-                    );
-                  },
-                );
-              },
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: const Text('Tutup'),
-            ),
-          ],
-        );
-      },
+    await Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => HistoryPage(
+          apiHeaders: _apiHeaders,
+          printer: _printer,
+          kasirName: widget.kasirName,
+        ),
+      ),
     );
   }
 
