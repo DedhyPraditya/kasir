@@ -8,11 +8,12 @@ use App\Models\Topping;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Livewire\Component;
+use Livewire\WithFileUploads;
 use Livewire\WithPagination;
 
 class Produk extends Component
 {
-    use WithPagination;
+    use WithPagination, WithFileUploads;
 
     protected $paginationTheme = 'bootstrap';
 
@@ -34,6 +35,8 @@ class Produk extends Component
     public $category_id;
     public $base_price;
     public $description;
+    public $image;
+    public $old_image;
     public $is_active = true;
     public $variants = []; // Array of flavor variants
 
@@ -57,6 +60,7 @@ class Produk extends Component
         'base_price'  => 'required|numeric|min:0',
         'description' => 'nullable|string',
         'is_active'   => 'boolean',
+        'image'       => 'nullable|image|max:2048',
     ];
 
     public function switchTab($tab)
@@ -99,9 +103,8 @@ class Produk extends Component
 
     public function editCategory($id)
     {
-        $this->resetFormCategory();
+        $this->categoryId = $id;
         $category = Category::findOrFail($id);
-        $this->categoryId = $category->id;
         $this->categoryName = $category->name;
 
         $this->isEditCategory = true;
@@ -111,28 +114,23 @@ class Produk extends Component
     public function saveCategory()
     {
         $this->validate([
-            'categoryName' => [
-                'required',
-                'string',
-                'max:255',
-                Rule::unique('categories', 'name')->ignore($this->categoryId),
-            ],
+            'categoryName' => 'required|string|max:255',
         ], [
             'categoryName.required' => 'Nama kategori wajib diisi.',
-            'categoryName.unique'   => 'Nama kategori sudah digunakan.',
         ]);
-
-        $data = [
-            'name' => $this->categoryName,
-            'slug' => Str::slug($this->categoryName),
-        ];
 
         if ($this->isEditCategory) {
             $category = Category::findOrFail($this->categoryId);
-            $category->update($data);
+            $category->update([
+                'name' => $this->categoryName,
+                'slug' => Str::slug($this->categoryName),
+            ]);
             session()->flash('message', 'Kategori berhasil diperbarui.');
         } else {
-            Category::create($data);
+            Category::create([
+                'name' => $this->categoryName,
+                'slug' => Str::slug($this->categoryName),
+            ]);
             session()->flash('message', 'Kategori berhasil ditambahkan.');
         }
 
@@ -171,6 +169,8 @@ class Produk extends Component
         $this->category_id = '';
         $this->base_price = '';
         $this->description = '';
+        $this->image = null;
+        $this->old_image = null;
         $this->is_active = true;
         $this->variants = [];
         $this->resetErrorBag();
@@ -185,6 +185,7 @@ class Produk extends Component
         $this->category_id = $product->category_id;
         $this->base_price = $product->base_price;
         $this->description = $product->description;
+        $this->old_image = $product->image;
         $this->is_active = (bool) $product->is_active;
         $this->variants = $product->variants->map(function($variant) {
             return [
@@ -222,6 +223,7 @@ class Produk extends Component
             'category_id' => 'required|exists:categories,id',
             'base_price'  => 'required|numeric|min:0',
             'description' => 'nullable|string',
+            'image'       => 'nullable|image|max:2048',
             'is_active'   => 'boolean',
             'variants.*.name' => 'required|string|max:255',
             'variants.*.price' => 'required|numeric|min:0',
@@ -230,6 +232,8 @@ class Produk extends Component
             'name.required' => 'Nama produk wajib diisi.',
             'category_id.required' => 'Kategori wajib diisi.',
             'base_price.required' => 'Harga dasar wajib diisi.',
+            'image.image' => 'File harus berupa gambar.',
+            'image.max' => 'Ukuran gambar maksimal 2MB.',
             'variants.*.name.required' => 'Nama varian rasa wajib diisi.',
             'variants.*.price.required' => 'Harga varian wajib diisi.',
             'variants.*.price.numeric' => 'Harga varian harus berupa angka.',
@@ -244,6 +248,10 @@ class Produk extends Component
             'description' => $this->description,
             'is_active'   => $this->is_active,
         ];
+
+        if ($this->image) {
+            $data['image'] = $this->image->store('products', 'public');
+        }
 
         if ($this->isEdit) {
             $product = Product::findOrFail($this->productId);

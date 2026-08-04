@@ -130,10 +130,19 @@
                         <div class="row g-3">
                             @foreach($products as $product)
                             <div class="col-md-4 col-sm-6">
-                                <div class="card h-100 shadow-sm border-0 cursor-pointer" wire:click="selectProduct('{{ $product->id }}')" style="cursor: pointer; transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.03)'" onmouseout="this.style.transform='scale(1)'">
-                                    <div class="card-body text-center d-flex flex-column justify-content-center">
-                                        <h6 class="card-title fw-bold">{{ $product->name }}</h6>
-                                        <p class="text-success fw-bold mb-0">Rp {{ number_format($product->base_price, 0, ',', '.') }}</p>
+                                <div class="card h-100 shadow-sm border-0 cursor-pointer overflow-hidden" wire:click="selectProduct('{{ $product->id }}')" style="cursor: pointer; transition: transform 0.2s; border-radius: 12px;" onmouseover="this.style.transform='scale(1.03)'" onmouseout="this.style.transform='scale(1)'">
+                                    @if($product->image)
+                                        <div class="d-flex align-items-center justify-content-center p-2" style="height: 140px; background-color: #f8f9fa;">
+                                            <img src="{{ asset('storage/' . $product->image) }}" alt="{{ $product->name }}" class="mw-100 mh-100 rounded" style="object-fit: contain; max-height: 125px;">
+                                        </div>
+                                    @else
+                                        <div class="d-flex align-items-center justify-content-center bg-light text-muted" style="height: 120px;">
+                                            <i class="bi bi-cup-hot-fill fs-1 text-success opacity-50"></i>
+                                        </div>
+                                    @endif
+                                    <div class="card-body text-center d-flex flex-column justify-content-center p-3">
+                                        <h6 class="card-title fw-bold mb-1" style="font-size: 0.95rem;">{{ $product->name }}</h6>
+                                        <p class="text-success fw-bold mb-0" style="font-size: 0.9rem;">Rp {{ number_format($product->base_price, 0, ',', '.') }}</p>
                                     </div>
                                 </div>
                             </div>

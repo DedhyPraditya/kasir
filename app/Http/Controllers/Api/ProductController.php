@@ -19,6 +19,7 @@ class ProductController extends Controller
                     'name' => $product->name,
                     'description' => $product->description,
                     'base_price' => (float) $product->base_price,
+                    'image_url' => $product->image ? asset('storage/' . $product->image) : null,
                     'variants' => $product->variants->map(function ($variant) {
                         return [
                             'id' => $variant->id,

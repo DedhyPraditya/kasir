@@ -173,21 +173,32 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                @forelse($products as $product)
+                                 @forelse($products as $product)
                                 <tr>
                                     <td class="ps-4 text-muted">{{ $products->firstItem() + $loop->index }}</td>
                                     <td>
-                                        <span class="fw-bold text-dark">{{ $product->name }}</span>
-                                        @if($product->description)
-                                            <small class="text-muted d-block">{{ Str::limit($product->description, 50) }}</small>
-                                        @endif
-                                        @if($product->variants->count() > 0)
-                                            <div class="mt-1">
-                                                <span class="badge bg-primary bg-opacity-10 text-primary" style="font-size: 10px;">
-                                                    <i class="bi bi-gear-wide-connected me-1"></i>{{ $product->variants->count() }} Varian Rasa
-                                                </span>
+                                        <div class="d-flex align-items-center">
+                                            @if($product->image)
+                                                <img src="{{ asset('storage/' . $product->image) }}" alt="{{ $product->name }}" class="rounded me-2 shadow-sm border" style="width: 45px; height: 45px; object-fit: cover;">
+                                            @else
+                                                <div class="rounded me-2 bg-light d-flex align-items-center justify-content-center text-muted border" style="width: 45px; height: 45px;">
+                                                    <i class="bi bi-image fs-5"></i>
+                                                </div>
+                                            @endif
+                                            <div>
+                                                <span class="fw-bold text-dark">{{ $product->name }}</span>
+                                                @if($product->description)
+                                                    <small class="text-muted d-block">{{ Str::limit($product->description, 50) }}</small>
+                                                @endif
+                                                @if($product->variants->count() > 0)
+                                                    <div class="mt-1">
+                                                        <span class="badge bg-primary bg-opacity-10 text-primary" style="font-size: 10px;">
+                                                            <i class="bi bi-gear-wide-connected me-1"></i>{{ $product->variants->count() }} Varian Rasa
+                                                        </span>
+                                                    </div>
+                                                @endif
                                             </div>
-                                        @endif
+                                        </div>
                                     </td>
                                     <td>
                                         <span class="badge bg-secondary bg-opacity-10 text-secondary">
@@ -377,7 +388,27 @@
 
                         <div class="mb-3">
                             <label class="form-label fw-bold">Deskripsi</label>
-                            <textarea class="form-control" rows="3" wire:model="description" placeholder="Deskripsi opsional..."></textarea>
+                            <textarea class="form-control" rows="2" wire:model="description" placeholder="Deskripsi opsional..."></textarea>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Foto Produk (Opsional)</label>
+                            <input type="file" class="form-control @error('image') is-invalid @enderror" wire:model="image" accept="image/*">
+                            @error('image') <span class="text-danger small mt-1 d-block">{{ $message }}</span> @enderror
+                            <div wire:loading wire:target="image" class="text-primary small mt-1">
+                                <i class="bi bi-arrow-repeat spin"></i> Mengunggah foto...
+                            </div>
+                            @if ($image)
+                                <div class="mt-2">
+                                    <span class="small text-muted d-block mb-1">Preview Foto Baru:</span>
+                                    <img src="{{ $image->temporaryUrl() }}" class="img-thumbnail rounded" style="max-height: 100px;">
+                                </div>
+                            @elseif ($old_image)
+                                <div class="mt-2">
+                                    <span class="small text-muted d-block mb-1">Foto Saat Ini:</span>
+                                    <img src="{{ asset('storage/' . $old_image) }}" class="img-thumbnail rounded" style="max-height: 100px;">
+                                </div>
+                            @endif
                         </div>
 
                         <hr class="my-4">

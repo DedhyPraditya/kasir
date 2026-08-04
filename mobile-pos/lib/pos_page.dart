@@ -31,6 +31,7 @@ class Product {
   final String name;
   final String description;
   final double price;
+  final String? imageUrl;
   final List<Variant> variants;
 
   const Product({
@@ -38,6 +39,7 @@ class Product {
     required this.name,
     required this.description,
     required this.price,
+    this.imageUrl,
     required this.variants,
   });
 
@@ -48,6 +50,7 @@ class Product {
       name: json['name'] as String,
       description: json['description'] as String? ?? '',
       price: (price is int) ? price.toDouble() : (price as num).toDouble(),
+      imageUrl: json['image_url'] as String?,
       variants:
           (json['variants'] as List<dynamic>?)
               ?.map(
@@ -1047,6 +1050,7 @@ class _PosHomePageState extends State<PosHomePage> {
                                       final product = _products[index];
                                       return Card(
                                         elevation: 2,
+                                        clipBehavior: Clip.antiAlias,
                                         shape: RoundedRectangleBorder(
                                           borderRadius: BorderRadius.circular(
                                             16,
@@ -1058,54 +1062,61 @@ class _PosHomePageState extends State<PosHomePage> {
                                           ),
                                           onTap: () =>
                                               _addProductToCart(product),
-                                          child: Padding(
-                                            padding: const EdgeInsets.all(12),
-                                            child: Column(
-                                              crossAxisAlignment:
-                                                  CrossAxisAlignment.start,
-                                              mainAxisSize: MainAxisSize.min,
-                                              children: [
-                                                Text(
-                                                  product.name,
-                                                  style: const TextStyle(
-                                                    fontWeight: FontWeight.bold,
-                                                    fontSize: 16,
-                                                  ),
-                                                ),
-                                                const SizedBox(height: 6),
-                                                Text(
-                                                  '${_formatRp(product.price)}',
-                                                  style: const TextStyle(
-                                                    color: Colors.green,
-                                                    fontWeight: FontWeight.bold,
-                                                  ),
-                                                ),
-                                                const SizedBox(height: 8),
-                                                Align(
-                                                  alignment:
-                                                      Alignment.bottomRight,
-                                                  child: ElevatedButton.icon(
-                                                    icon: const Icon(
-                                                      Icons.add_shopping_cart,
-                                                      size: 18,
-                                                    ),
-                                                    label: const Text('Pilih'),
-                                                    style:
-                                                        ElevatedButton.styleFrom(
-                                                          minimumSize:
-                                                              const Size(
-                                                                72,
-                                                                36,
+                                          child: Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            children: [
+                                              Expanded(
+                                                child: Container(
+                                                  width: double.infinity,
+                                                  padding: const EdgeInsets.all(6),
+                                                  color: Colors.green.shade50,
+                                                  child: product.imageUrl != null &&
+                                                          product.imageUrl!.isNotEmpty
+                                                      ? Image.network(
+                                                          product.imageUrl!,
+                                                          fit: BoxFit.contain,
+                                                          errorBuilder: (context, error, stackTrace) =>
+                                                              const Icon(
+                                                                Icons.fastfood,
+                                                                color: Colors.green,
+                                                                size: 32,
                                                               ),
+                                                        )
+                                                      : const Icon(
+                                                          Icons.fastfood,
+                                                          color: Colors.green,
+                                                          size: 32,
                                                         ),
-                                                    onPressed: () =>
-                                                        _addProductToCart(
-                                                          product,
-                                                        ),
-                                                  ),
                                                 ),
-                                              ],
-                                            ),
+                                              ),
+                                              Padding(
+                                                padding: const EdgeInsets.all(10),
+                                                child: Column(
+                                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                                  children: [
+                                                    Text(
+                                                      product.name,
+                                                      maxLines: 1,
+                                                      overflow: TextOverflow.ellipsis,
+                                                      style: const TextStyle(
+                                                        fontWeight: FontWeight.bold,
+                                                        fontSize: 14,
+                                                      ),
+                                                    ),
+                                                    const SizedBox(height: 4),
+                                                    Text(
+                                                      '${_formatRp(product.price)}',
+                                                      style: const TextStyle(
+                                                        color: Colors.green,
+                                                        fontWeight: FontWeight.bold,
+                                                        fontSize: 13,
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                              ),
+                                            ],
                                           ),
                                         ),
                                       );
