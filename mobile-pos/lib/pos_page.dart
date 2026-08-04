@@ -1346,28 +1346,74 @@ class _PosHomePageState extends State<PosHomePage> {
     });
   }
 
+  Widget _buildBottomNavItem({
+    required IconData icon,
+    required String label,
+    required Color color,
+    required VoidCallback onTap,
+  }) {
+    return Expanded(
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(8),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 8),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(icon, color: color, size: 24),
+              const SizedBox(height: 2),
+              Text(
+                label,
+                style: TextStyle(fontSize: 10, color: color, fontWeight: FontWeight.w500),
+                textAlign: TextAlign.center,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('NYEMIL BEBS POS'),
+        title: const Text('NYEMIL BEBS'),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.history),
-            tooltip: 'Riwayat Transaksi',
-            onPressed: _showHistoryDialog,
-          ),
-          IconButton(
-            icon: const Icon(Icons.settings),
-            tooltip: 'Pengaturan printer',
-            onPressed: _openPrinterSettings,
-          ),
           IconButton(
             icon: const Icon(Icons.logout),
             tooltip: 'Keluar',
             onPressed: _logout,
           ),
         ],
+      ),
+      bottomNavigationBar: BottomAppBar(
+        color: Colors.white,
+        elevation: 8,
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          children: [
+            _buildBottomNavItem(
+              icon: _connected ? Icons.print : Icons.print_disabled,
+              label: _connected ? 'Printer Terhubung' : 'Printer Terputus',
+              color: _connected ? Colors.green : Colors.orange,
+              onTap: _openPrinterSettings,
+            ),
+            _buildBottomNavItem(
+              icon: Icons.settings,
+              label: 'Printer',
+              color: Colors.blueGrey,
+              onTap: _openPrinterSettings,
+            ),
+            _buildBottomNavItem(
+              icon: Icons.history,
+              label: 'Riwayat',
+              color: Colors.green,
+              onTap: _showHistoryDialog,
+            ),
+          ],
+        ),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16),
