@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "131254295467",
+    "project_id": "mobilepos-c9874",
+    "storage_bucket": "mobilepos-c9874.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:131254295467:android:667942d2bf2924a28350ee",
+        "android_client_info": {
+          "package_name": "com.example.mobile_pos"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB3JIdl5mtZ4wb7WmAxDgYHVy2qrgrXavc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
