@@ -123,7 +123,7 @@ return [
         'store' => env('APP_MAINTENANCE_STORE', 'database'),
     ],
 
-    'mobile_version' => '1.1.2',
-    'mobile_build_number' => 4,
-    'mobile_changelog' => "Pembaruan Versi 1.1.2:\n• Perbaikan logo Nyemil Bebs tidak tampil di halaman login.\n• Integrasi Firebase SDK untuk notifikasi push.\n• Peningkatan stabilitas aplikasi.",
+    'mobile_version' => '1.1.3',
+    'mobile_build_number' => 5,
+    'mobile_changelog' => "Pembaruan Versi 1.1.3:\n• Perbaikan tombol Update - sekarang langsung membuka link download di browser.\n• Nama aplikasi di HP berubah menjadi 'Nyemil Bebs POS'.\n• Perbaikan logo tidak tampil di halaman login.",
 ];

@@ -9,6 +9,12 @@ Semua perubahan pada aplikasi Mobile POS dicatat di file ini.
 - **Kategori Makanan (Food)**: Opsi topping aktif & ditampilkan di modal kasir web & mobile.
 - **Kategori Minuman (Drink)**: Opsi topping disembunyikan secara otomatis pada tampilan kasir Web POS & Mobile POS.
 
+## [1.1.3] - 2026-08-05
+
+### 🐛 Perbaikan Bug
+- **Fix Tombol Update Gagal Dibuka**: Menambahkan deklarasi `<queries>` untuk scheme `https`/`http` di `AndroidManifest.xml` agar `url_launcher` dapat membuka link download di browser pada Android 11+ (Package Visibility).
+- **Nama Aplikasi**: Mengubah nama aplikasi di launcher HP dari `mobile_pos` menjadi `Nyemil Bebs POS`.
+
 ## [1.1.2] - 2026-08-05
 
 ### 🐛 Perbaikan Bug
