@@ -749,6 +749,17 @@ class _PosHomePageState extends State<PosHomePage> {
       },
     );
   }
+
+  Future<void> _printReceiptCustom({
+    required String invoiceNumber,
+    required String customerName,
+    required String paymentMethod,
+    required double subtotal,
+    required double amountPaid,
+    required double change,
+    required String createdAt,
+    required List<Map<String, dynamic>> items,
+  }) async {
     if (!_connected) {
       _showMessage('Printer belum terhubung. Silakan sambungkan di Pengaturan Printer.', type: SnackBarType.warning);
       return;
