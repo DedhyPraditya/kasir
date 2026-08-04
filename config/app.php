@@ -123,7 +123,7 @@ return [
         'store' => env('APP_MAINTENANCE_STORE', 'database'),
     ],
 
-    'mobile_version' => '1.1.1',
-    'mobile_build_number' => 3,
-    'mobile_changelog' => "Pembaruan Versi 1.1.1:\n• App Icon resmi Logo Nyemil Bebs (HD Adaptive Icon).\n• Halaman Riwayat Transaksi penuh (khusus hari ini).\n• Cetak ulang struk & share struk format gambar (JPG).\n• Preview struk thermal presisi 100% (font Courier 32 kolom).\n• Indikator status printer (hijau/oranye) di AppBar.\n• Sistem In-App Auto Update otomatis.",
+    'mobile_version' => '1.1.2',
+    'mobile_build_number' => 4,
+    'mobile_changelog' => "Pembaruan Versi 1.1.2:\n• Perbaikan logo Nyemil Bebs tidak tampil di halaman login.\n• Integrasi Firebase SDK untuk notifikasi push.\n• Peningkatan stabilitas aplikasi.",
 ];
