@@ -1,4 +1,4 @@
-﻿import 'dart:convert';
+import 'dart:convert';
 import 'dart:typed_data';
 import 'dart:ui' as ui;
 
@@ -197,10 +197,11 @@ class _HistoryPageState extends State<HistoryPage> {
 
       if (mounted && !popped) Navigator.of(context).pop();
 
-      await SharePlus.instance.share(ShareParams(
-        files: [XFile(file.path, mimeType: 'image/png')],
+      await Share.shareXFiles(
+        [XFile(file.path, mimeType: 'image/png')],
+        subject: 'Struk NYEMIL BEBS',
         text: 'Struk NYEMIL BEBS - $invoice\n$createdAt',
-      ));
+      );
     } catch (e) {
       if (mounted && !popped) Navigator.of(context).pop();
       if (mounted) {
