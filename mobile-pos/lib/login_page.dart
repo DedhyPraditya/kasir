@@ -93,7 +93,7 @@ class _LoginPageState extends State<LoginPage> {
                 children: [
                   // Logo Nyemil Bebs
                   Image.asset(
-                    'assets/logo.png',
+                    'assets/images/logo.png',
                     height: 140,
                     fit: BoxFit.contain,
                   ),
