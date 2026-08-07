@@ -1,0 +1,4 @@
+f:\laragon\www\nyemilbebs\mobile-pos\lib\history_page.dart
+f:\laragon\www\nyemilbebs\mobile-pos\lib\login_page.dart
+f:\laragon\www\nyemilbebs\mobile-pos\lib\main.dart
+f:\laragon\www\nyemilbebs\mobile-pos\lib\pos_page.dart

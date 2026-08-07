@@ -1,0 +1,129 @@
+F:\laragon\www\nyemilbebs\mobile-pos\lib\history_page.dart:5:import 'package:blue_thermal_printer/blue_thermal_printer.dart';
+F:\laragon\www\nyemilbebs\mobile-pos\lib\history_page.dart:17:  final BlueThermalPrinter printer;
+F:\laragon\www\nyemilbebs\mobile-pos\lib\history_page.dart:23:    required this.printer,
+F:\laragon\www\nyemilbebs\mobile-pos\lib\history_page.dart:94:  Future<void> _printReceipt({
+F:\laragon\www\nyemilbebs\mobile-pos\lib\history_page.dart:103:      await widget.printer.printCustom('NYEMIL BEBS', 3, 1);
+F:\laragon\www\nyemilbebs\mobile-pos\lib\history_page.dart:104:      await widget.printer.printCustom('Purnama Town House Blok H/1', 1, 1);
+F:\laragon\www\nyemilbebs\mobile-pos\lib\history_page.dart:105:      await widget.printer.printCustom('Telp: +62 823-9943-0312', 1, 1);
+F:\laragon\www\nyemilbebs\mobile-pos\lib\history_page.dart:106:      await widget.printer.printNewLine();
+F:\laragon\www\nyemilbebs\mobile-pos\lib\history_page.dart:107:      await widget.printer.printCustom('No: $invoice', 1, 0);
+F:\laragon\www\nyemilbebs\mobile-pos\lib\history_page.dart:108:      await widget.printer.printCustom('Tgl: $createdAt', 1, 0);
+F:\laragon\www\nyemilbebs\mobile-pos\lib\history_page.dart:109:      await widget.printer.printCustom('Kasir: ${widget.kasirName}', 1, 0);
+F:\laragon\www\nyemilbebs\mobile-pos\lib\history_page.dart:110:      await widget.printer.printCustom('Pelanggan: ${customer.isEmpty ? 'Umum' : customer}', 1, 0);
+F:\laragon\www\nyemilbebs\mobile-pos\lib\history_page.dart:111:      await widget.printer.printNewLine();
+F:\laragon\www\nyemilbebs\mobile-pos\lib\history_page.dart:114:        await widget.printer.printCustom(item['name'] ?? '', 1, 0);
+F:\laragon\www\nyemilbebs\mobile-pos\lib\history_page.dart:118:        await widget.printer.printLeftRight('$qty x ${price.toStringAsFixed(0)}', sub.toStringAsFixed(0), 0);
+F:\laragon\www\nyemilbebs\mobile-pos\lib\history_page.dart:122:          if (tn.isNotEmpty) await widget.printer.printCustom('+ $tn', 1, 0);
+F:\laragon\www\nyemilbebs\mobile-pos\lib\history_page.dart:126:      await widget.printer.printCustom('--------------------------', 1, 1);
+F:\laragon\www\nyemilbebs\mobile-pos\lib\history_page.dart:127:      await widget.printer.printLeftRight('TOTAL', _formatRp(total), 1);
+F:\laragon\www\nyemilbebs\mobile-pos\lib\history_page.dart:128:      await widget.printer.printLeftRight('Metode', method.toUpperCase(), 0);
+F:\laragon\www\nyemilbebs\mobile-pos\lib\history_page.dart:129:      await widget.printer.printNewLine();
+F:\laragon\www\nyemilbebs\mobile-pos\lib\history_page.dart:130:      await widget.printer.printCustom('Terima Kasih atas Kunjungan Anda!', 1, 1);
+F:\laragon\www\nyemilbebs\mobile-pos\lib\history_page.dart:131:      await widget.printer.printCustom('~ Nyemil Bebs ~', 1, 1);
+F:\laragon\www\nyemilbebs\mobile-pos\lib\history_page.dart:132:      await widget.printer.printNewLine();
+F:\laragon\www\nyemilbebs\mobile-pos\lib\history_page.dart:133:      await widget.printer.printNewLine();
+F:\laragon\www\nyemilbebs\mobile-pos\lib\history_page.dart:134:      await widget.printer.paperCut();
+F:\laragon\www\nyemilbebs\mobile-pos\lib\history_page.dart:323:                              icon: const Icon(Icons.print, size: 15),
+F:\laragon\www\nyemilbebs\mobile-pos\lib\history_page.dart:324:                              label: const Text('Print Ulang', style: TextStyle(fontSize: 12)),
+F:\laragon\www\nyemilbebs\mobile-pos\lib\history_page.dart:326:                              onPressed: () => _printReceipt(invoice: invoice, customer: customer, method: method, total: total, createdAt: createdAt, items: items),
+F:\laragon\www\nyemilbebs\mobile-pos\lib\pos_page.dart:4:import 'package:blue_thermal_printer/blue_thermal_printer.dart';
+F:\laragon\www\nyemilbebs\mobile-pos\lib\pos_page.dart:145:  final BlueThermalPrinter _printer = BlueThermalPrinter.instance;
+F:\laragon\www\nyemilbebs\mobile-pos\lib\pos_page.dart:146:  final List<BluetoothDevice> _devices = [];
+F:\laragon\www\nyemilbebs\mobile-pos\lib\pos_page.dart:163:  BluetoothDevice? _selectedDevice;
+F:\laragon\www\nyemilbebs\mobile-pos\lib\pos_page.dart:167:  String _status = 'Menyiapkan printer...';
+F:\laragon\www\nyemilbebs\mobile-pos\lib\pos_page.dart:353:      _status = 'Meminta izin dan memuat daftar printer...';
+F:\laragon\www\nyemilbebs\mobile-pos\lib\pos_page.dart:359:      final bool? connected = await _printer.isConnected;
+F:\laragon\www\nyemilbebs\mobile-pos\lib\pos_page.dart:360:      final List<BluetoothDevice> devices = await _printer.getBondedDevices();
+F:\laragon\www\nyemilbebs\mobile-pos\lib\pos_page.dart:371:            ? 'Tidak ada printer terpasang. Silakan pair printer di pengaturan Bluetooth.'
+F:\laragon\www\nyemilbebs\mobile-pos\lib\pos_page.dart:372:            : 'Pilih printer lalu tekan Connect.';
+F:\laragon\www\nyemilbebs\mobile-pos\lib\pos_page.dart:377:        _status = 'Gagal memuat printer: $error';
+F:\laragon\www\nyemilbebs\mobile-pos\lib\pos_page.dart:381:    _printer.onStateChanged().listen((state) {
+F:\laragon\www\nyemilbebs\mobile-pos\lib\pos_page.dart:384:        _connected = state == BlueThermalPrinter.CONNECTED;
+F:\laragon\www\nyemilbebs\mobile-pos\lib\pos_page.dart:391:      Permission.bluetooth,
+F:\laragon\www\nyemilbebs\mobile-pos\lib\pos_page.dart:392:      Permission.bluetoothScan,
+F:\laragon\www\nyemilbebs\mobile-pos\lib\pos_page.dart:393:      Permission.bluetoothConnect,
+F:\laragon\www\nyemilbebs\mobile-pos\lib\pos_page.dart:400:      _showMessage('Berikan izin Bluetooth agar printer dapat digunakan.');
+F:\laragon\www\nyemilbebs\mobile-pos\lib\pos_page.dart:539:  Future<void> _connectPrinter() async {
+F:\laragon\www\nyemilbebs\mobile-pos\lib\pos_page.dart:541:      _showMessage('Pilih printer terlebih dahulu.');
+F:\laragon\www\nyemilbebs\mobile-pos\lib\pos_page.dart:546:      await _printer.connect(_selectedDevice!);
+F:\laragon\www\nyemilbebs\mobile-pos\lib\pos_page.dart:550:        _status = 'Printer terhubung.';
+F:\laragon\www\nyemilbebs\mobile-pos\lib\pos_page.dart:552:      _showMessage('Printer terhubung.');
+F:\laragon\www\nyemilbebs\mobile-pos\lib\pos_page.dart:559:      _showMessage('Gagal terhubung ke printer.');
+F:\laragon\www\nyemilbebs\mobile-pos\lib\pos_page.dart:563:  Future<void> _disconnectPrinter() async {
+F:\laragon\www\nyemilbebs\mobile-pos\lib\pos_page.dart:564:    await _printer.disconnect();
+F:\laragon\www\nyemilbebs\mobile-pos\lib\pos_page.dart:568:      _status = 'Printer terputus.';
+F:\laragon\www\nyemilbebs\mobile-pos\lib\pos_page.dart:581:  // Lebar karakter 58mm thermal = ~32 karakter
+F:\laragon\www\nyemilbebs\mobile-pos\lib\pos_page.dart:582:  static const int _thermalWidth = 32;
+F:\laragon\www\nyemilbebs\mobile-pos\lib\pos_page.dart:584:  /// Menghasilkan baris-baris teks persis seperti output printer thermal
+F:\laragon\www\nyemilbebs\mobile-pos\lib\pos_page.dart:585:  List<_ThermalLine> _buildThermalLines({
+F:\laragon\www\nyemilbebs\mobile-pos\lib\pos_page.dart:595:    final lines = <_ThermalLine>[];
+F:\laragon\www\nyemilbebs\mobile-pos\lib\pos_page.dart:598:    lines.add(_ThermalLine('NYEMIL BEBS', align: TextAlign.center, bold: true, large: true));
+F:\laragon\www\nyemilbebs\mobile-pos\lib\pos_page.dart:599:    lines.add(_ThermalLine('Purnama Town House Blok H/1', align: TextAlign.center));
+F:\laragon\www\nyemilbebs\mobile-pos\lib\pos_page.dart:600:    lines.add(_ThermalLine('Telp: +62 823-9943-0312', align: TextAlign.center));
+F:\laragon\www\nyemilbebs\mobile-pos\lib\pos_page.dart:601:    lines.add(_ThermalLine(''));
+F:\laragon\www\nyemilbebs\mobile-pos\lib\pos_page.dart:604:    lines.add(_ThermalLine('No: $invoiceNumber'));
+F:\laragon\www\nyemilbebs\mobile-pos\lib\pos_page.dart:605:    lines.add(_ThermalLine('Tgl: $createdAt'));
+F:\laragon\www\nyemilbebs\mobile-pos\lib\pos_page.dart:606:    lines.add(_ThermalLine('Kasir: ${widget.kasirName}'));
+F:\laragon\www\nyemilbebs\mobile-pos\lib\pos_page.dart:607:    lines.add(_ThermalLine('Pelanggan: ${customerName.isEmpty ? 'Umum' : customerName}'));
+F:\laragon\www\nyemilbebs\mobile-pos\lib\pos_page.dart:608:    lines.add(_ThermalLine(''));
+F:\laragon\www\nyemilbebs\mobile-pos\lib\pos_page.dart:618:      lines.add(_ThermalLine(label, bold: true));
+F:\laragon\www\nyemilbebs\mobile-pos\lib\pos_page.dart:619:      lines.add(_ThermalLine.leftRight(
+F:\laragon\www\nyemilbebs\mobile-pos\lib\pos_page.dart:622:        width: _thermalWidth,
+F:\laragon\www\nyemilbebs\mobile-pos\lib\pos_page.dart:629:          lines.add(_ThermalLine('+ $topName'));
+F:\laragon\www\nyemilbebs\mobile-pos\lib\pos_page.dart:634:    lines.add(_ThermalLine('-' * _thermalWidth, align: TextAlign.center));
+F:\laragon\www\nyemilbebs\mobile-pos\lib\pos_page.dart:637:    lines.add(_ThermalLine.leftRight('TOTAL', _formatRp(subtotal), width: _thermalWidth, bold: true));
+F:\laragon\www\nyemilbebs\mobile-pos\lib\pos_page.dart:638:    lines.add(_ThermalLine.leftRight('Metode', paymentMethod.toLowerCase() == 'cash' ? 'CASH' : 'QRIS', width: _thermalWidth));
+F:\laragon\www\nyemilbebs\mobile-pos\lib\pos_page.dart:641:      lines.add(_ThermalLine.leftRight('Tunai', _formatRp(amountPaid), width: _thermalWidth));
+F:\laragon\www\nyemilbebs\mobile-pos\lib\pos_page.dart:642:      lines.add(_ThermalLine.leftRight('Kembalian', _formatRp(change), width: _thermalWidth));
+F:\laragon\www\nyemilbebs\mobile-pos\lib\pos_page.dart:645:    lines.add(_ThermalLine(''));
+F:\laragon\www\nyemilbebs\mobile-pos\lib\pos_page.dart:646:    lines.add(_ThermalLine('Terima Kasih atas Kunjungan Anda!', align: TextAlign.center));
+F:\laragon\www\nyemilbebs\mobile-pos\lib\pos_page.dart:647:    lines.add(_ThermalLine('~ Nyemil Bebs ~', align: TextAlign.center));
+F:\laragon\www\nyemilbebs\mobile-pos\lib\pos_page.dart:662:    final thermalLines = _buildThermalLines(
+F:\laragon\www\nyemilbebs\mobile-pos\lib\pos_page.dart:696:                children: thermalLines.map((line) {
+F:\laragon\www\nyemilbebs\mobile-pos\lib\pos_page.dart:754:              icon: const Icon(Icons.print),
+F:\laragon\www\nyemilbebs\mobile-pos\lib\pos_page.dart:755:              label: const Text('Cetak Ke Printer'),
+F:\laragon\www\nyemilbebs\mobile-pos\lib\pos_page.dart:762:                await _printReceiptCustom(
+F:\laragon\www\nyemilbebs\mobile-pos\lib\pos_page.dart:780:  Future<void> _printReceiptCustom({
+F:\laragon\www\nyemilbebs\mobile-pos\lib\pos_page.dart:791:      _showMessage('Printer belum terhubung. Silakan sambungkan di Pengaturan Printer.', type: SnackBarType.warning);
+F:\laragon\www\nyemilbebs\mobile-pos\lib\pos_page.dart:797:      await _printer.printCustom('NYEMIL BEBS', 3, 1);
+F:\laragon\www\nyemilbebs\mobile-pos\lib\pos_page.dart:798:      await _printer.printCustom('Purnama Town House Blok H/1', 1, 1);
+F:\laragon\www\nyemilbebs\mobile-pos\lib\pos_page.dart:799:      await _printer.printCustom('Telp: +62 823-9943-0312', 1, 1);
+F:\laragon\www\nyemilbebs\mobile-pos\lib\pos_page.dart:800:      await _printer.printNewLine();
+F:\laragon\www\nyemilbebs\mobile-pos\lib\pos_page.dart:803:      await _printer.printCustom('No: $invoiceNumber', 1, 0);
+F:\laragon\www\nyemilbebs\mobile-pos\lib\pos_page.dart:804:      await _printer.printCustom('Tgl: $createdAt', 1, 0);
+F:\laragon\www\nyemilbebs\mobile-pos\lib\pos_page.dart:805:      await _printer.printCustom('Kasir: ${widget.kasirName}', 1, 0);
+F:\laragon\www\nyemilbebs\mobile-pos\lib\pos_page.dart:806:      await _printer.printCustom('Pelanggan: ${customerName.isEmpty ? 'Umum' : customerName}', 1, 0);
+F:\laragon\www\nyemilbebs\mobile-pos\lib\pos_page.dart:807:      await _printer.printNewLine();
+F:\laragon\www\nyemilbebs\mobile-pos\lib\pos_page.dart:812:        await _printer.printCustom(label, 1, 0);
+F:\laragon\www\nyemilbebs\mobile-pos\lib\pos_page.dart:818:        await _printer.printLeftRight(
+F:\laragon\www\nyemilbebs\mobile-pos\lib\pos_page.dart:828:            await _printer.printCustom('+ $topName', 1, 0);
+F:\laragon\www\nyemilbebs\mobile-pos\lib\pos_page.dart:833:      await _printer.printCustom('--------------------------', 1, 1);
+F:\laragon\www\nyemilbebs\mobile-pos\lib\pos_page.dart:836:      await _printer.printLeftRight('TOTAL', _formatRp(subtotal), 1);
+F:\laragon\www\nyemilbebs\mobile-pos\lib\pos_page.dart:837:      await _printer.printLeftRight('Metode', paymentMethod.toLowerCase() == 'cash' ? 'CASH' : 'QRIS', 0);
+F:\laragon\www\nyemilbebs\mobile-pos\lib\pos_page.dart:840:        await _printer.printLeftRight('Tunai', _formatRp(amountPaid), 0);
+F:\laragon\www\nyemilbebs\mobile-pos\lib\pos_page.dart:841:        await _printer.printLeftRight('Kembalian', _formatRp(change), 0);
+F:\laragon\www\nyemilbebs\mobile-pos\lib\pos_page.dart:844:      await _printer.printNewLine();
+F:\laragon\www\nyemilbebs\mobile-pos\lib\pos_page.dart:845:      await _printer.printCustom('Terima Kasih atas Kunjungan Anda!', 1, 1);
+F:\laragon\www\nyemilbebs\mobile-pos\lib\pos_page.dart:846:      await _printer.printCustom('~ Nyemil Bebs ~', 1, 1);
+F:\laragon\www\nyemilbebs\mobile-pos\lib\pos_page.dart:847:      await _printer.printNewLine();
+F:\laragon\www\nyemilbebs\mobile-pos\lib\pos_page.dart:848:      await _printer.printNewLine();
+F:\laragon\www\nyemilbebs\mobile-pos\lib\pos_page.dart:849:      await _printer.paperCut();
+F:\laragon\www\nyemilbebs\mobile-pos\lib\pos_page.dart:861:          printer: _printer,
+F:\laragon\www\nyemilbebs\mobile-pos\lib\pos_page.dart:1143:              icon: const Icon(Icons.print),
+F:\laragon\www\nyemilbebs\mobile-pos\lib\pos_page.dart:1218:  void _openPrinterSettings() {
+F:\laragon\www\nyemilbebs\mobile-pos\lib\pos_page.dart:1225:              title: const Text('Pengaturan Printer'),
+F:\laragon\www\nyemilbebs\mobile-pos\lib\pos_page.dart:1230:                  const Text('Pilih printer Bluetooth dari daftar berikut:'),
+F:\laragon\www\nyemilbebs\mobile-pos\lib\pos_page.dart:1234:                      'Belum ada printer terdeteksi. Tekan Refresh untuk mencoba lagi.',
+F:\laragon\www\nyemilbebs\mobile-pos\lib\pos_page.dart:1237:                    DropdownButtonFormField<BluetoothDevice>(
+F:\laragon\www\nyemilbebs\mobile-pos\lib\pos_page.dart:1241:                            (device) => DropdownMenuItem<BluetoothDevice>(
+F:\laragon\www\nyemilbebs\mobile-pos\lib\pos_page.dart:1260:                    'Status printer: ${_connected ? 'Terkoneksi' : 'Tidak terhubung'}',
+F:\laragon\www\nyemilbebs\mobile-pos\lib\pos_page.dart:1290:                            _disconnectPrinter();
+F:\laragon\www\nyemilbebs\mobile-pos\lib\pos_page.dart:1292:                            _connectPrinter();
+F:\laragon\www\nyemilbebs\mobile-pos\lib\pos_page.dart:1373:          // Indikator status printer
+F:\laragon\www\nyemilbebs\mobile-pos\lib\pos_page.dart:1375:            message: _connected ? 'Printer terhubung' : 'Printer belum terhubung',
+F:\laragon\www\nyemilbebs\mobile-pos\lib\pos_page.dart:1424:              onTap: _openPrinterSettings,
+F:\laragon\www\nyemilbebs\mobile-pos\lib\pos_page.dart:1875:/// Model baris teks untuk simulasi printer thermal
+F:\laragon\www\nyemilbebs\mobile-pos\lib\pos_page.dart:1876:class _ThermalLine {
+F:\laragon\www\nyemilbebs\mobile-pos\lib\pos_page.dart:1882:  // Untuk baris left-right (printLeftRight)
+F:\laragon\www\nyemilbebs\mobile-pos\lib\pos_page.dart:1887:  const _ThermalLine(
+F:\laragon\www\nyemilbebs\mobile-pos\lib\pos_page.dart:1895:  _ThermalLine.leftRight(
