@@ -332,8 +332,12 @@
 
                         @if($paymentMethod === 'qris')
                             <div class="text-center p-4 border rounded bg-light mb-3 d-flex flex-column align-items-center justify-content-center">
-                                <img src="{{ asset('qris.png') }}" alt="QRIS" class="img-fluid mb-3 shadow-sm" style="max-height: 250px; border-radius: 12px; display: block; margin: 0 auto;">
-                                <p class="mb-0 fw-bold text-center">Silakan arahkan pelanggan untuk scan QRIS di atas.</p>
+                                @if($this->qrisImage)
+                                    <img src="{{ $this->qrisImage }}" alt="QRIS" class="img-fluid mb-3 shadow-sm" style="max-height: 250px; border-radius: 12px; display: block; margin: 0 auto;">
+                                    <p class="mb-0 fw-bold text-center">Scan QRIS untuk bayar Rp {{ number_format($this->total, 0, ',', '.') }}</p>
+                                @else
+                                    <p class="mb-0 text-danger text-center">QRIS belum dikonfigurasi.</p>
+                                @endif
                             </div>
                         @endif
                     @endif

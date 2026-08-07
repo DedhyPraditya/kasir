@@ -5,6 +5,9 @@ namespace App\Livewire;
 use App\Models\Product;
 use App\Models\Topping;
 use App\Models\Order;
+use App\Services\QrisService;
+use Endroid\QrCode\QrCode;
+use Endroid\QrCode\Writer\PngWriter;
 use Livewire\Component;
 use Illuminate\Support\Str;
 
@@ -101,6 +104,26 @@ class Pos extends Component
     public function getTotalProperty()
     {
         return collect($this->cart)->sum('subtotal');
+    }
+
+    public function getQrisImageProperty()
+    {
+        if ($this->paymentMethod !== 'qris' || $this->total <= 0) {
+            return null;
+        }
+
+        $qris = app(QrisService::class);
+        $staticPayload = $qris->getActivePayload();
+
+        if (! $staticPayload) {
+            return null;
+        }
+
+        $payload = $qris->generateDynamicPayload($staticPayload, (float) $this->total);
+        $qrCode = new QrCode(data: $payload, size: 300, margin: 10);
+        $result = (new PngWriter())->write($qrCode);
+
+        return $result->getDataUri();
     }
 
     public function openPaymentModal()

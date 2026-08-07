@@ -919,6 +919,45 @@ class _PosHomePageState extends State<PosHomePage> {
     _paymentMethod = 'cash';
     _amountPaid = '';
 
+    String? qrisBase64;
+    bool qrisLoading = false;
+    String? qrisError;
+
+    Future<void> loadQrisImage(
+      int amount,
+      void Function(void Function()) setDialogState,
+    ) async {
+      setDialogState(() {
+        qrisLoading = true;
+        qrisError = null;
+      });
+
+      try {
+        final response = await http.get(
+          Uri.parse('$backendUrl/qris/dynamic?amount=$amount'),
+          headers: _apiHeaders,
+        );
+
+        if (response.statusCode == 200) {
+          final body = jsonDecode(response.body) as Map<String, dynamic>;
+          setDialogState(() {
+            qrisBase64 = body['qr_base64'] as String?;
+            qrisLoading = false;
+          });
+        } else {
+          setDialogState(() {
+            qrisError = 'Gagal memuat QRIS (${response.statusCode})';
+            qrisLoading = false;
+          });
+        }
+      } catch (error) {
+        setDialogState(() {
+          qrisError = 'Gagal memuat QRIS: $error';
+          qrisLoading = false;
+        });
+      }
+    }
+
     final result = await showDialog<bool>(
       context: context,
       builder: (context) {
@@ -978,6 +1017,7 @@ class _PosHomePageState extends State<PosHomePage> {
                                 setDialogState(() {
                                   _paymentMethod = value;
                                 });
+                                loadQrisImage(total.round(), setDialogState);
                               }
                             },
                           ),
@@ -1019,15 +1059,51 @@ class _PosHomePageState extends State<PosHomePage> {
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: Column(
-                          children: const [
-                            Icon(
-                              Icons.qr_code,
-                              size: 64,
-                              color: Colors.black54,
-                            ),
-                            SizedBox(height: 12),
+                          children: [
+                            if (qrisLoading)
+                              const Padding(
+                                padding: EdgeInsets.symmetric(vertical: 32),
+                                child: CircularProgressIndicator(),
+                              )
+                            else if (qrisError != null)
+                              Column(
+                                children: [
+                                  Icon(
+                                    Icons.error_outline,
+                                    size: 48,
+                                    color: Colors.red.shade400,
+                                  ),
+                                  const SizedBox(height: 8),
+                                  Text(
+                                    qrisError!,
+                                    textAlign: TextAlign.center,
+                                    style: const TextStyle(color: Colors.red),
+                                  ),
+                                  const SizedBox(height: 8),
+                                  TextButton(
+                                    onPressed: () => loadQrisImage(
+                                      total.round(),
+                                      setDialogState,
+                                    ),
+                                    child: const Text('Coba lagi'),
+                                  ),
+                                ],
+                              )
+                            else if (qrisBase64 != null)
+                              Image.memory(
+                                base64Decode(qrisBase64!),
+                                width: 220,
+                                height: 220,
+                              )
+                            else
+                              const Icon(
+                                Icons.qr_code,
+                                size: 64,
+                                color: Colors.black54,
+                              ),
+                            const SizedBox(height: 12),
                             Text(
-                              'Silakan scan QRIS untuk menyelesaikan pembayaran.',
+                              'Silakan scan QRIS untuk membayar ${_formatRp(total)}.',
                               textAlign: TextAlign.center,
                             ),
                           ],
