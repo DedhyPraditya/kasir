@@ -236,6 +236,7 @@
                     </div>
                     @endif
 
+                    @if($selectedProduct->category->allow_topping ?? true)
                     <div class="mb-4">
                         <label class="form-label fw-bold">Pilih Topping (Opsional)</label>
                         <div class="d-flex flex-column gap-2">
@@ -250,6 +251,7 @@
                             @endforeach
                         </div>
                     </div>
+                    @endif
 
                     <div class="mb-3">
                         <label class="form-label fw-bold">Jumlah</label>

@@ -13,7 +13,11 @@ class Category extends Model
     protected $keyType = 'string';
     public $incrementing = false;
 
-    protected $fillable = ['name', 'slug'];
+    protected $fillable = ['name', 'slug', 'allow_topping'];
+
+    protected $casts = [
+        'allow_topping' => 'boolean',
+    ];
 
     public function products()
     {

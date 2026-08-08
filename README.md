@@ -22,6 +22,7 @@ Aplikasi POS (Kasir) & Manajemen Toko modern berbasis web yang dirancang khusus 
   - **Manajemen Varian Rasa per Produk:** Tambah, edit, hapus varian rasa (misal: Coklat, Keju, Stroberi) dengan harga khusus dan status aktif/nonaktif per varian.
   - Tab manajemen topping: tambah/ubah harga topping tambahan beserta status aktifnya.
   - Status **Aktif/Nonaktif** pada produk, varian, dan topping langsung mempengaruhi tampilan di halaman kasir.
+  - **Opsi Topping per Kategori:** Saklar "Izinkan Topping" per Kategori — kategori seperti Minuman bisa menyembunyikan pilihan topping otomatis di kasir Web & Mobile.
 - **Notifikasi Floating Terdepan:**
   - Notifikasi sukses/error menggunakan `position: fixed` dengan `z-index: 9999`, selalu tampil di atas semua elemen termasuk modal, pada posisi tengah-atas layar.
 - **Pengaturan QRIS (Admin):**
@@ -133,9 +134,8 @@ Aplikasi POS (Kasir) & Manajemen Toko modern berbasis web yang dirancang khusus 
 
 ## 📋 Changelog
 
-### [Unreleased / Planned v1.3.0] — Rencana Pembaruan Mendatang
-- **[Planned] Opsi Topping Berdasarkan Kategori (Makanan vs Minuman):**
-  Opsi saklar `allow_topping` pada Kategori / Produk di Dashboard Admin. Kategori Makanan menampilkan opsi topping, sedangkan Kategori Minuman menyembunyikan opsi topping secara otomatis di tampilan kasir Web & Mobile POS.
+### [1.3.0] — 2026-08-08 (Opsi Topping per Kategori)
+- **[Feature] Opsi Topping Berdasarkan Kategori (Makanan vs Minuman):** Saklar "Izinkan Topping" pada form Kategori di Dashboard Admin. Kategori dengan topping nonaktif (misal Minuman) otomatis menyembunyikan pilihan topping di modal kasir Web & Mobile POS, tanpa perlu hapus data topping.
 
 ### [1.2.0] — 2026-08-08 (QRIS Dynamic & Pengaturan QRIS)
 - **[Feature] QRIS Statis → Dynamic:** Kode QRIS di kasir Web & Mobile kini otomatis menyisipkan nominal tagihan ke dalam kode QR (standar EMVCo, tag Point of Initiation `11`→`12` + CRC16 dihitung ulang), jadi pelanggan tinggal scan tanpa isi nominal manual.

@@ -2,10 +2,10 @@
 
 Semua perubahan pada aplikasi Mobile POS dicatat di file ini.
 
-## [Unreleased / Planned v1.3.0] - Rencana Pembaruan Mendatang
+## [1.3.0] - 2026-08-08
 
 ### 🍰 Pilihan Topping Berdasarkan Kategori (Makanan vs Minuman)
-- **Opsi Topping per Kategori**: Menambahkan pengatur `allow_topping` (Izinkan Topping) pada Kategori/Produk di Dashboard Admin.
+- **Opsi Topping per Kategori**: Menambahkan pengatur `allow_topping` (Izinkan Topping) pada Kategori di Dashboard Admin.
 - **Kategori Makanan (Food)**: Opsi topping aktif & ditampilkan di modal kasir web & mobile.
 - **Kategori Minuman (Drink)**: Opsi topping disembunyikan secara otomatis pada tampilan kasir Web POS & Mobile POS.
 

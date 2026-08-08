@@ -10,7 +10,7 @@ class ProductController extends Controller
 {
     public function index(): JsonResponse
     {
-        $products = Product::with('variants')
+        $products = Product::with(['variants', 'category'])
             ->where('is_active', true)
             ->get()
             ->map(function (Product $product) {
@@ -20,6 +20,7 @@ class ProductController extends Controller
                     'description' => $product->description,
                     'base_price' => (float) $product->base_price,
                     'image_url' => $product->image ? asset('storage/' . $product->image) : null,
+                    'allow_topping' => $product->category->allow_topping ?? true,
                     'variants' => $product->variants->map(function ($variant) {
                         return [
                             'id' => $variant->id,

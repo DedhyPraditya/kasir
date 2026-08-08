@@ -35,6 +35,7 @@ class Product {
   final double price;
   final String? imageUrl;
   final List<Variant> variants;
+  final bool allowTopping;
 
   const Product({
     required this.id,
@@ -43,6 +44,7 @@ class Product {
     required this.price,
     this.imageUrl,
     required this.variants,
+    this.allowTopping = true,
   });
 
   factory Product.fromJson(Map<String, dynamic> json) {
@@ -53,6 +55,7 @@ class Product {
       description: json['description'] as String? ?? '',
       price: (price is int) ? price.toDouble() : (price as num).toDouble(),
       imageUrl: json['image_url'] as String?,
+      allowTopping: json['allow_topping'] as bool? ?? true,
       variants:
           (json['variants'] as List<dynamic>?)
               ?.map(
@@ -407,7 +410,9 @@ class _PosHomePageState extends State<PosHomePage> {
         : null;
     final selectedToppingIds = <String>{};
 
-    if (product.variants.isNotEmpty || _toppings.isNotEmpty) {
+    final showToppings = product.allowTopping && _toppings.isNotEmpty;
+
+    if (product.variants.isNotEmpty || showToppings) {
       final confirmed = await showDialog<bool>(
         context: context,
         builder: (context) {
@@ -444,7 +449,7 @@ class _PosHomePageState extends State<PosHomePage> {
                         ),
                         const SizedBox(height: 16),
                       ],
-                      if (_toppings.isNotEmpty) ...[
+                      if (showToppings) ...[
                         const Text('Toppings'),
                         const SizedBox(height: 8),
                         ..._toppings.map(

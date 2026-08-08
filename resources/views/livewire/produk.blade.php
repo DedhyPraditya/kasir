@@ -80,6 +80,7 @@
                                     <th>Nama Kategori</th>
                                     <th>Slug</th>
                                     <th>Jumlah Produk</th>
+                                    <th>Topping</th>
                                     <th class="text-end pe-4">Aksi</th>
                                 </tr>
                             </thead>
@@ -98,6 +99,13 @@
                                             {{ $category->products->count() }} Produk
                                         </span>
                                     </td>
+                                    <td>
+                                        @if($category->allow_topping)
+                                            <span class="badge bg-success bg-opacity-10 text-success">Ya</span>
+                                        @else
+                                            <span class="badge bg-secondary bg-opacity-10 text-secondary">Tidak</span>
+                                        @endif
+                                    </td>
                                     <td class="text-end pe-4">
                                         <button class="btn btn-sm btn-outline-warning me-1" wire:click="editCategory('{{ $category->id }}')">
                                             <i class="bi bi-pencil-fill"></i> Edit
@@ -111,7 +119,7 @@
                                 </tr>
                                 @empty
                                 <tr>
-                                    <td colspan="5" class="text-center py-5 text-muted">
+                                    <td colspan="6" class="text-center py-5 text-muted">
                                         <i class="bi bi-tags fs-1 d-block mb-2 opacity-50"></i>
                                         Tidak ada kategori ditemukan.
                                     </td>
@@ -336,6 +344,12 @@
                             <label class="form-label fw-bold">Nama Kategori <span class="text-danger">*</span></label>
                             <input type="text" class="form-control @error('categoryName') is-invalid @enderror" wire:model="categoryName" placeholder="Contoh: Snack / Dessert / Drink">
                             @error('categoryName') <span class="text-danger small mt-1 d-block">{{ $message }}</span> @enderror
+                        </div>
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" role="switch" id="categoryAllowTopping" wire:model="categoryAllowTopping">
+                            <label class="form-check-label" for="categoryAllowTopping">
+                                Izinkan Topping <span class="text-muted small">(nonaktifkan untuk kategori seperti Minuman)</span>
+                            </label>
                         </div>
                     </div>
                     <div class="modal-footer border-top-0 pt-0 px-4 pb-4">

@@ -24,6 +24,7 @@ class Produk extends Component
     // Category Form fields
     public $categoryId;
     public $categoryName;
+    public $categoryAllowTopping = true;
 
     // Category Modal state
     public $isOpenCategory = false;
@@ -98,6 +99,7 @@ class Produk extends Component
     {
         $this->categoryId = null;
         $this->categoryName = '';
+        $this->categoryAllowTopping = true;
         $this->resetErrorBag();
     }
 
@@ -106,6 +108,7 @@ class Produk extends Component
         $this->categoryId = $id;
         $category = Category::findOrFail($id);
         $this->categoryName = $category->name;
+        $this->categoryAllowTopping = (bool) $category->allow_topping;
 
         $this->isEditCategory = true;
         $this->isOpenCategory = true;
@@ -115,6 +118,7 @@ class Produk extends Component
     {
         $this->validate([
             'categoryName' => 'required|string|max:255',
+            'categoryAllowTopping' => 'boolean',
         ], [
             'categoryName.required' => 'Nama kategori wajib diisi.',
         ]);
@@ -124,12 +128,14 @@ class Produk extends Component
             $category->update([
                 'name' => $this->categoryName,
                 'slug' => Str::slug($this->categoryName),
+                'allow_topping' => $this->categoryAllowTopping,
             ]);
             session()->flash('message', 'Kategori berhasil diperbarui.');
         } else {
             Category::create([
                 'name' => $this->categoryName,
                 'slug' => Str::slug($this->categoryName),
+                'allow_topping' => $this->categoryAllowTopping,
             ]);
             session()->flash('message', 'Kategori berhasil ditambahkan.');
         }

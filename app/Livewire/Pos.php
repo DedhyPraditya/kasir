@@ -35,7 +35,7 @@ class Pos extends Component
 
     public function selectProduct($productId)
     {
-        $this->selectedProduct = Product::with(['variants' => function($query) {
+        $this->selectedProduct = Product::with(['category', 'variants' => function($query) {
             $query->where('is_active', true);
         }])->find($productId);
         if ($this->selectedProduct) {
