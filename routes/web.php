@@ -36,6 +36,11 @@ Route::middleware('auth')->group(function () {
         ->middleware(['redirect.kasir', 'role:admin'])
         ->name('produk');
 
+    // Pengaturan QRIS - hanya Admin
+    Route::get('/pengaturan/qris', \App\Livewire\QrisSettings::class)
+        ->middleware(['redirect.kasir', 'role:admin'])
+        ->name('qris.settings');
+
     // Rute Profile dimasukkan ke dalam grup middleware 'auth'
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');

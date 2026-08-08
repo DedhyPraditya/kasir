@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->text('payload');
             $table->string('image_path')->nullable();
-            $table->foreignId('updated_by')->nullable()->constrained('users')->nullOnDelete();
+            $table->foreignUuid('updated_by')->nullable()->constrained('users')->nullOnDelete();
             $table->timestamps();
         });
     }

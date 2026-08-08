@@ -2,12 +2,23 @@
 
 Semua perubahan pada aplikasi Mobile POS dicatat di file ini.
 
-## [Unreleased / Planned v1.2.0] - Rencana Pembaruan Mendatang
+## [Unreleased / Planned v1.3.0] - Rencana Pembaruan Mendatang
 
 ### 🍰 Pilihan Topping Berdasarkan Kategori (Makanan vs Minuman)
 - **Opsi Topping per Kategori**: Menambahkan pengatur `allow_topping` (Izinkan Topping) pada Kategori/Produk di Dashboard Admin.
 - **Kategori Makanan (Food)**: Opsi topping aktif & ditampilkan di modal kasir web & mobile.
 - **Kategori Minuman (Drink)**: Opsi topping disembunyikan secara otomatis pada tampilan kasir Web POS & Mobile POS.
+
+## [1.2.0] - 2026-08-08
+
+### 💳 QRIS Dynamic (Nominal Otomatis)
+- **QRIS Statis → Dynamic**: Kode QRIS di kasir Mobile & Web kini otomatis menyisipkan nominal tagihan ke dalam kode QR (standar EMVCo), jadi pelanggan tidak perlu input manual nominal saat scan.
+- **Kasir Mobile**: Saat memilih metode pembayaran QRIS, aplikasi mengambil kode QR dynamic langsung dari server sesuai total pesanan saat itu, lengkap dengan status loading & tombol "Coba lagi" jika gagal memuat.
+
+### 🛠️ Pengaturan QRIS di Dashboard Admin (Web)
+- **Ganti QRIS Sendiri**: Admin bisa upload foto/screenshot QRIS baru dari dashboard — otomatis dibaca & divalidasi tanpa perlu bantuan developer.
+- **Tempel String QRIS**: Alternatif input manual (paste string EMV QRIS) untuk kasus foto QR sulit dibaca kamera.
+- **Riwayat & Aktifkan Kembali**: QRIS yang pernah dipakai tersimpan sebagai riwayat, bisa diaktifkan lagi kapan saja (rollback) tanpa perlu upload ulang.
 
 ## [1.1.3] - 2026-08-05
 

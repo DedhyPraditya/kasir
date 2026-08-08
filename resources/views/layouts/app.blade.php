@@ -93,6 +93,11 @@
                             <i class="bi bi-receipt me-2 fs-5"></i> Laporan
                         </a>
                     </li>
+                    <li>
+                        <a href="{{ route('qris.settings') }}" class="nav-link py-3 px-3 {{ request()->routeIs('qris.settings') ? 'active shadow-sm' : '' }}">
+                            <i class="bi bi-qr-code me-2 fs-5"></i> Pengaturan QRIS
+                        </a>
+                    </li>
                     @endrole
                 </ul>
                 <hr>
@@ -102,7 +107,9 @@
                         <strong>{{ auth()->user()->username ?? 'Admin' }}</strong>
                     </a>
                     <ul class="dropdown-menu dropdown-menu-light text-small shadow" aria-labelledby="dropdownUser1">
-                        <li><a class="dropdown-item" href="#"><i class="bi bi-gear me-2"></i> Pengaturan</a></li>
+                        @role('admin')
+                        <li><a class="dropdown-item" href="{{ route('qris.settings') }}"><i class="bi bi-gear me-2"></i> Pengaturan</a></li>
+                        @endrole
                         <li><hr class="dropdown-divider"></li>
                         <li>
                             <form method="POST" action="{{ route('logout') }}">

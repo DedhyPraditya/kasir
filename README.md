@@ -8,7 +8,7 @@ Aplikasi POS (Kasir) & Manajemen Toko modern berbasis web yang dirancang khusus 
 - **Interactive POS (Kasir):**
   - Pemilihan menu instan secara visual — hanya menampilkan produk/varian/topping yang berstatus **Aktif**.
   - Kustomisasi varian rasa produk dan topping tambahan (dengan penambahan harga otomatis).
-  - Metode pembayaran ganda: **Tunai (Cash)** dan **QRIS**.
+  - Metode pembayaran ganda: **Tunai (Cash)** dan **QRIS Dynamic** (nominal otomatis tersisip di kode QR, sesuai standar EMVCo).
   - Cetak struk belanja thermal/kasir langsung menggunakan fitur cetak bawaan browser (`window.print()`).
 - **Multi-Role Authentication (Spatie Permission):**
   - **Admin:** Memiliki akses penuh ke Dashboard ringkasan pendapatan, manajemen produk/topping, dan ekspor laporan.
@@ -24,11 +24,14 @@ Aplikasi POS (Kasir) & Manajemen Toko modern berbasis web yang dirancang khusus 
   - Status **Aktif/Nonaktif** pada produk, varian, dan topping langsung mempengaruhi tampilan di halaman kasir.
 - **Notifikasi Floating Terdepan:**
   - Notifikasi sukses/error menggunakan `position: fixed` dengan `z-index: 9999`, selalu tampil di atas semua elemen termasuk modal, pada posisi tengah-atas layar.
+- **Pengaturan QRIS (Admin):**
+  - Ganti kode QRIS toko langsung dari dashboard — upload foto QRIS (otomatis dibaca) atau tempel string EMV manual.
+  - Riwayat QRIS tersimpan otomatis, bisa diaktifkan kembali (rollback) kapan saja tanpa upload ulang.
 
 ### 📱 Aplikasi Mobile (Flutter — `mobile-pos/`)
 - Kasir via smartphone Android dengan antarmuka yang ringan dan cepat.
 - Koneksi langsung ke backend Laravel via REST API (token-based authentication).
-- Pemilihan varian rasa dan topping, keranjang belanja, dan proses pembayaran (Cash/QRIS).
+- Pemilihan varian rasa dan topping, keranjang belanja, dan proses pembayaran (Cash/QRIS Dynamic — nominal otomatis).
 - Sinkronisasi otomatis order ke dashboard web setelah transaksi selesai.
 - Cetak struk langsung ke **printer thermal Bluetooth** (menggunakan `blue_thermal_printer`).
 - **Notifikasi Overlay:** Notifikasi selalu tampil di lapisan terdepan (di atas dialog, modal, atau layar manapun) menggunakan Flutter `Navigator Overlay` — dilengkapi animasi fade-in/out, auto-dismiss 3 detik, dan bisa ditutup manual.
