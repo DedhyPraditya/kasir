@@ -8,8 +8,10 @@ import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'about_page.dart';
 import 'login_page.dart';
 import 'history_page.dart';
 import 'offline_store.dart';
@@ -184,7 +186,7 @@ class _PosHomePageState extends State<PosHomePage> {
 
   double get _subtotal => _cart.fold(0, (value, item) => value + item.subtotal);
 
-  static const String _currentAppVersion = '1.1.3';
+  String _currentAppVersion = '0.0.0';
 
   @override
   void initState() {
@@ -192,9 +194,18 @@ class _PosHomePageState extends State<PosHomePage> {
     _refreshDevices();
     _fetchProducts();
     _fetchToppings();
-    _checkAppUpdate();
+    _loadAppVersion();
     _initConnectivity();
     _refreshPendingOrderCount();
+  }
+
+  Future<void> _loadAppVersion() async {
+    final info = await PackageInfo.fromPlatform();
+    if (!mounted) return;
+    setState(() {
+      _currentAppVersion = info.version;
+    });
+    _checkAppUpdate();
   }
 
   @override
@@ -1839,6 +1850,15 @@ class _PosHomePageState extends State<PosHomePage> {
                 ),
               ),
             ),
+          ),
+          IconButton(
+            icon: const Icon(Icons.info_outline),
+            tooltip: 'Tentang Aplikasi',
+            onPressed: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(builder: (context) => const AboutPage()),
+              );
+            },
           ),
           IconButton(
             icon: const Icon(Icons.logout),
