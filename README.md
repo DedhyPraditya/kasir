@@ -133,9 +133,16 @@ Aplikasi POS (Kasir) & Manajemen Toko modern berbasis web yang dirancang khusus 
 
 ## 📋 Changelog
 
-### [Unreleased / Planned v1.2.0] — Rencana Pembaruan Mendatang
+### [Unreleased / Planned v1.3.0] — Rencana Pembaruan Mendatang
 - **[Planned] Opsi Topping Berdasarkan Kategori (Makanan vs Minuman):**
   Opsi saklar `allow_topping` pada Kategori / Produk di Dashboard Admin. Kategori Makanan menampilkan opsi topping, sedangkan Kategori Minuman menyembunyikan opsi topping secara otomatis di tampilan kasir Web & Mobile POS.
+
+### [1.2.0] — 2026-08-08 (QRIS Dynamic & Pengaturan QRIS)
+- **[Feature] QRIS Statis → Dynamic:** Kode QRIS di kasir Web & Mobile kini otomatis menyisipkan nominal tagihan ke dalam kode QR (standar EMVCo, tag Point of Initiation `11`→`12` + CRC16 dihitung ulang), jadi pelanggan tinggal scan tanpa isi nominal manual.
+- **[Feature] Pengaturan QRIS di Dashboard Admin:** Admin bisa mengganti QRIS toko sendiri — upload foto/screenshot (otomatis dibaca kodenya) atau tempel string EMV QRIS manual — tanpa perlu bantuan developer atau ubah `.env`.
+- **[Feature] Riwayat & Rollback QRIS:** Setiap QRIS yang pernah dipakai tersimpan sebagai riwayat dan bisa diaktifkan kembali kapan saja.
+- **[Improvement] Rate limiting** pada endpoint `/api/qris/dynamic` (30 request/menit) untuk mencegah penyalahgunaan.
+- **[Tests] 17 test otomatis baru** (PHPUnit) untuk logic konversi QRIS, validasi payload, dan endpoint API.
 
 ### [1.1.1] — 2026-08-04 (Mobile POS Update)
 - **[Feature] Icon Aplikasi Logo Nyemil Bebs:** App icon Flutter resmi menggunakan logo Nyemil Bebs (lengkap dengan adaptive icon Android).
