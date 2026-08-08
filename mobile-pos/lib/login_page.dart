@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'offline_store.dart';
 import 'pos_page.dart';
 
 const String backendUrl = 'https://kasir.madignet.site/api';
@@ -42,12 +43,18 @@ class _LoginPageState extends State<LoginPage> {
       if (response.statusCode == 200 &&
           body['success'] == true &&
           body['token'] != null) {
+        final apiToken = body['token'] as String;
+        final kasirName =
+            (body['user']?['name'] ?? body['name'] ?? 'Kasir') as String;
+
+        await OfflineStore.saveSession(apiToken, kasirName);
+
+        if (!mounted) return;
         Navigator.of(context).pushReplacement(
           MaterialPageRoute(
             builder: (context) => PosHomePage(
-              apiToken: body['token'] as String,
-              kasirName:
-                  (body['user']?['name'] ?? body['name'] ?? 'Kasir') as String,
+              apiToken: apiToken,
+              kasirName: kasirName,
             ),
           ),
         );

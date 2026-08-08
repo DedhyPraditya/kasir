@@ -2,6 +2,15 @@
 
 Semua perubahan pada aplikasi Mobile POS dicatat di file ini.
 
+## [1.4.0] - 2026-08-09
+
+### 📴 Mode Offline & Auto-Sync
+- **Login Persisten**: Sesi kasir tersimpan di HP, jadi app tidak minta login ulang tiap dibuka — bisa langsung dipakai walau tanpa internet.
+- **Cache Menu Offline**: Daftar produk & topping terakhir yang berhasil dimuat disimpan lokal, tetap tampil saat tidak ada koneksi.
+- **Antrian Order Offline**: Transaksi tetap bisa diproses & struk tetap tercetak saat offline. Order disimpan di antrian lokal dan otomatis dikirim ke server begitu koneksi kembali online.
+- **Indikator Online/Offline**: Ikon status koneksi di AppBar, lengkap dengan badge jumlah order yang masih menunggu sinkronisasi (bisa ditekan untuk sinkron manual).
+- **QRIS Offline (Default)**: Saat offline, kasir tetap bisa memilih QRIS — menampilkan gambar QRIS statis default yang bisa diatur admin/kasir dari menu Setting (nominal tidak otomatis, perlu konfirmasi manual ke pelanggan).
+
 ## [1.3.0] - 2026-08-08
 
 ### 🍰 Pilihan Topping Berdasarkan Kategori (Makanan vs Minuman)

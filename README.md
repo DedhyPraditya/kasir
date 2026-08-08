@@ -34,6 +34,7 @@ Aplikasi POS (Kasir) & Manajemen Toko modern berbasis web yang dirancang khusus 
 - Koneksi langsung ke backend Laravel via REST API (token-based authentication).
 - Pemilihan varian rasa dan topping, keranjang belanja, dan proses pembayaran (Cash/QRIS Dynamic — nominal otomatis).
 - Sinkronisasi otomatis order ke dashboard web setelah transaksi selesai.
+- **Mode Offline:** Login persisten, cache menu, dan antrian order otomatis tersinkron begitu koneksi kembali — indikator online/offline di AppBar, plus fallback QRIS statis saat tanpa internet.
 - Cetak struk langsung ke **printer thermal Bluetooth** (menggunakan `blue_thermal_printer`).
 - **Notifikasi Overlay:** Notifikasi selalu tampil di lapisan terdepan (di atas dialog, modal, atau layar manapun) menggunakan Flutter `Navigator Overlay` — dilengkapi animasi fade-in/out, auto-dismiss 3 detik, dan bisa ditutup manual.
 
@@ -133,6 +134,12 @@ Aplikasi POS (Kasir) & Manajemen Toko modern berbasis web yang dirancang khusus 
 ---
 
 ## 📋 Changelog
+
+### [1.4.0] — 2026-08-09 (Mode Offline & Auto-Sync Mobile)
+- **[Feature] Mode Offline Penuh:** Aplikasi Mobile POS tetap bisa dipakai transaksi tanpa internet — login persisten (tidak minta login ulang), menu produk/topping tersimpan cache lokal, dan order tetap tercetak strukennya walau offline.
+- **[Feature] Antrian & Auto-Sync:** Order yang dibuat saat offline disimpan di antrian lokal dan otomatis terkirim ke server begitu koneksi internet kembali, tanpa perlu aksi manual dari kasir.
+- **[Feature] Indikator Online/Offline:** Status koneksi ditampilkan di AppBar mobile, lengkap badge jumlah order yang masih menunggu sinkronisasi.
+- **[Feature] QRIS Offline (Default):** Saat offline, kasir tetap bisa menerima QRIS memakai gambar QRIS statis default yang diatur dari menu Setting di aplikasi mobile.
 
 ### [1.3.0] — 2026-08-08 (Opsi Topping per Kategori)
 - **[Feature] Opsi Topping Berdasarkan Kategori (Makanan vs Minuman):** Saklar "Izinkan Topping" pada form Kategori di Dashboard Admin. Kategori dengan topping nonaktif (misal Minuman) otomatis menyembunyikan pilihan topping di modal kasir Web & Mobile POS, tanpa perlu hapus data topping.

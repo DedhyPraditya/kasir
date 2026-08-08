@@ -1,12 +1,18 @@
+import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 import 'dart:math';
 
 import 'package:blue_thermal_printer/blue_thermal_printer.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:image_picker/image_picker.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'login_page.dart';
 import 'history_page.dart';
+import 'offline_store.dart';
 
 import 'package:permission_handler/permission_handler.dart';
 
@@ -172,6 +178,10 @@ class _PosHomePageState extends State<PosHomePage> {
   String _paymentMethod = 'cash';
   String _amountPaid = '';
 
+  bool _isOnline = true;
+  int _pendingOrderCount = 0;
+  StreamSubscription<List<ConnectivityResult>>? _connectivitySubscription;
+
   double get _subtotal => _cart.fold(0, (value, item) => value + item.subtotal);
 
   static const String _currentAppVersion = '1.1.3';
@@ -183,6 +193,53 @@ class _PosHomePageState extends State<PosHomePage> {
     _fetchProducts();
     _fetchToppings();
     _checkAppUpdate();
+    _initConnectivity();
+    _refreshPendingOrderCount();
+  }
+
+  @override
+  void dispose() {
+    _connectivitySubscription?.cancel();
+    super.dispose();
+  }
+
+  Future<void> _initConnectivity() async {
+    final result = await Connectivity().checkConnectivity();
+    _updateOnlineStatus(result);
+
+    _connectivitySubscription = Connectivity()
+        .onConnectivityChanged
+        .listen(_updateOnlineStatus);
+  }
+
+  void _updateOnlineStatus(List<ConnectivityResult> results) {
+    final wasOnline = _isOnline;
+    final isOnline = results.any((r) => r != ConnectivityResult.none);
+
+    if (!mounted) return;
+    setState(() {
+      _isOnline = isOnline;
+    });
+
+    if (!wasOnline && isOnline) {
+      _showMessage('Koneksi kembali online.', type: SnackBarType.success);
+      _fetchProducts();
+      _fetchToppings();
+      _syncPendingOrders();
+    } else if (wasOnline && !isOnline) {
+      _showMessage(
+        'Koneksi terputus. Mode offline aktif.',
+        type: SnackBarType.warning,
+      );
+    }
+  }
+
+  Future<void> _refreshPendingOrderCount() async {
+    final pending = await OfflineStore.getPendingOrders();
+    if (!mounted) return;
+    setState(() {
+      _pendingOrderCount = pending.length;
+    });
   }
 
   Future<void> _checkAppUpdate() async {
@@ -288,10 +345,9 @@ class _PosHomePageState extends State<PosHomePage> {
     });
 
     try {
-      final response = await http.get(
-        Uri.parse('$backendUrl/products'),
-        headers: _apiHeaders,
-      );
+      final response = await http
+          .get(Uri.parse('$backendUrl/products'), headers: _apiHeaders)
+          .timeout(const Duration(seconds: 10));
 
       if (response.statusCode == 200) {
         final jsonBody = jsonDecode(response.body) as Map<String, dynamic>;
@@ -299,6 +355,8 @@ class _PosHomePageState extends State<PosHomePage> {
         final products = data
             .map((item) => Product.fromJson(item as Map<String, dynamic>))
             .toList();
+
+        await OfflineStore.cacheProducts(data);
 
         if (!mounted) return;
         setState(() {
@@ -310,9 +368,10 @@ class _PosHomePageState extends State<PosHomePage> {
         _showMessage(
           'Gagal memuat produk: ${response.statusCode} ${response.body}',
         );
+        await _loadCachedProducts();
       }
     } catch (error) {
-      _showMessage('Gagal memuat produk: $error');
+      await _loadCachedProducts();
     }
 
     if (!mounted) return;
@@ -321,12 +380,37 @@ class _PosHomePageState extends State<PosHomePage> {
     });
   }
 
+  Future<void> _loadCachedProducts() async {
+    final cached = await OfflineStore.getCachedProducts();
+    if (cached.isEmpty) {
+      _showMessage(
+        'Tidak ada koneksi & belum ada menu tersimpan. Sambungkan internet minimal sekali.',
+        type: SnackBarType.error,
+      );
+      return;
+    }
+
+    final products = cached
+        .map((item) => Product.fromJson(item as Map<String, dynamic>))
+        .toList();
+
+    if (!mounted) return;
+    setState(() {
+      _products
+        ..clear()
+        ..addAll(products);
+    });
+    _showMessage(
+      'Mode offline: menampilkan menu tersimpan terakhir.',
+      type: SnackBarType.warning,
+    );
+  }
+
   Future<void> _fetchToppings() async {
     try {
-      final response = await http.get(
-        Uri.parse('$backendUrl/toppings'),
-        headers: _apiHeaders,
-      );
+      final response = await http
+          .get(Uri.parse('$backendUrl/toppings'), headers: _apiHeaders)
+          .timeout(const Duration(seconds: 10));
 
       if (response.statusCode == 200) {
         final jsonBody = jsonDecode(response.body) as Map<String, dynamic>;
@@ -335,6 +419,8 @@ class _PosHomePageState extends State<PosHomePage> {
             .map((item) => Topping.fromJson(item as Map<String, dynamic>))
             .toList();
 
+        await OfflineStore.cacheToppings(data);
+
         if (!mounted) return;
         setState(() {
           _toppings
@@ -342,13 +428,27 @@ class _PosHomePageState extends State<PosHomePage> {
             ..addAll(toppings);
         });
       } else {
-        _showMessage(
-          'Gagal memuat topping: ${response.statusCode} ${response.body}',
-        );
+        await _loadCachedToppings();
       }
     } catch (error) {
-      _showMessage('Gagal memuat topping: $error');
+      await _loadCachedToppings();
     }
+  }
+
+  Future<void> _loadCachedToppings() async {
+    final cached = await OfflineStore.getCachedToppings();
+    if (cached.isEmpty) return;
+
+    final toppings = cached
+        .map((item) => Topping.fromJson(item as Map<String, dynamic>))
+        .toList();
+
+    if (!mounted) return;
+    setState(() {
+      _toppings
+        ..clear()
+        ..addAll(toppings);
+    });
   }
 
   Future<void> _refreshDevices() async {
@@ -888,30 +988,104 @@ class _PosHomePageState extends State<PosHomePage> {
       'items': _cart.map((item) => item.toJson()).toList(),
     };
 
+    if (!_isOnline) {
+      await _queueOrder(payload);
+      return;
+    }
+
     setState(() {
       _syncing = true;
     });
 
     try {
-      final response = await http.post(
-        Uri.parse('$backendUrl/orders/sync'),
-        headers: _apiHeaders,
-        body: jsonEncode(payload),
-      );
+      final response = await http
+          .post(
+            Uri.parse('$backendUrl/orders/sync'),
+            headers: _apiHeaders,
+            body: jsonEncode(payload),
+          )
+          .timeout(const Duration(seconds: 10));
 
       if (response.statusCode == 201) {
         _showMessage('Order berhasil disimpan ke dashboard.');
       } else {
-        _showMessage('Sinkron gagal: ${response.statusCode}.');
+        await _queueOrder(payload);
       }
     } catch (error) {
-      _showMessage('Sinkron gagal: $error');
+      await _queueOrder(payload);
     }
 
     if (!mounted) return;
     setState(() {
       _syncing = false;
     });
+  }
+
+  Future<void> _queueOrder(Map<String, dynamic> payload) async {
+    await OfflineStore.addPendingOrder(payload);
+    await _refreshPendingOrderCount();
+    _showMessage(
+      'Tidak ada koneksi. Order disimpan & akan otomatis disinkronkan.',
+      type: SnackBarType.warning,
+    );
+  }
+
+  Future<void> _syncPendingOrders() async {
+    if (_syncing) return;
+
+    final pending = await OfflineStore.getPendingOrders();
+    if (pending.isEmpty) return;
+
+    setState(() {
+      _syncing = true;
+    });
+
+    var successCount = 0;
+    var failCount = 0;
+
+    for (final order in pending) {
+      try {
+        final response = await http
+            .post(
+              Uri.parse('$backendUrl/orders/sync'),
+              headers: _apiHeaders,
+              body: jsonEncode(order),
+            )
+            .timeout(const Duration(seconds: 10));
+
+        if (response.statusCode == 201) {
+          await OfflineStore.removePendingOrder(
+            order['invoice_number'] as String,
+          );
+          successCount++;
+        } else {
+          failCount++;
+        }
+      } catch (_) {
+        failCount++;
+        break; // kemungkinan koneksi putus lagi, hentikan biar tidak spam retry
+      }
+    }
+
+    await _refreshPendingOrderCount();
+
+    if (!mounted) return;
+    setState(() {
+      _syncing = false;
+    });
+
+    if (successCount > 0) {
+      _showMessage(
+        '$successCount order berhasil disinkronkan.'
+        '${failCount > 0 ? ' $failCount masih tertunda.' : ''}',
+        type: SnackBarType.success,
+      );
+    } else if (failCount > 0) {
+      _showMessage(
+        'Sinkronisasi belum berhasil, akan dicoba lagi nanti.',
+        type: SnackBarType.warning,
+      );
+    }
   }
 
   Future<void> _checkout() async {
@@ -927,21 +1101,36 @@ class _PosHomePageState extends State<PosHomePage> {
     String? qrisBase64;
     bool qrisLoading = false;
     String? qrisError;
+    String? qrisOfflineImagePath;
 
     Future<void> loadQrisImage(
       int amount,
       void Function(void Function()) setDialogState,
     ) async {
+      if (!_isOnline) {
+        final path = await OfflineStore.getDefaultQrisImagePath();
+        setDialogState(() {
+          qrisOfflineImagePath = path;
+          qrisBase64 = null;
+          qrisError = null;
+          qrisLoading = false;
+        });
+        return;
+      }
+
       setDialogState(() {
         qrisLoading = true;
         qrisError = null;
+        qrisOfflineImagePath = null;
       });
 
       try {
-        final response = await http.get(
-          Uri.parse('$backendUrl/qris/dynamic?amount=$amount'),
-          headers: _apiHeaders,
-        );
+        final response = await http
+            .get(
+              Uri.parse('$backendUrl/qris/dynamic?amount=$amount'),
+              headers: _apiHeaders,
+            )
+            .timeout(const Duration(seconds: 10));
 
         if (response.statusCode == 200) {
           final body = jsonDecode(response.body) as Map<String, dynamic>;
@@ -1069,6 +1258,57 @@ class _PosHomePageState extends State<PosHomePage> {
                               const Padding(
                                 padding: EdgeInsets.symmetric(vertical: 32),
                                 child: CircularProgressIndicator(),
+                              )
+                            else if (!_isOnline)
+                              Column(
+                                children: [
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 10,
+                                      vertical: 4,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: Colors.orange.shade100,
+                                      borderRadius: BorderRadius.circular(20),
+                                    ),
+                                    child: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Icon(Icons.cloud_off, size: 14, color: Colors.orange.shade800),
+                                        const SizedBox(width: 4),
+                                        Text(
+                                          'Mode Offline',
+                                          style: TextStyle(fontSize: 11, color: Colors.orange.shade800, fontWeight: FontWeight.bold),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  const SizedBox(height: 10),
+                                  if (qrisOfflineImagePath != null)
+                                    Image.file(
+                                      File(qrisOfflineImagePath!),
+                                      width: 220,
+                                      height: 220,
+                                      fit: BoxFit.contain,
+                                    )
+                                  else ...[
+                                    Icon(Icons.qr_code_2, size: 64, color: Colors.grey.shade400),
+                                    const SizedBox(height: 8),
+                                    const Text(
+                                      'QRIS offline belum diatur. Buka menu Setting untuk mengunggah QRIS default, atau gunakan Tunai.',
+                                      textAlign: TextAlign.center,
+                                      style: TextStyle(fontSize: 12, color: Colors.black54),
+                                    ),
+                                  ],
+                                  if (qrisOfflineImagePath != null) ...[
+                                    const SizedBox(height: 8),
+                                    const Text(
+                                      'QRIS statis (nominal tidak otomatis) - konfirmasi manual nominal ke pelanggan.',
+                                      textAlign: TextAlign.center,
+                                      style: TextStyle(fontSize: 11, color: Colors.black54),
+                                    ),
+                                  ],
+                                ],
                               )
                             else if (qrisError != null)
                               Column(
@@ -1296,18 +1536,50 @@ class _PosHomePageState extends State<PosHomePage> {
     overlay.insert(entry);
   }
 
-  void _openPrinterSettings() {
+  Future<void> _pickDefaultQrisImage(
+    void Function(void Function()) setDialogState,
+  ) async {
+    final picker = ImagePicker();
+    final picked = await picker.pickImage(
+      source: ImageSource.gallery,
+      imageQuality: 85,
+    );
+    if (picked == null) return;
+
+    final appDir = await getApplicationDocumentsDirectory();
+    final savedPath = '${appDir.path}/default_qris_offline.jpg';
+    await File(picked.path).copy(savedPath);
+    await OfflineStore.saveDefaultQrisImagePath(savedPath);
+
+    setDialogState(() {});
+    _showMessage('QRIS offline default berhasil disimpan.', type: SnackBarType.success);
+  }
+
+  Future<void> _removeDefaultQrisImage(
+    void Function(void Function()) setDialogState,
+  ) async {
+    await OfflineStore.clearDefaultQrisImage();
+    setDialogState(() {});
+    _showMessage('QRIS offline default dihapus.');
+  }
+
+  void _openPrinterSettings() async {
+    String? qrisOfflinePath = await OfflineStore.getDefaultQrisImagePath();
+
+    if (!mounted) return;
+
     showDialog<void>(
       context: context,
       builder: (context) {
         return StatefulBuilder(
           builder: (context, setDialogState) {
             return AlertDialog(
-              title: const Text('Pengaturan Printer'),
-              content: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
+              title: const Text('Pengaturan'),
+              content: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
                   const Text('Pilih printer Bluetooth dari daftar berikut:'),
                   const SizedBox(height: 12),
                   if (_devices.isEmpty)
@@ -1346,7 +1618,56 @@ class _PosHomePageState extends State<PosHomePage> {
                           : Colors.orange.shade700,
                     ),
                   ),
-                ],
+                  const Divider(height: 32),
+                  const Text(
+                    'QRIS Offline (Default)',
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 6),
+                  const Text(
+                    'Gambar QRIS ini ditampilkan saat kasir memilih QRIS dalam kondisi tanpa internet. Nominal tidak otomatis, jadi konfirmasi manual ke pelanggan.',
+                    style: TextStyle(fontSize: 12, color: Colors.black54),
+                  ),
+                  const SizedBox(height: 12),
+                  if (qrisOfflinePath != null)
+                    Column(
+                      children: [
+                        Image.file(
+                          File(qrisOfflinePath!),
+                          width: 140,
+                          height: 140,
+                          fit: BoxFit.contain,
+                        ),
+                        const SizedBox(height: 8),
+                      ],
+                    ),
+                  Row(
+                    children: [
+                      OutlinedButton.icon(
+                        icon: const Icon(Icons.image_outlined, size: 18),
+                        label: Text(qrisOfflinePath == null ? 'Pilih Gambar' : 'Ganti Gambar'),
+                        onPressed: () async {
+                          await _pickDefaultQrisImage(setDialogState);
+                          qrisOfflinePath = await OfflineStore.getDefaultQrisImagePath();
+                          setDialogState(() {});
+                        },
+                      ),
+                      if (qrisOfflinePath != null) ...[
+                        const SizedBox(width: 8),
+                        TextButton.icon(
+                          icon: const Icon(Icons.delete_outline, size: 18, color: Colors.red),
+                          label: const Text('Hapus', style: TextStyle(color: Colors.red)),
+                          onPressed: () async {
+                            await _removeDefaultQrisImage(setDialogState);
+                            qrisOfflinePath = null;
+                            setDialogState(() {});
+                          },
+                        ),
+                      ],
+                    ],
+                  ),
+                  ],
+                ),
               ),
               actions: [
                 TextButton(
@@ -1405,8 +1726,10 @@ class _PosHomePageState extends State<PosHomePage> {
           ],
         );
       },
-    ).then((confirmed) {
+    ).then((confirmed) async {
       if (confirmed == true) {
+        await OfflineStore.clearSession();
+        if (!mounted) return;
         Navigator.of(context).pushReplacement(
           MaterialPageRoute(
             builder: (context) => const LoginPage(),
@@ -1451,6 +1774,50 @@ class _PosHomePageState extends State<PosHomePage> {
       appBar: AppBar(
         title: const Text('NYEMIL BEBS'),
         actions: [
+          // Indikator online/offline + antrian order belum sinkron
+          Tooltip(
+            message: _isOnline
+                ? (_pendingOrderCount > 0
+                    ? '$_pendingOrderCount order menunggu sinkronisasi'
+                    : 'Online')
+                : 'Offline${_pendingOrderCount > 0 ? ' - $_pendingOrderCount order tertunda' : ''}',
+            child: InkWell(
+              onTap: _isOnline && _pendingOrderCount > 0
+                  ? _syncPendingOrders
+                  : null,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 4),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      _isOnline ? Icons.cloud_done : Icons.cloud_off,
+                      size: 18,
+                      color: _isOnline ? Colors.greenAccent : Colors.orangeAccent,
+                    ),
+                    if (_pendingOrderCount > 0) ...[
+                      const SizedBox(width: 4),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
+                        decoration: BoxDecoration(
+                          color: Colors.redAccent,
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Text(
+                          '$_pendingOrderCount',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 11,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+            ),
+          ),
           // Indikator status printer
           Tooltip(
             message: _connected ? 'Printer terhubung' : 'Printer belum terhubung',
