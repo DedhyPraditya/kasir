@@ -6,6 +6,7 @@ use App\Models\QrisSetting;
 use App\Services\QrisService;
 use Endroid\QrCode\QrCode;
 use Endroid\QrCode\Writer\PngWriter;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use InvalidArgumentException;
 use Livewire\Component;
@@ -51,14 +52,28 @@ class QrisSettings extends Component
                 'qrisImage.max' => 'Ukuran gambar maksimal 4MB.',
             ]);
 
+            $decodeError = null;
+
             try {
                 $reader = new QrReader($this->qrisImage->getRealPath(), QrReader::SOURCE_TYPE_FILE);
                 $payload = $reader->text();
-            } catch (Throwable) {
+
+                if (! $payload) {
+                    $decodeError = $reader->getError();
+                }
+            } catch (Throwable $e) {
                 $payload = false;
+                $decodeError = $e;
             }
 
             if (! $payload) {
+                Log::warning('Gagal membaca QR dari gambar upload QRIS.', [
+                    'user_id' => auth()->id(),
+                    'original_name' => $this->qrisImage->getClientOriginalName(),
+                    'size_bytes' => $this->qrisImage->getSize(),
+                    'error' => $decodeError?->getMessage(),
+                ]);
+
                 $this->addError('qrisImage', 'Gambar tidak mengandung kode QR yang bisa dibaca. Pastikan foto jelas dan tidak buram.');
 
                 return;
