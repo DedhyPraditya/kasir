@@ -35,6 +35,7 @@ class QrisController extends Controller
 
         return response()->json([
             'amount'    => (float) $validated['amount'],
+            'payload'   => $payload,
             'qr_base64' => base64_encode($result->getString()),
         ]);
     }
@@ -56,6 +57,7 @@ class QrisController extends Controller
         $result = (new PngWriter())->write($qrCode);
 
         return response()->json([
+            'payload'   => $payload,
             'qr_base64' => base64_encode($result->getString()),
         ]);
     }
