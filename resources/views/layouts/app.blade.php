@@ -107,6 +107,13 @@
                         </a>
                     </li>
                     @endrole
+                    @role('developer')
+                    <li>
+                        <a href="{{ route('users.index') }}" class="nav-link py-3 px-3 {{ request()->routeIs('users.index') ? 'active shadow-sm' : '' }}">
+                            <i class="bi bi-people-fill me-2 fs-5"></i> Kelola Pengguna
+                        </a>
+                    </li>
+                    @endrole
                 </ul>
                 <hr>
                 <div class="dropdown">

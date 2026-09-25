@@ -15,7 +15,13 @@
         <!-- Password -->
         <div class="mb-3">
             <label for="password" class="form-label">Password</label>
-            <input id="password" class="form-control" type="password" name="password" required autocomplete="current-password" />
+            <div class="input-group">
+                <input id="password" class="form-control" type="password" name="password" required autocomplete="current-password" />
+                <button type="button" class="btn btn-outline-secondary" title="Lihat password" aria-label="Lihat password"
+                        onclick="const i = document.getElementById('password'); const show = i.type === 'password'; i.type = show ? 'text' : 'password'; this.firstElementChild.className = show ? 'bi bi-eye-slash' : 'bi bi-eye'; this.title = this.ariaLabel = show ? 'Sembunyikan password' : 'Lihat password';">
+                    <i class="bi bi-eye"></i>
+                </button>
+            </div>
             <x-input-error :messages="$errors->get('password')" class="text-danger mt-2" />
         </div>
 
