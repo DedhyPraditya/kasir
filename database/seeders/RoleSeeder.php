@@ -31,5 +31,13 @@ class RoleSeeder extends Seeder
             ['password' => Hash::make('kasir123')]
         );
         $kasir->assignRole($kasirRole);
+
+        // Buat user developer: akses penuh admin + boleh hapus transaksi uji coba
+        $developerRole = Role::firstOrCreate(['name' => 'developer']);
+        $developer = User::firstOrCreate(
+            ['username' => 'developer'],
+            ['password' => Hash::make(env('DEVELOPER_PASSWORD', 'developer123'))]
+        );
+        $developer->syncRoles([$adminRole, $developerRole]);
     }
 }
