@@ -19,4 +19,5 @@ Route::middleware(['api.token'])->group(function () {
     Route::get('/orders', [OrderSyncController::class, 'history']);
     Route::post('/orders/sync', [OrderSyncController::class, 'sync']);
     Route::get('/qris/dynamic', [QrisController::class, 'dynamic'])->middleware('throttle:30,1');
+    Route::get('/qris/static', [QrisController::class, 'staticImage'])->middleware('throttle:30,1');
 });

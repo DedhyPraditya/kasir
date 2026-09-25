@@ -34,7 +34,28 @@ class QrisController extends Controller
         $result = (new PngWriter())->write($qrCode);
 
         return response()->json([
-            'amount' => (float) $validated['amount'],
+            'amount'    => (float) $validated['amount'],
+            'qr_base64' => base64_encode($result->getString()),
+        ]);
+    }
+
+    /**
+     * Mengembalikan gambar QR dari payload QRIS STATIS asli (tag 01 = 11, tidak dimodifikasi).
+     * Aman dipakai oleh semua bank & e-wallet karena tidak mengubah struktur QRIS.
+     * Nominal ditampilkan di UI aplikasi, bukan disisipkan ke dalam payload QR.
+     */
+    public function staticImage(Request $request, QrisService $qris): JsonResponse
+    {
+        $payload = $qris->getActivePayload();
+
+        if (! $payload) {
+            return response()->json(['message' => 'QRIS belum dikonfigurasi.'], 500);
+        }
+
+        $qrCode = new QrCode(data: $payload, size: 400, margin: 10);
+        $result = (new PngWriter())->write($qrCode);
+
+        return response()->json([
             'qr_base64' => base64_encode($result->getString()),
         ]);
     }
