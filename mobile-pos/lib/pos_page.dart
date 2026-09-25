@@ -1346,10 +1346,22 @@ class _PosHomePageState extends State<PosHomePage> {
                                 ],
                               )
                             else if (qrisBase64 != null)
-                              Image.memory(
-                                base64Decode(qrisBase64!),
-                                width: 220,
-                                height: 220,
+                              Container(
+                                padding: const EdgeInsets.all(8),
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.circular(12),
+                                  boxShadow: const [
+                                    BoxShadow(color: Colors.black12, blurRadius: 4),
+                                  ],
+                                ),
+                                child: Image.memory(
+                                  base64Decode(qrisBase64!),
+                                  width: 250,
+                                  height: 250,
+                                  fit: BoxFit.contain,
+                                  filterQuality: FilterQuality.high,
+                                ),
                               )
                             else
                               const Icon(

@@ -30,7 +30,7 @@ class QrisController extends Controller
             return response()->json(['message' => $e->getMessage()], 422);
         }
 
-        $qrCode = new QrCode(data: $payload, size: 400, margin: 10);
+        $qrCode = new QrCode(data: $payload, size: 300, margin: 10);
         $result = (new PngWriter())->write($qrCode);
 
         return response()->json([
