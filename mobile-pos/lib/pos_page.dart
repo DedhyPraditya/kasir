@@ -1136,11 +1136,9 @@ class _PosHomePageState extends State<PosHomePage> {
       });
 
       try {
-        // Pakai endpoint /qris/static agar QRIS tidak dimodifikasi
-        // dan bisa dibayar oleh semua bank (BCA, SeaBank, BRI, dll).
         final response = await http
             .get(
-              Uri.parse('$backendUrl/qris/static'),
+              Uri.parse('$backendUrl/qris/dynamic?amount=$amount'),
               headers: _apiHeaders,
             )
             .timeout(const Duration(seconds: 10));
@@ -1348,47 +1346,10 @@ class _PosHomePageState extends State<PosHomePage> {
                                 ],
                               )
                             else if (qrisBase64 != null)
-                              Column(
-                                children: [
-                                  // Nominal besar dan mencolok
-                                  Container(
-                                    width: double.infinity,
-                                    padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
-                                    decoration: BoxDecoration(
-                                      color: Colors.green.shade600,
-                                      borderRadius: BorderRadius.circular(10),
-                                    ),
-                                    child: Column(
-                                      children: [
-                                        const Text(
-                                          'Total yang harus dibayar',
-                                          style: TextStyle(color: Colors.white70, fontSize: 11),
-                                        ),
-                                        Text(
-                                          _formatRp(total),
-                                          style: const TextStyle(
-                                            color: Colors.white,
-                                            fontSize: 26,
-                                            fontWeight: FontWeight.bold,
-                                            letterSpacing: 0.5,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                  const SizedBox(height: 12),
-                                  Image.memory(
-                                    base64Decode(qrisBase64!),
-                                    width: 220,
-                                    height: 220,
-                                  ),
-                                  const SizedBox(height: 8),
-                                  const Text(
-                                    'Masukkan nominal di atas saat konfirmasi pembayaran',
-                                    textAlign: TextAlign.center,
-                                    style: TextStyle(fontSize: 11, color: Colors.black54),
-                                  ),
-                                ],
+                              Image.memory(
+                                base64Decode(qrisBase64!),
+                                width: 220,
+                                height: 220,
                               )
                             else
                               const Icon(
