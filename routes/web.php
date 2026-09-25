@@ -23,10 +23,8 @@ Route::middleware('auth')->group(function () {
         ->middleware(['redirect.kasir', 'role:admin'])
         ->name('dashboard');
 
-    // Laporan - hanya Admin
-    Route::get('/laporan', \App\Livewire\Laporan::class)
-        ->middleware(['redirect.kasir', 'role:admin'])
-        ->name('laporan');
+    // Laporan - semua akun (ringkasan pendapatan & export hanya Admin)
+    Route::get('/laporan', \App\Livewire\Laporan::class)->name('laporan');
     Route::get('/laporan/export', [\App\Http\Controllers\LaporanController::class, 'export'])
         ->middleware(['redirect.kasir', 'role:admin'])
         ->name('laporan.export');
@@ -35,6 +33,9 @@ Route::middleware('auth')->group(function () {
     Route::get('/produk', \App\Livewire\Produk::class)
         ->middleware(['redirect.kasir', 'role:admin'])
         ->name('produk');
+
+    // Pengaturan Printer - semua akun (ubah header/footer struk hanya Admin)
+    Route::get('/pengaturan/printer', \App\Livewire\PrinterSettings::class)->name('printer.settings');
 
     // Pengaturan QRIS - hanya Admin
     Route::get('/pengaturan/qris', \App\Livewire\QrisSettings::class)

@@ -16,6 +16,8 @@ class Laporan extends Component
 
     protected $paginationTheme = 'bootstrap';
 
+    private const PER_PAGE = 15;
+
     public string $dateFrom = '';
     public string $dateTo   = '';
     public string $search   = '';
@@ -26,6 +28,9 @@ class Laporan extends Component
         $this->dateTo   = Carbon::today()->format('Y-m-d');
     }
 
+    /** ID transaksi yang sedang dibuka di modal detail */
+    public ?string $detailOrderId = null;
+
     /** @var array<int, string> ID transaksi yang dicentang developer */
     public array $selected = [];
 
@@ -35,6 +40,52 @@ class Laporan extends Component
     public function updatingSearch(): void  { $this->resetPage(); $this->selected = []; }
     public function updatingDateFrom(): void { $this->resetPage(); $this->selected = []; }
     public function updatingDateTo(): void   { $this->resetPage(); $this->selected = []; }
+
+    public function showDetail(string $orderId): void
+    {
+        $this->detailOrderId = $orderId;
+    }
+
+    public function closeDetail(): void
+    {
+        $this->detailOrderId = null;
+    }
+
+    /**
+     * Centang/lepas semua transaksi di halaman tabel yang sedang tampil.
+     */
+    public function toggleSelectPage(): void
+    {
+        $this->authorizeDeveloper();
+
+        $pageIds = $this->currentPageIds();
+        $allSelected = $pageIds !== [] && array_diff($pageIds, $this->selected) === [];
+
+        $this->selected = $allSelected
+            ? array_values(array_diff($this->selected, $pageIds))
+            : array_values(array_unique(array_merge($this->selected, $pageIds)));
+    }
+
+    /**
+     * Centang semua transaksi yang cocok dengan filter (semua halaman).
+     */
+    public function selectAllFiltered(): void
+    {
+        $this->authorizeDeveloper();
+
+        $this->selected = $this->baseQuery()->pluck('id')->all();
+    }
+
+    public function clearSelection(): void
+    {
+        $this->selected = [];
+    }
+
+    /** @return array<int, string> */
+    private function currentPageIds(): array
+    {
+        return $this->baseQuery()->latest()->forPage($this->getPage(), self::PER_PAGE)->pluck('id')->all();
+    }
 
     public function confirmDelete(?string $orderId = null): void
     {
@@ -100,12 +151,17 @@ class Laporan extends Component
     {
         $base = $this->baseQuery();
 
+        $detailOrder = $this->detailOrderId
+            ? Order::with('items.toppings')->find($this->detailOrderId)
+            : null;
+
         $totalPendapatan = (clone $base)->sum('total');
         $totalTransaksi  = (clone $base)->count();
         $totalCash       = (clone $base)->where('payment_method', 'cash')->sum('total');
         $totalQris       = (clone $base)->where('payment_method', 'qris')->sum('total');
 
-        $orders = (clone $base)->with('items')->latest()->paginate(15);
+        $orders = (clone $base)->with('items')->latest()->paginate(self::PER_PAGE);
+        $pageIds = $orders->pluck('id')->all();
 
         return view('livewire.laporan', [
             'orders'          => $orders,
@@ -113,6 +169,9 @@ class Laporan extends Component
             'totalTransaksi'  => $totalTransaksi,
             'totalCash'       => $totalCash,
             'totalQris'       => $totalQris,
+            'detailOrder'     => $detailOrder,
+            'pageAllSelected' => $pageIds !== [] && array_diff($pageIds, $this->selected) === [],
+            'isAdmin'         => auth()->user()?->hasRole('admin') ?? false,
             'isDeveloper'     => auth()->user()?->hasRole('developer') ?? false,
         ])->layout('layouts.app');
     }

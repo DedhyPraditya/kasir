@@ -16,6 +16,7 @@
         @vite(['resources/css/app.css', 'resources/js/app.js'])
         <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
         <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+        <script src="{{ asset('js/thermal-printer.js') }}?v={{ filemtime(public_path('js/thermal-printer.js')) }}"></script>
         
         <style>
             .sidebar {
@@ -83,15 +84,21 @@
                             <i class="bi bi-calculator-fill me-2 fs-5"></i> Kasir (POS)
                         </a>
                     </li>
+                    <li>
+                        <a href="{{ route('laporan') }}" class="nav-link py-3 px-3 {{ request()->routeIs('laporan') ? 'active shadow-sm' : '' }}">
+                            <i class="bi bi-receipt me-2 fs-5"></i> Laporan
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{{ route('printer.settings') }}" class="nav-link py-3 px-3 d-flex align-items-center {{ request()->routeIs('printer.settings') ? 'active shadow-sm' : '' }}">
+                            <i class="bi bi-printer-fill me-2 fs-5"></i> Printer
+                            <span id="printer-status-badge" class="rounded-circle ms-auto border border-white" style="width: 10px; height: 10px; background: #adb5bd;"></span>
+                        </a>
+                    </li>
                     @role('admin')
                     <li>
                         <a href="{{ route('produk') }}" class="nav-link py-3 px-3 {{ request()->routeIs('produk') ? 'active shadow-sm' : '' }}">
                             <i class="bi bi-box-seam-fill me-2 fs-5"></i> Produk
-                        </a>
-                    </li>
-                    <li>
-                        <a href="{{ route('laporan') }}" class="nav-link py-3 px-3 {{ request()->routeIs('laporan') ? 'active shadow-sm' : '' }}">
-                            <i class="bi bi-receipt me-2 fs-5"></i> Laporan
                         </a>
                     </li>
                     <li>
@@ -143,6 +150,21 @@
             </div>
         </div>
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+        <script>
+            // Indikator status printer thermal di sidebar.
+            (function () {
+                const badge = document.getElementById('printer-status-badge');
+                if (!badge || !window.ThermalPrinter) return;
+                const colors = { connected: '#198754', connecting: '#ffc107', disconnected: '#dc3545' };
+                const labels = { connected: 'Terhubung', connecting: 'Menghubungkan', disconnected: 'Terputus', none: 'Belum diatur', unsupported: 'Tidak didukung' };
+                const render = (s) => {
+                    badge.style.background = colors[s.state] || '#adb5bd';
+                    badge.title = 'Printer: ' + (labels[s.state] || '-');
+                };
+                window.addEventListener('thermal:status', (e) => render(e.detail));
+                render(ThermalPrinter.status());
+            })();
+        </script>
         @livewireScripts
     </body>
 </html>

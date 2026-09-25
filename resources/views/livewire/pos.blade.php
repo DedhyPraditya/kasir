@@ -1,113 +1,5 @@
 <div>
-    <style>
-        @media print {
-            @page {
-                size: 58mm auto;
-                margin: 0;
-            }
-            html, body {
-                width: 58mm !important;
-                min-width: 58mm !important;
-                margin: 0 !important;
-                padding: 0 !important;
-                background: white !important;
-            }
-            /* Lepaskan layout dashboard/flex agar titik tengah dihitung dari kertas. */
-            body > .d-flex,
-            .main-content,
-            .main-content main {
-                display: block !important;
-                width: 58mm !important;
-                min-width: 58mm !important;
-                height: auto !important;
-                min-height: 0 !important;
-                margin: 0 !important;
-                padding: 0 !important;
-                overflow: visible !important;
-            }
-            body * {
-                visibility: hidden;
-            }
-            #print-area, #print-area * {
-                visibility: visible;
-            }
-            #print-area {
-                /* Printer 58 mm umumnya hanya menyediakan area cetak efektif ±48 mm. */
-                box-sizing: border-box !important;
-                position: static !important;
-                width: 48mm !important;
-                max-width: 48mm !important;
-                min-width: 0 !important;
-                padding: 2mm 0 !important;
-                margin: 0 auto !important;
-                color: black !important;
-                font-family: "Arial Black", Arial, Helvetica, sans-serif !important;
-                font-size: 13px !important;
-                font-weight: 900 !important;
-                line-height: 1.3 !important;
-                overflow: visible !important;
-            }
-            /* Hilangkan warna abu-abu Bootstrap dan cetak dengan hitam pekat. */
-            #print-area, #print-area * {
-                color: #000 !important;
-                -webkit-print-color-adjust: exact !important;
-                print-color-adjust: exact !important;
-            }
-            #print-area [style*="font-size"] {
-                font-size: 12px !important;
-            }
-            #print-area h4 {
-                font-size: 15px !important;
-                font-weight: 700 !important;
-            }
-            .modal-backdrop {
-                display: none !important;
-            }
-            .modal, .modal-dialog {
-                display: block !important;
-                position: static !important;
-                top: 0 !important;
-                left: 0 !important;
-                margin: 0 !important;
-                padding: 0 !important;
-                width: 58mm !important;
-                max-width: 58mm !important;
-                height: auto !important;
-                transform: none !important;
-            }
-            .d-print-none {
-                display: none !important;
-            }
-            .modal-content {
-                border: none !important;
-                box-shadow: none !important;
-                background: white !important;
-                display: block !important;
-                width: 58mm !important;
-                max-width: 58mm !important;
-                height: auto !important;
-            }
-            #print-area .d-flex {
-                width: 100% !important;
-                min-width: 0 !important;
-            }
-            #print-area .d-flex > * {
-                min-width: 0 !important;
-            }
-            #print-area .d-flex > :last-child:not(:only-child) {
-                flex-shrink: 0 !important;
-                margin-left: 2mm !important;
-                text-align: right !important;
-            }
-        }
-        
-        @import url('https://fonts.googleapis.com/css2?family=Courier+Prime:ital,wght@0,400;0,700;1,400;1,700&display=swap');
-
-        .struk-font {
-            font-family: 'Courier Prime', 'Consolas', 'Courier New', Courier, monospace !important;
-            letter-spacing: 0.3px;
-        }
-    </style>
+    @include('partials.struk-style')
 
     <div class="container-fluid py-4 d-print-none">
         @if (session()->has('success'))
@@ -364,86 +256,15 @@
             <div class="modal-content border-0 shadow">
                 <div class="modal-body p-4 struk-font" id="print-area">
                     
-                    <!-- Header Struk -->
-                    <div class="text-center mb-4">
-                        <h4 class="fw-bold mb-1">NYEMIL BEBS</h4>
-                        <p class="mb-0 text-muted" style="font-size: 12px;">Purnama Town House Blok H/1</p>
-                        <p class="mb-0 text-muted" style="font-size: 12px;">Telp: +62 823-9943-0312</p>
-                    </div>
-                    
-                    <div class="mb-3 border-bottom border-dashed pb-2" style="font-size: 13px;">
-                        <div class="d-flex justify-content-between">
-                            <strong>No: {{ $lastOrder->invoice_number }}</strong>
-                        </div>
-                        <div class="d-flex justify-content-between">
-                            <strong>Tgl: {{ $lastOrder->created_at->format('d/m/Y H:i') }}</strong>
-                        </div>
-                        <div class="d-flex justify-content-between">
-                            <strong>Kasir: {{ auth()->user()->username }}</strong>
-                        </div>
-                        <div class="d-flex justify-content-between">
-                            <strong>Pelanggan: {{ $lastOrder->customer_name }}</strong>
-                        </div>
-                    </div>
-
-                    <!-- Isi Pesanan -->
-                    <div class="mb-3 border-bottom border-dashed pb-2" style="font-size: 13px;">
-                        @foreach($lastOrder->items as $item)
-                        <div class="mb-2">
-                            <div class="fw-bold">
-                                {{ $item->product_name }} {{ $item->variant_name ? '- '.$item->variant_name : '' }}
-                            </div>
-                            <div class="d-flex justify-content-between">
-                                <span>{{ $item->quantity }} x {{ number_format($item->price, 0, ',', '.') }}</span>
-                                <span>{{ number_format($item->subtotal, 0, ',', '.') }}</span>
-                            </div>
-                            @if($item->toppings->count() > 0)
-                            <div class="ms-2" style="font-size: 12px;">
-                                @foreach($item->toppings as $topping)
-                                    <div>+ {{ $topping->topping_name }} ({{ number_format($topping->price, 0, ',', '.') }})</div>
-                                @endforeach
-                            </div>
-                            @endif
-                        </div>
-                        @endforeach
-                    </div>
-
-                    <!-- Total & Pembayaran -->
-                    <div class="mb-4" style="font-size: 14px;">
-                        <div class="d-flex justify-content-between fw-bold">
-                            <span>TOTAL</span>
-                            <span>Rp {{ number_format($lastOrder->total, 0, ',', '.') }}</span>
-                        </div>
-                        <div class="d-flex justify-content-between mt-1">
-                            <span>Metode</span>
-                            <span class="text-uppercase">{{ $lastOrder->payment_method }}</span>
-                        </div>
-                        @if($lastOrder->payment_method === 'cash')
-                        <div class="d-flex justify-content-between">
-                            <span>Tunai</span>
-                            <span>Rp {{ number_format($lastOrder->total + $lastKembalian, 0, ',', '.') }}</span>
-                        </div>
-                        <div class="d-flex justify-content-between">
-                            <span>Kembali</span>
-                            <span>Rp {{ number_format($lastKembalian, 0, ',', '.') }}</span>
-                        </div>
-                        @endif
-                    </div>
-
-                    <!-- Footer Struk -->
-                    <div class="text-center" style="font-size: 12px;">
-                        <p class="mb-1">Terima Kasih atas Kunjungan Anda!</p>
-                        <p class="mb-0">~ Nyemil Bebs ~</p>
-                    </div>
+                    @include('partials.struk', ['order' => $lastOrder, 'kasir' => auth()->user()->username, 'kembalian' => $lastKembalian])
 
                 </div>
                 
-                <div class="modal-footer border-top-0 pt-0 d-print-none justify-content-between">
-                    <button type="button" class="btn btn-light" wire:click="$set('showReceiptModal', false)">Tutup</button>
-                    <button type="button" class="btn btn-primary px-4" onclick="window.print()">
-                        <i class="bi bi-printer me-1"></i> Cetak Struk
-                    </button>
-                </div>
+                @include('partials.struk-actions', [
+                    'receipt' => $lastOrder->receiptData(auth()->user()->username, $lastKembalian),
+                    'closeAction' => "\$set('showReceiptModal', false)",
+                    'label' => 'Cetak Struk',
+                ])
             </div>
         </div>
     </div>

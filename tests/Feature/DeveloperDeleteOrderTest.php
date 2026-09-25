@@ -97,6 +97,72 @@ class DeveloperDeleteOrderTest extends TestCase
         $this->assertSame(0, OrderItemTopping::count());
     }
 
+    public function test_select_all_then_unselect_some_before_delete(): void
+    {
+        $developer = $this->makeUser(['admin', 'developer']);
+        $a = $this->makeOrder();
+        $b = $this->makeOrder();
+        $keep = $this->makeOrder();
+
+        $component = Livewire::actingAs($developer)
+            ->test(Laporan::class)
+            ->call('toggleSelectPage');
+
+        $this->assertEqualsCanonicalizing([$a->id, $b->id, $keep->id], $component->get('selected'));
+
+        // Lepas centang satu transaksi yang tidak ingin dihapus.
+        $component
+            ->set('selected', array_values(array_diff($component->get('selected'), [$keep->id])))
+            ->call('confirmDelete')
+            ->call('deleteOrders');
+
+        $this->assertDatabaseMissing('orders', ['id' => $a->id]);
+        $this->assertDatabaseMissing('orders', ['id' => $b->id]);
+        $this->assertDatabaseHas('orders', ['id' => $keep->id]);
+    }
+
+    public function test_toggle_select_page_twice_clears_page_selection(): void
+    {
+        $developer = $this->makeUser(['admin', 'developer']);
+        $this->makeOrder();
+        $this->makeOrder();
+
+        Livewire::actingAs($developer)
+            ->test(Laporan::class)
+            ->call('toggleSelectPage')
+            ->assertCount('selected', 2)
+            ->call('toggleSelectPage')
+            ->assertSet('selected', []);
+    }
+
+    public function test_select_all_filtered_covers_every_page(): void
+    {
+        $developer = $this->makeUser(['admin', 'developer']);
+        for ($i = 0; $i < 17; $i++) {
+            $this->makeOrder();
+        }
+
+        Livewire::actingAs($developer)
+            ->test(Laporan::class)
+            ->call('toggleSelectPage')
+            ->assertCount('selected', 15)
+            ->assertSee('Pilih semua 17 transaksi sesuai filter')
+            ->call('selectAllFiltered')
+            ->assertCount('selected', 17)
+            ->call('clearSelection')
+            ->assertSet('selected', []);
+    }
+
+    public function test_admin_cannot_use_select_all(): void
+    {
+        $this->makeOrder();
+
+        Livewire::actingAs($this->makeUser(['admin']))
+            ->test(Laporan::class)
+            ->call('selectAllFiltered')
+            ->assertForbidden();
+    }
+
     public function test_admin_without_developer_role_cannot_delete(): void
     {
         $admin = $this->makeUser(['admin']);
