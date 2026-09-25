@@ -39,11 +39,10 @@ Dokumen ini mencatat progres implementasi fitur QRIS dynamic (nominal otomatis) 
   - Preview QRIS aktif + info kapan & siapa yang terakhir mengubah.
 - **Route** `GET /pengaturan/qris` (`role:admin`) di `routes/web.php`, ditambahkan ke menu sidebar & dropdown akun di `resources/views/layouts/app.blade.php`.
 
-### 6. Riwayat QRIS & Rollback (baru)
-- `QrisSetting` sekarang menyimpan histori: setiap upload/aktivasi jadi baris baru, tidak menimpa baris lama.
-- `QrisSettings::activate($id)` — tombol "Aktifkan" di riwayat, membuat baris baru dengan payload lama (jadi payload itu aktif lagi), divalidasi ulang sebelum diaktifkan.
-- `cleanupOldImages()` — tiap kali ada baris baru jadi aktif, file foto upload dari baris-baris lain otomatis dihapus dari storage (payload teks tetap disimpan untuk histori/rollback; preview QR di riwayat digenerate ulang dari teks payload, bukan dari file foto, jadi aman dihapus).
-- View menampilkan section "Riwayat QRIS Sebelumnya" (max 6 terbaru) dengan tombol aktifkan per item + konfirmasi (`wire:confirm`).
+### 6. Pembersihan QRIS Lama & Tampilan Bersih (diperbarui)
+- Riwayat QRIS lama dihilangkan dari tampilan `/pengaturan/qris` agar antarmuka tetap bersih dan rapi.
+- Saat admin mengunggah atau menyimpan QRIS baru, sistem otomatis menghapus rekaman dan file gambar QRIS lama dari storage dan database, sehingga hanya 1 QRIS aktif yang tersimpan.
+- Jika di kemudian hari ingin menggunakan QRIS lama, admin cukup mengunggahnya kembali.
 
 ### 7. Automated Test (PHPUnit)
 - `tests/Unit/QrisServiceTest.php` — 9 test murni logic (parsing EMV, CRC16, validasi payload) tanpa DB, jalan cepat.

@@ -100,33 +100,5 @@
             </div>
         </div>
 
-        {{-- Riwayat QRIS Sebelumnya --}}
-        @if($history->isNotEmpty())
-            <div class="mt-4">
-                <h6 class="fw-bold mb-3">Riwayat QRIS Sebelumnya</h6>
-                <div class="row g-3">
-                    @foreach($history as $item)
-                        <div class="col-md-3 col-sm-4 col-6">
-                            <div class="card border-0 shadow-sm h-100">
-                                <div class="card-body text-center p-3">
-                                    <img src="{{ $item['preview'] }}" alt="Riwayat QRIS" class="img-fluid mb-2" style="max-width: 120px; border-radius: 8px;">
-                                    <p class="small text-muted mb-2">
-                                        {{ $item['created_at']->diffForHumans() }}
-                                        @if($item['updated_by'])
-                                            <br>oleh {{ $item['updated_by'] }}
-                                        @endif
-                                    </p>
-                                    <button type="button" class="btn btn-sm btn-outline-success w-100"
-                                            wire:click="activate({{ $item['id'] }})"
-                                            wire:confirm="Aktifkan kembali QRIS ini?">
-                                        <i class="bi bi-arrow-counterclockwise me-1"></i> Aktifkan
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    @endforeach
-                </div>
-            </div>
-        @endif
     </div>
 </div>

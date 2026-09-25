@@ -94,55 +94,22 @@ class QrisSettings extends Component
             return;
         }
 
-        $new = QrisSetting::create([
+        // Hapus QRIS lama dan file gambarnya dari storage & DB
+        QrisSetting::all()->each(function (QrisSetting $old) {
+            if ($old->image_path) {
+                Storage::disk('public')->delete($old->image_path);
+            }
+            $old->delete();
+        });
+
+        QrisSetting::create([
             'payload' => $payload,
             'image_path' => $imagePath,
             'updated_by' => auth()->id(),
         ]);
 
-        $this->cleanupOldImages($new->id);
-
         $this->reset(['qrisImage', 'manualPayload']);
         session()->flash('message', 'QRIS berhasil diperbarui. Kasir & aplikasi mobile otomatis memakai QRIS baru ini.');
-    }
-
-    public function activate(int $id)
-    {
-        $setting = QrisSetting::findOrFail($id);
-        $qris = app(QrisService::class);
-
-        try {
-            $qris->assertValidStaticPayload($setting->payload);
-        } catch (InvalidArgumentException $e) {
-            session()->flash('error', 'QRIS ini tidak bisa diaktifkan kembali: '.$e->getMessage());
-
-            return;
-        }
-
-        $new = QrisSetting::create([
-            'payload' => $setting->payload,
-            'image_path' => null,
-            'updated_by' => auth()->id(),
-        ]);
-
-        $this->cleanupOldImages($new->id);
-
-        session()->flash('message', 'QRIS lama berhasil diaktifkan kembali.');
-    }
-
-    /**
-     * Hapus file gambar QRIS lama dari storage untuk menghemat ruang.
-     * Payload tetap disimpan di DB (riwayat), hanya file foto upload aslinya yang dibuang.
-     */
-    private function cleanupOldImages(int $keepId): void
-    {
-        QrisSetting::where('id', '!=', $keepId)
-            ->whereNotNull('image_path')
-            ->get()
-            ->each(function (QrisSetting $setting) {
-                Storage::disk('public')->delete($setting->image_path);
-                $setting->update(['image_path' => null]);
-            });
     }
 
     private function toQrDataUri(string $payload, int $size = 260): string
@@ -160,23 +127,9 @@ class QrisSettings extends Component
 
         $previewImage = $activePayload ? $this->toQrDataUri($activePayload) : null;
 
-        $history = QrisSetting::query()
-            ->latest('id')
-            ->with('updatedBy')
-            ->skip(1)
-            ->take(6)
-            ->get()
-            ->map(fn (QrisSetting $setting) => [
-                'id' => $setting->id,
-                'preview' => $this->toQrDataUri($setting->payload, 120),
-                'created_at' => $setting->created_at,
-                'updated_by' => $setting->updatedBy?->username ?? $setting->updatedBy?->name,
-            ]);
-
         return view('livewire.qris-settings', [
             'current' => $current,
             'previewImage' => $previewImage,
-            'history' => $history,
         ])->layout('layouts.app');
     }
 }

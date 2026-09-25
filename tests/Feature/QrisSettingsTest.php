@@ -62,25 +62,25 @@ class QrisSettingsTest extends TestCase
         $this->assertSame(0, QrisSetting::count());
     }
 
-    public function test_activate_creates_new_row_reusing_old_payload_and_becomes_active(): void
+    public function test_uploading_new_payload_replaces_old_payload(): void
     {
         $admin = $this->makeUser();
-        $old = QrisSetting::create([
+        QrisSetting::create([
             'payload' => self::STATIC_PAYLOAD,
             'updated_by' => $admin->id,
         ]);
 
+        $newPayload = '00020101021126760024ID.CO.SPEEDCASH.MERCHANT01189360081530002645920215ID10250026459230303UKE51440014ID.CO.QRIS.WWW0215ID10264905685930303UKE5204581753033605802ID5912WARUNG CLOUD6005MAROS61059056262330509S4156432601091262851520703A016304CE9B';
+
         Livewire::actingAs($admin)
             ->test(QrisSettings::class)
-            ->call('activate', $old->id)
+            ->set('useManualInput', true)
+            ->set('manualPayload', $newPayload)
+            ->call('save')
             ->assertHasNoErrors();
 
-        $this->assertSame(2, QrisSetting::count());
-
-        $latest = QrisSetting::latest('id')->first();
-        $this->assertSame(self::STATIC_PAYLOAD, $latest->payload);
-        $this->assertNotSame($old->id, $latest->id);
-        $this->assertSame(self::STATIC_PAYLOAD, app(QrisService::class)->getActivePayload());
+        $this->assertSame(1, QrisSetting::count());
+        $this->assertSame($newPayload, QrisSetting::first()->payload);
     }
 
     public function test_get_active_payload_prefers_db_row_over_config_fallback(): void
