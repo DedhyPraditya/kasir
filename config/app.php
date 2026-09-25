@@ -123,7 +123,7 @@ return [
         'store' => env('APP_MAINTENANCE_STORE', 'database'),
     ],
 
-    'mobile_version' => '1.1.3',
-    'mobile_build_number' => 5,
-    'mobile_changelog' => "Pembaruan Versi 1.1.3:\n• Perbaikan tombol Update - sekarang langsung membuka link download di browser.\n• Nama aplikasi di HP berubah menjadi 'Nyemil Bebs POS'.\n• Perbaikan logo tidak tampil di halaman login.",
+    'mobile_version' => '1.5.0',
+    'mobile_build_number' => 9,
+    'mobile_changelog' => "Pembaruan Versi 1.5.0:\n• QRIS Dinamis: nominal tagihan otomatis terisi saat discan.\n• Integrasi penuh payload QRIS dari server web.\n• Peningkatan kualitas tampilan kode QR agar mudah discan.",
 ];

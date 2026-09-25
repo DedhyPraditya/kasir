@@ -2,6 +2,13 @@
 
 Semua perubahan pada aplikasi Mobile POS dicatat di file ini.
 
+## [1.5.0] - 2026-09-26
+
+### 💳 QRIS Dinamis & Optimasi Tampilan
+- **QRIS Dinamis Otomatis**: Nominal tagihan otomatis disematkan dan terbaca saat pelanggan scan QRIS melalui m-banking dan e-wallet (BCA, SeaBank, dll).
+- **Integrasi Server Penuh**: Gambar dan payload QRIS diambil langsung secara dinamis dari pengaturan server web.
+- **Peningkatan Kualitas Rendering QR**: Tampilan QR code dioptimalkan dengan kontainer kontras tinggi dan filter kualitas tinggi agar scan kamera HP pelanggan lebih cepat dan akurat.
+
 ## [1.4.0] - 2026-08-09
 
 ### 📴 Mode Offline & Auto-Sync

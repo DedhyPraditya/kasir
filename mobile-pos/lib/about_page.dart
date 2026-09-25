@@ -15,6 +15,15 @@ class _ChangelogEntry {
 
 const List<_ChangelogEntry> _changelog = [
   _ChangelogEntry(
+    version: '1.5.0',
+    date: '26 September 2026',
+    points: [
+      'QRIS Dinamis: nominal pembayaran otomatis terisi saat discan di m-banking & e-wallet (BCA, SeaBank, dll).',
+      'Integrasi penuh payload QRIS dari server web.',
+      'Peningkatan kualitas rendering QR code pada layar HP kasir.',
+    ],
+  ),
+  _ChangelogEntry(
     version: '1.4.0',
     date: '9 Agustus 2026',
     points: [
