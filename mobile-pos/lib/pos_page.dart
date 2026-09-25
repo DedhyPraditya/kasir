@@ -1114,41 +1114,9 @@ class _PosHomePageState extends State<PosHomePage> {
     String? qrisError;
     String? qrisOfflineImagePath;
 
-    Timer? qrisPollingTimer;
-    final int qrisStartTime = DateTime.now().millisecondsSinceEpoch ~/ 1000;
-
-    void startQrisPolling(
-      int targetAmount,
-      BuildContext dialogCtx,
-      void Function(void Function()) setDialogState,
-    ) {
-      qrisPollingTimer?.cancel();
-      if (!_isOnline) return;
-
-      qrisPollingTimer = Timer.periodic(const Duration(seconds: 2), (timer) async {
-        try {
-          final res = await http.get(
-            Uri.parse('$backendUrl/qris/check-payment?amount=$targetAmount&since=$qrisStartTime'),
-            headers: _apiHeaders,
-          ).timeout(const Duration(seconds: 4));
-
-          if (res.statusCode == 200) {
-            final data = jsonDecode(res.body) as Map<String, dynamic>;
-            if (data['paid'] == true) {
-              timer.cancel();
-              if (dialogCtx.mounted && Navigator.of(dialogCtx).canPop()) {
-                Navigator.of(dialogCtx).pop(true);
-              }
-            }
-          }
-        } catch (_) {}
-      });
-    }
-
     Future<void> loadQrisImage(
       int amount,
       void Function(void Function()) setDialogState,
-      BuildContext dialogCtx,
     ) async {
       if (!_isOnline) {
         final path = await OfflineStore.getDefaultQrisImagePath();
@@ -1166,8 +1134,6 @@ class _PosHomePageState extends State<PosHomePage> {
         qrisError = null;
         qrisOfflineImagePath = null;
       });
-
-      startQrisPolling(amount, dialogCtx, setDialogState);
 
       try {
         final response = await http
@@ -1199,8 +1165,7 @@ class _PosHomePageState extends State<PosHomePage> {
 
     final result = await showDialog<bool>(
       context: context,
-      barrierDismissible: false,
-      builder: (dialogCtx) {
+      builder: (context) {
         return StatefulBuilder(
           builder: (context, setDialogState) {
             final total = _subtotal;
@@ -1242,7 +1207,6 @@ class _PosHomePageState extends State<PosHomePage> {
                             groupValue: _paymentMethod,
                             onChanged: (value) {
                               if (value != null) {
-                                qrisPollingTimer?.cancel();
                                 setDialogState(() {
                                   _paymentMethod = value;
                                 });
@@ -1258,7 +1222,7 @@ class _PosHomePageState extends State<PosHomePage> {
                                 setDialogState(() {
                                   _paymentMethod = value;
                                 });
-                                loadQrisImage(total.round(), setDialogState, dialogCtx);
+                                loadQrisImage(total.round(), setDialogState);
                               }
                             },
                           ),
@@ -1376,7 +1340,6 @@ class _PosHomePageState extends State<PosHomePage> {
                                     onPressed: () => loadQrisImage(
                                       total.round(),
                                       setDialogState,
-                                      dialogCtx,
                                     ),
                                     child: const Text('Coba lagi'),
                                   ),
@@ -1398,33 +1361,7 @@ class _PosHomePageState extends State<PosHomePage> {
                             Text(
                               'Silakan scan QRIS untuk membayar ${_formatRp(total)}.',
                               textAlign: TextAlign.center,
-                              style: const TextStyle(fontWeight: FontWeight.w600),
                             ),
-                            if (_isOnline) ...[
-                              const SizedBox(height: 10),
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  SizedBox(
-                                    width: 14,
-                                    height: 14,
-                                    child: CircularProgressIndicator(
-                                      strokeWidth: 2,
-                                      color: Colors.blue.shade700,
-                                    ),
-                                  ),
-                                  const SizedBox(width: 8),
-                                  Text(
-                                    'Menunggu notifikasi InstaQRIS...',
-                                    style: TextStyle(
-                                      fontSize: 12,
-                                      color: Colors.blue.shade800,
-                                      fontWeight: FontWeight.w500,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ],
                           ],
                         ),
                       ),
@@ -1434,10 +1371,7 @@ class _PosHomePageState extends State<PosHomePage> {
               ),
               actions: [
                 TextButton(
-                  onPressed: () {
-                    qrisPollingTimer?.cancel();
-                    Navigator.of(dialogCtx).pop(false);
-                  },
+                  onPressed: () => Navigator.of(context).pop(false),
                   child: const Text('Batal'),
                 ),
                 ElevatedButton(
@@ -1450,10 +1384,9 @@ class _PosHomePageState extends State<PosHomePage> {
                       _showMessage('Nominal uang belum cukup.');
                       return;
                     }
-                    qrisPollingTimer?.cancel();
-                    Navigator.of(dialogCtx).pop(true);
+                    Navigator.of(context).pop(true);
                   },
-                  child: Text(_paymentMethod == 'qris' ? 'Konfirmasi Bayar' : 'Bayar'),
+                  child: const Text('Bayar'),
                 ),
               ],
             );
@@ -1461,8 +1394,6 @@ class _PosHomePageState extends State<PosHomePage> {
         );
       },
     );
-
-    qrisPollingTimer?.cancel();
 
     if (result != true) {
       return;
@@ -1506,66 +1437,126 @@ class _PosHomePageState extends State<PosHomePage> {
 
     if (!mounted) return;
 
-    await showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (context) {
-        return AlertDialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-          title: Row(
-            children: const [
-              Icon(Icons.check_circle, color: Colors.green, size: 28),
-              SizedBox(width: 8),
-              Text('Pembayaran Diterima'),
-            ],
-          ),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text('No. Invoice: $invoiceNumber', style: const TextStyle(fontWeight: FontWeight.bold)),
-              const SizedBox(height: 6),
-              Text('Total: ${_formatRp(currentSubtotal)}', style: const TextStyle(color: Colors.green, fontWeight: FontWeight.bold, fontSize: 16)),
-              Text('Metode: ${currentPayment == 'cash' ? 'Tunai' : 'QRIS (InstaQRIS)'}'),
-              if (currentPayment == 'cash') ...[
-                Text('Uang Diterima: ${_formatRp(amountPaidVal)}'),
-                Text('Kembalian: ${_formatRp(changeVal)}', style: const TextStyle(fontWeight: FontWeight.bold)),
+    // Jika printer Bluetooth sudah terhubung, langsung cetak otomatis tanpa dialog konfirmasi.
+    if (_connected) {
+      await _printReceiptCustom(
+        invoiceNumber: invoiceNumber,
+        customerName: currentCustomer,
+        paymentMethod: currentPayment,
+        subtotal: currentSubtotal,
+        amountPaid: amountPaidVal,
+        change: changeVal,
+        createdAt: tanggalStr,
+        items: formattedItems,
+      );
+      // Tampilkan popup ringkas setelah print
+      if (!mounted) return;
+      await showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) {
+          return AlertDialog(
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+            title: Row(
+              children: const [
+                Icon(Icons.check_circle, color: Colors.green, size: 28),
+                SizedBox(width: 8),
+                Text('Transaksi Berhasil'),
               ],
-              const Divider(height: 24),
-              const Text('Silakan pilih untuk cetak struk atau lanjutkan transaksi:', style: TextStyle(fontWeight: FontWeight.w500)),
-            ],
-          ),
-          actions: [
-            OutlinedButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: const Text('Lanjutkan Transaksi'),
             ),
-            ElevatedButton.icon(
-              icon: const Icon(Icons.print),
-              label: const Text('Print Struk'),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.green,
-                foregroundColor: Colors.white,
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('No. Invoice: $invoiceNumber', style: const TextStyle(fontWeight: FontWeight.bold)),
+                const SizedBox(height: 6),
+                Text('Total: ${_formatRp(currentSubtotal)}', style: const TextStyle(color: Colors.green, fontWeight: FontWeight.bold, fontSize: 16)),
+                Text('Metode: ${currentPayment == 'cash' ? 'Tunai' : 'QRIS'}'),
+                if (currentPayment == 'cash') ...[
+                  Text('Uang Diterima: ${_formatRp(amountPaidVal)}'),
+                  Text('Kembalian: ${_formatRp(changeVal)}', style: const TextStyle(fontWeight: FontWeight.bold)),
+                ],
+                const Divider(height: 16),
+                Row(
+                  children: const [
+                    Icon(Icons.print, color: Colors.green, size: 16),
+                    SizedBox(width: 6),
+                    Text('Struk sedang dicetak...', style: TextStyle(color: Colors.green)),
+                  ],
+                ),
+              ],
+            ),
+            actions: [
+              ElevatedButton(
+                onPressed: () => Navigator.of(context).pop(),
+                child: const Text('Lanjutkan Transaksi'),
               ),
-              onPressed: () async {
-                Navigator.of(context).pop();
-                // Langsung kirim perintah cetak ke printer Bluetooth tanpa modal bertingkat
-                await _printReceiptCustom(
-                  invoiceNumber: invoiceNumber,
-                  customerName: currentCustomer,
-                  paymentMethod: currentPayment,
-                  subtotal: currentSubtotal,
-                  amountPaid: amountPaidVal,
-                  change: changeVal,
-                  createdAt: tanggalStr,
-                  items: formattedItems,
-                );
-              },
+            ],
+          );
+        },
+      );
+    } else {
+      // Printer tidak terhubung — tampilkan pilihan manual
+      await showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) {
+          return AlertDialog(
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+            title: Row(
+              children: const [
+                Icon(Icons.check_circle, color: Colors.green, size: 28),
+                SizedBox(width: 8),
+                Text('Transaksi Berhasil'),
+              ],
             ),
-          ],
-        );
-      },
-    );
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('No. Invoice: $invoiceNumber', style: const TextStyle(fontWeight: FontWeight.bold)),
+                const SizedBox(height: 6),
+                Text('Total: ${_formatRp(currentSubtotal)}', style: const TextStyle(color: Colors.green, fontWeight: FontWeight.bold, fontSize: 16)),
+                Text('Metode: ${currentPayment == 'cash' ? 'Tunai' : 'QRIS'}'),
+                if (currentPayment == 'cash') ...[
+                  Text('Uang Diterima: ${_formatRp(amountPaidVal)}'),
+                  Text('Kembalian: ${_formatRp(changeVal)}', style: const TextStyle(fontWeight: FontWeight.bold)),
+                ],
+                const Divider(height: 24),
+                const Text('Apakah Anda ingin mencetak struk belanja?', style: TextStyle(fontWeight: FontWeight.w500)),
+              ],
+            ),
+            actions: [
+              OutlinedButton(
+                onPressed: () => Navigator.of(context).pop(),
+                child: const Text('Tanpa Cetak'),
+              ),
+              ElevatedButton.icon(
+                icon: const Icon(Icons.print),
+                label: const Text('Cetak Struk'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.green,
+                  foregroundColor: Colors.white,
+                ),
+                onPressed: () async {
+                  Navigator.of(context).pop();
+                  await _showReceiptPreviewDialog(
+                    invoiceNumber: invoiceNumber,
+                    customerName: currentCustomer,
+                    paymentMethod: currentPayment,
+                    subtotal: currentSubtotal,
+                    amountPaid: amountPaidVal,
+                    change: changeVal,
+                    createdAt: tanggalStr,
+                    items: formattedItems,
+                  );
+                },
+              ),
+            ],
+          );
+        },
+      );
+    }
   }
 
   String _generateInvoiceNumber() {
@@ -1600,7 +1591,7 @@ class _PosHomePageState extends State<PosHomePage> {
       SnackBarType.info    => Icons.info,
     };
 
-    // Insert directly into the Navigator Overlay — always above dialogs.
+    // Insert directly into the Navigator Overlay ΓÇö always above dialogs.
     final overlay = Navigator.of(context, rootNavigator: true).overlay;
     if (overlay == null) return;
 
@@ -2146,7 +2137,7 @@ class _PosHomePageState extends State<PosHomePage> {
                                               crossAxisAlignment:
                                                   CrossAxisAlignment.center,
                                               children: [
-                                                // Kontrol qty: ➖ angka ➕
+                                                // Kontrol qty: Γ₧û angka Γ₧ò
                                                 Column(
                                                   mainAxisSize: MainAxisSize.min,
                                                   mainAxisAlignment:
