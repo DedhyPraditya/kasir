@@ -4,6 +4,7 @@ use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\OrderSyncController;
 use App\Http\Controllers\Api\ProductController;
 use App\Http\Controllers\Api\QrisController;
+use App\Http\Controllers\Api\ReceiptSettingController;
 use App\Http\Controllers\Api\ToppingController;
 use Illuminate\Support\Facades\Route;
 
@@ -20,4 +21,5 @@ Route::middleware(['api.token'])->group(function () {
     Route::post('/orders/sync', [OrderSyncController::class, 'sync']);
     Route::get('/qris/dynamic', [QrisController::class, 'dynamic'])->middleware('throttle:30,1');
     Route::get('/qris/static', [QrisController::class, 'staticImage'])->middleware('throttle:30,1');
+    Route::get('/receipt-settings', [ReceiptSettingController::class, 'show']);
 });

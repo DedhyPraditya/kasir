@@ -23,10 +23,8 @@
     const RECONNECT_MS = 5000;
     const PORT_KEY = 'thermalPrinterPort';
     const BAUD_KEY = 'thermalPrinterBaud';
-    const FEED_KEY = 'thermalPrinterFeed';
-    const CUT_KEY = 'thermalPrinterCut';
     // Baris kosong setelah footer agar teks terakhir melewati gerigi sobek.
-    // Terlalu banyak = sisa kertas kosong panjang; terlalu sedikit = teks ikut tersobek.
+    // Nilainya dari Pengaturan Printer di server (r.feed / r.cut), sama untuk web & mobile.
     const DEFAULT_FEED = 4;
     const MAX_FEED = 8;
 
@@ -135,11 +133,11 @@
         (r.footer || []).forEach((f) => lines(f));
         align(0);
 
-        const paper = paperOptions();
-        for (let i = 0; i < paper.feed; i++) push(0x0a);
+        const feed = Number.isInteger(r.feed) ? Math.min(MAX_FEED, Math.max(0, r.feed)) : DEFAULT_FEED;
+        for (let i = 0; i < feed; i++) push(0x0a);
         // Potong otomatis hanya untuk printer ber-cutter; pada printer tanpa cutter
         // perintah ini justru mendorong kertas jauh ke posisi pisau (sisa kosong panjang).
-        if (paper.cut) push(GS, 0x56, 0x42, 0x00);
+        if (r.cut === true) push(GS, 0x56, 0x42, 0x00);
 
         return new Uint8Array(out);
     }
@@ -153,19 +151,6 @@
 
     const portKey = (p) => JSON.stringify(p.getInfo ? p.getInfo() : {});
     const hasSavedPrinter = () => store.get(PORT_KEY) !== null;
-
-    function paperOptions() {
-        const feed = parseInt(store.get(FEED_KEY), 10);
-        return {
-            feed: Number.isNaN(feed) ? DEFAULT_FEED : Math.min(MAX_FEED, Math.max(0, feed)),
-            cut: store.get(CUT_KEY) === '1',
-        };
-    }
-
-    function setPaperOptions({ feed, cut }) {
-        if (feed !== undefined) store.set(FEED_KEY, String(Math.min(MAX_FEED, Math.max(0, parseInt(feed, 10) || 0))));
-        if (cut !== undefined) store.set(CUT_KEY, cut ? '1' : '0');
-    }
 
     function baudRate() {
         return parseInt(store.get(BAUD_KEY), 10) || DEFAULT_BAUD;
@@ -340,8 +325,6 @@
         status: () => status,
         baudRate,
         setBaudRate,
-        paperOptions,
-        setPaperOptions,
         connect,
         choosePrinter,
         forgetPrinter,

@@ -10,12 +10,26 @@ class ReceiptSetting extends Model
     public const DEFAULT_HEADER = "Purnama Town House Blok H/1\nTelp: +62 823-9943-0312";
     public const DEFAULT_FOOTER = "Terima Kasih atas Kunjungan Anda!\n~ Nyemil Bebs ~";
 
+    /** Baris kosong setelah footer agar tulisan terakhir melewati gerigi sobek. */
+    public const DEFAULT_FEED_LINES = 4;
+    public const MAX_FEED_LINES = 8;
+
     protected $fillable = [
         'store_name',
         'header_text',
         'footer_text',
+        'feed_lines',
+        'auto_cut',
         'updated_by',
     ];
+
+    protected function casts(): array
+    {
+        return [
+            'feed_lines' => 'integer',
+            'auto_cut'   => 'boolean',
+        ];
+    }
 
     /**
      * Pengaturan struk yang berlaku; belum pernah disimpan = nilai bawaan.
@@ -26,7 +40,23 @@ class ReceiptSetting extends Model
             'store_name'  => self::DEFAULT_STORE_NAME,
             'header_text' => self::DEFAULT_HEADER,
             'footer_text' => self::DEFAULT_FOOTER,
+            'feed_lines'  => self::DEFAULT_FEED_LINES,
+            'auto_cut'    => false,
         ]);
+    }
+
+    /**
+     * Pengaturan cetak yang dipakai printer web (thermal-printer.js) dan aplikasi mobile.
+     */
+    public function printOptions(): array
+    {
+        return [
+            'store'  => $this->store_name,
+            'header' => $this->headerLines(),
+            'footer' => $this->footerLines(),
+            'feed'   => (int) ($this->feed_lines ?? self::DEFAULT_FEED_LINES),
+            'cut'    => (bool) $this->auto_cut,
+        ];
     }
 
     /** @return array<int, string> */

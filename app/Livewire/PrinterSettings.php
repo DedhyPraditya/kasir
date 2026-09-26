@@ -10,6 +10,8 @@ class PrinterSettings extends Component
     public string $storeName = '';
     public string $headerText = '';
     public string $footerText = '';
+    public int $feedLines = ReceiptSetting::DEFAULT_FEED_LINES;
+    public bool $autoCut = false;
 
     public function mount(): void
     {
@@ -18,6 +20,8 @@ class PrinterSettings extends Component
         $this->storeName  = $setting->store_name;
         $this->headerText = (string) $setting->header_text;
         $this->footerText = (string) $setting->footer_text;
+        $this->feedLines  = (int) $setting->feed_lines;
+        $this->autoCut    = (bool) $setting->auto_cut;
     }
 
     public function save(): void
@@ -28,6 +32,8 @@ class PrinterSettings extends Component
             'storeName'  => 'required|string|max:40',
             'headerText' => 'nullable|string|max:500',
             'footerText' => 'nullable|string|max:500',
+            'feedLines'  => 'required|integer|min:0|max:'.ReceiptSetting::MAX_FEED_LINES,
+            'autoCut'    => 'boolean',
         ], [
             'storeName.required' => 'Nama toko wajib diisi.',
             'storeName.max'      => 'Nama toko maksimal 40 karakter.',
@@ -37,10 +43,12 @@ class PrinterSettings extends Component
             'store_name'  => trim($this->storeName),
             'header_text' => trim($this->headerText),
             'footer_text' => trim($this->footerText),
+            'feed_lines'  => $this->feedLines,
+            'auto_cut'    => $this->autoCut,
             'updated_by'  => auth()->id(),
         ])->save();
 
-        session()->flash('message', 'Header & footer struk berhasil disimpan.');
+        session()->flash('message', 'Pengaturan struk berhasil disimpan. Berlaku untuk web & aplikasi mobile.');
     }
 
     public function resetToDefault(): void
@@ -48,6 +56,22 @@ class PrinterSettings extends Component
         $this->storeName  = ReceiptSetting::DEFAULT_STORE_NAME;
         $this->headerText = ReceiptSetting::DEFAULT_HEADER;
         $this->footerText = ReceiptSetting::DEFAULT_FOOTER;
+        $this->feedLines  = ReceiptSetting::DEFAULT_FEED_LINES;
+        $this->autoCut    = false;
+    }
+
+    /**
+     * Pengaturan dari isian form saat ini (belum tentu tersimpan).
+     */
+    private function draft(): ReceiptSetting
+    {
+        return new ReceiptSetting([
+            'store_name'  => $this->storeName,
+            'header_text' => $this->headerText,
+            'footer_text' => $this->footerText,
+            'feed_lines'  => max(0, min(ReceiptSetting::MAX_FEED_LINES, $this->feedLines)),
+            'auto_cut'    => $this->autoCut,
+        ]);
     }
 
     /**
@@ -55,16 +79,7 @@ class PrinterSettings extends Component
      */
     private function sampleReceipt(): array
     {
-        $preview = new ReceiptSetting([
-            'store_name'  => $this->storeName,
-            'header_text' => $this->headerText,
-            'footer_text' => $this->footerText,
-        ]);
-
-        return [
-            'store'    => $preview->store_name,
-            'header'   => $preview->headerLines(),
-            'footer'   => $preview->footerLines(),
+        return $this->draft()->printOptions() + [
             'invoice'  => 'TES-PRINTER',
             'date'     => now()->format('d/m/Y H:i'),
             'kasir'    => auth()->user()?->username,
@@ -84,17 +99,14 @@ class PrinterSettings extends Component
 
     public function render()
     {
-        $preview = new ReceiptSetting([
-            'store_name'  => $this->storeName,
-            'header_text' => $this->headerText,
-            'footer_text' => $this->footerText,
-        ]);
+        $draft = $this->draft();
 
         return view('livewire.printer-settings', [
             'isAdmin'       => auth()->user()?->hasRole('admin') ?? false,
-            'previewHeader' => $preview->headerLines(),
-            'previewFooter' => $preview->footerLines(),
+            'previewHeader' => $draft->headerLines(),
+            'previewFooter' => $draft->footerLines(),
             'sampleReceipt' => $this->sampleReceipt(),
+            'maxFeedLines'  => ReceiptSetting::MAX_FEED_LINES,
         ])->layout('layouts.app');
     }
 }

@@ -15,6 +15,16 @@ class _ChangelogEntry {
 
 const List<_ChangelogEntry> _changelog = [
   _ChangelogEntry(
+    version: '1.5.1',
+    date: '27 September 2026',
+    points: [
+      'Nama toko, header, dan footer struk mengikuti pengaturan di web.',
+      'Sisa kertas kosong di bawah struk lebih pendek dan bisa diatur dari web.',
+      'Potong kertas otomatis hanya untuk printer yang punya pemotong.',
+      'Struk dari Riwayat ditandai "CETAK ULANG".',
+    ],
+  ),
+  _ChangelogEntry(
     version: '1.5.0',
     date: '26 September 2026',
     points: [

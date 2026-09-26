@@ -10,18 +10,22 @@ import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 import 'dart:io';
 
+import 'receipt_settings.dart';
+
 const String _historyBackendUrl = 'https://kasir.madignet.site/api';
 
 class HistoryPage extends StatefulWidget {
   final Map<String, String> apiHeaders;
   final BlueThermalPrinter printer;
   final String kasirName;
+  final ReceiptSettings receiptSettings;
 
   const HistoryPage({
     super.key,
     required this.apiHeaders,
     required this.printer,
     required this.kasirName,
+    this.receiptSettings = ReceiptSettings.defaults,
   });
 
   @override
@@ -100,10 +104,7 @@ class _HistoryPageState extends State<HistoryPage> {
     required List<Map<String, dynamic>> items,
   }) async {
     try {
-      await widget.printer.printCustom('NYEMIL BEBS', 3, 1);
-      await widget.printer.printCustom('Purnama Town House Blok H/1', 1, 1);
-      await widget.printer.printCustom('Telp: +62 823-9943-0312', 1, 1);
-      await widget.printer.printNewLine();
+      await widget.receiptSettings.printHeader(widget.printer);
       await widget.printer.printCustom('No: $invoice', 1, 0);
       await widget.printer.printCustom('Tgl: $createdAt', 1, 0);
       await widget.printer.printCustom('Kasir: ${widget.kasirName}', 1, 0);
@@ -127,11 +128,7 @@ class _HistoryPageState extends State<HistoryPage> {
       await widget.printer.printLeftRight('TOTAL', _formatRp(total), 1);
       await widget.printer.printLeftRight('Metode', method.toUpperCase(), 0);
       await widget.printer.printNewLine();
-      await widget.printer.printCustom('Terima Kasih atas Kunjungan Anda!', 1, 1);
-      await widget.printer.printCustom('~ Nyemil Bebs ~', 1, 1);
-      await widget.printer.printNewLine();
-      await widget.printer.printNewLine();
-      await widget.printer.paperCut();
+      await widget.receiptSettings.printFooter(widget.printer, reprint: true);
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Struk berhasil dicetak.'), backgroundColor: Colors.green));
@@ -174,6 +171,7 @@ class _HistoryPageState extends State<HistoryPage> {
               items: items,
               kasirName: widget.kasirName,
               formatRp: _formatRp,
+              settings: widget.receiptSettings,
             ),
           ),
         ),
@@ -349,8 +347,9 @@ class _ReceiptImageWidget extends StatelessWidget {
   final List<Map<String, dynamic>> items;
   final String kasirName;
   final String Function(dynamic) formatRp;
+  final ReceiptSettings settings;
 
-  const _ReceiptImageWidget({required this.invoice, required this.customer, required this.method, required this.total, required this.createdAt, required this.items, required this.kasirName, required this.formatRp});
+  const _ReceiptImageWidget({required this.invoice, required this.customer, required this.method, required this.total, required this.createdAt, required this.items, required this.kasirName, required this.formatRp, required this.settings});
 
   @override
   Widget build(BuildContext context) {
@@ -361,9 +360,8 @@ class _ReceiptImageWidget extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const Text('NYEMIL BEBS', style: TextStyle(fontFamily: 'Courier', fontSize: 20, fontWeight: FontWeight.bold)),
-          const Text('Purnama Town House Blok H/1', style: TextStyle(fontFamily: 'Courier', fontSize: 11)),
-          const Text('Telp: +62 823-9943-0312', style: TextStyle(fontFamily: 'Courier', fontSize: 11)),
+          Text(settings.store, textAlign: TextAlign.center, style: const TextStyle(fontFamily: 'Courier', fontSize: 20, fontWeight: FontWeight.bold)),
+          ...settings.header.map((line) => Text(line, textAlign: TextAlign.center, style: const TextStyle(fontFamily: 'Courier', fontSize: 11))),
           const SizedBox(height: 8),
           const Divider(thickness: 1),
           _row('No', invoice),
@@ -396,8 +394,7 @@ class _ReceiptImageWidget extends StatelessWidget {
           ]),
           _row('Metode', method.toUpperCase()),
           const SizedBox(height: 12),
-          const Text('Terima Kasih atas Kunjungan Anda!', textAlign: TextAlign.center, style: TextStyle(fontFamily: 'Courier', fontSize: 11)),
-          const Text('~ Nyemil Bebs ~', textAlign: TextAlign.center, style: TextStyle(fontFamily: 'Courier', fontSize: 11)),
+          ...settings.footer.map((line) => Text(line, textAlign: TextAlign.center, style: const TextStyle(fontFamily: 'Courier', fontSize: 11))),
           const SizedBox(height: 8),
         ],
       ),

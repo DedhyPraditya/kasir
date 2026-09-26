@@ -36,10 +36,7 @@ class Order extends Model
         $this->loadMissing('items.toppings');
         $setting = ReceiptSetting::current();
 
-        return [
-            'store'     => $setting->store_name,
-            'header'    => $setting->headerLines(),
-            'footer'    => $setting->footerLines(),
+        return $setting->printOptions() + [
             'invoice'   => $this->invoice_number,
             'date'      => $this->created_at?->format('d/m/Y H:i'),
             'kasir'     => $kasir,

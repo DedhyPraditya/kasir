@@ -15,6 +15,7 @@ import 'about_page.dart';
 import 'login_page.dart';
 import 'history_page.dart';
 import 'offline_store.dart';
+import 'receipt_settings.dart';
 
 import 'package:permission_handler/permission_handler.dart';
 
@@ -188,12 +189,16 @@ class _PosHomePageState extends State<PosHomePage> {
 
   String _currentAppVersion = '0.0.0';
 
+  /// Header, footer, dan sisa kertas struk dari menu Printer di web.
+  ReceiptSettings _receiptSettings = ReceiptSettings.defaults;
+
   @override
   void initState() {
     super.initState();
     _refreshDevices();
     _fetchProducts();
     _fetchToppings();
+    _loadReceiptSettings();
     _loadAppVersion();
     _initConnectivity();
     _refreshPendingOrderCount();
@@ -236,6 +241,7 @@ class _PosHomePageState extends State<PosHomePage> {
       _showMessage('Koneksi kembali online.', type: SnackBarType.success);
       _fetchProducts();
       _fetchToppings();
+      _loadReceiptSettings();
       _syncPendingOrders();
     } else if (wasOnline && !isOnline) {
       _showMessage(
@@ -349,6 +355,13 @@ class _PosHomePageState extends State<PosHomePage> {
     'Accept': 'application/json',
     'X-Api-Token': widget.apiToken,
   };
+
+  Future<void> _loadReceiptSettings() async {
+    final cached = await ReceiptSettings.loadCached();
+    if (mounted) setState(() => _receiptSettings = cached);
+    final latest = await ReceiptSettings.fetch(backendUrl, _apiHeaders);
+    if (mounted) setState(() => _receiptSettings = latest);
+  }
 
   Future<void> _fetchProducts() async {
     setState(() {
@@ -710,10 +723,11 @@ class _PosHomePageState extends State<PosHomePage> {
   }) {
     final lines = <_ThermalLine>[];
 
-    // Header
-    lines.add(_ThermalLine('NYEMIL BEBS', align: TextAlign.center, bold: true, large: true));
-    lines.add(_ThermalLine('Purnama Town House Blok H/1', align: TextAlign.center));
-    lines.add(_ThermalLine('Telp: +62 823-9943-0312', align: TextAlign.center));
+    // Header (dari pengaturan struk di web)
+    lines.add(_ThermalLine(_receiptSettings.store, align: TextAlign.center, bold: true, large: true));
+    for (final line in _receiptSettings.header) {
+      lines.add(_ThermalLine(line, align: TextAlign.center));
+    }
     lines.add(_ThermalLine(''));
 
     // Info transaksi
@@ -759,8 +773,9 @@ class _PosHomePageState extends State<PosHomePage> {
     }
 
     lines.add(_ThermalLine(''));
-    lines.add(_ThermalLine('Terima Kasih atas Kunjungan Anda!', align: TextAlign.center));
-    lines.add(_ThermalLine('~ Nyemil Bebs ~', align: TextAlign.center));
+    for (final line in _receiptSettings.footer) {
+      lines.add(_ThermalLine(line, align: TextAlign.center));
+    }
 
     return lines;
   }
@@ -910,10 +925,7 @@ class _PosHomePageState extends State<PosHomePage> {
 
     try {
       // Header toko
-      await _printer.printCustom('NYEMIL BEBS', 3, 1);
-      await _printer.printCustom('Purnama Town House Blok H/1', 1, 1);
-      await _printer.printCustom('Telp: +62 823-9943-0312', 1, 1);
-      await _printer.printNewLine();
+      await _receiptSettings.printHeader(_printer);
 
       // Info transaksi
       await _printer.printCustom('No: $invoiceNumber', 1, 0);
@@ -958,11 +970,7 @@ class _PosHomePageState extends State<PosHomePage> {
       }
 
       await _printer.printNewLine();
-      await _printer.printCustom('Terima Kasih atas Kunjungan Anda!', 1, 1);
-      await _printer.printCustom('~ Nyemil Bebs ~', 1, 1);
-      await _printer.printNewLine();
-      await _printer.printNewLine();
-      await _printer.paperCut();
+      await _receiptSettings.printFooter(_printer);
       _showMessage('Struk berhasil dicetak.', type: SnackBarType.success);
     } catch (error) {
       _showMessage('Gagal mencetak struk: $error', type: SnackBarType.error);
@@ -976,6 +984,7 @@ class _PosHomePageState extends State<PosHomePage> {
           apiHeaders: _apiHeaders,
           printer: _printer,
           kasirName: widget.kasirName,
+          receiptSettings: _receiptSettings,
         ),
       ),
     );

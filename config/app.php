@@ -123,7 +123,7 @@ return [
         'store' => env('APP_MAINTENANCE_STORE', 'database'),
     ],
 
-    'mobile_version' => '1.5.0',
-    'mobile_build_number' => 9,
-    'mobile_changelog' => "Pembaruan Versi 1.5.0:\n• QRIS Dinamis: nominal tagihan otomatis terisi saat discan.\n• Integrasi penuh payload QRIS dari server web.\n• Peningkatan kualitas tampilan kode QR agar mudah discan.",
+    'mobile_version' => '1.5.1',
+    'mobile_build_number' => 10,
+    'mobile_changelog' => "Pembaruan Versi 1.5.1:\n• Struk mengikuti pengaturan di web (nama toko, header, footer).\n• Sisa kertas kosong di bawah struk lebih pendek dan bisa diatur dari web.\n• Potong kertas otomatis hanya untuk printer yang punya pemotong.",
 ];

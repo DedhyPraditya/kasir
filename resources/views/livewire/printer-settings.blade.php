@@ -55,21 +55,6 @@
                             <div class="form-text">Biarkan 9600 kecuali hasil cetak berupa karakter acak.</div>
                         </div>
 
-                        <div class="mb-3">
-                            <label class="form-label fw-semibold small mb-1">Sisa kertas di bawah struk</label>
-                            <div class="d-flex align-items-center gap-2">
-                                <input type="range" class="form-range" min="0" max="8" step="1" data-el="feed" style="max-width: 220px;">
-                                <span class="small text-nowrap" data-el="feed-label"></span>
-                            </div>
-                            <div class="form-text">Kurangi bila sisa kertas kosong terlalu panjang; tambah bila tulisan terakhir ikut tersobek. Cek dengan Tes Cetak.</div>
-                        </div>
-
-                        <div class="form-check form-switch mb-3">
-                            <input class="form-check-input" type="checkbox" role="switch" id="printer-cut" data-el="cut">
-                            <label class="form-check-label small" for="printer-cut">Printer punya pemotong kertas otomatis</label>
-                            <div class="form-text">Matikan untuk printer yang disobek manual; bila menyala, printer mendorong kertas jauh ke posisi pisau.</div>
-                        </div>
-
                         <div class="alert alert-warning small mb-0 d-none" data-el="unsupported">
                             Browser ini tidak mendukung koneksi printer langsung. Pakai <strong>Google Chrome</strong> atau <strong>Microsoft Edge</strong> di komputer, dan buka web lewat <strong>https://</strong>.
                         </div>
@@ -90,7 +75,8 @@
             <div class="col-lg-7">
                 <div class="card border-0 shadow-sm h-100">
                     <div class="card-body">
-                        <h6 class="fw-bold mb-3"><i class="bi bi-receipt me-1"></i> Header &amp; Footer Struk</h6>
+                        <h6 class="fw-bold mb-1"><i class="bi bi-receipt me-1"></i> Pengaturan Struk</h6>
+                        <p class="small text-muted mb-3">Berlaku untuk semua komputer kasir dan aplikasi mobile.</p>
 
                         @unless($isAdmin)
                         <div class="alert alert-info small py-2">Hanya admin yang dapat mengubah header &amp; footer struk.</div>
@@ -112,6 +98,19 @@
                                         <div class="mb-3">
                                             <label class="form-label fw-semibold small mb-1">Footer <span class="text-muted fw-normal">(ucapan, info promo, dll.)</span></label>
                                             <textarea class="form-control" rows="3" wire:model.live.debounce.400ms="footerText"></textarea>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label fw-semibold small mb-1">Sisa kertas di bawah struk</label>
+                                            <div class="d-flex align-items-center gap-2">
+                                                <input type="range" class="form-range" min="0" max="{{ $maxFeedLines }}" step="1" wire:model.live="feedLines" style="max-width: 220px;">
+                                                <span class="small text-nowrap">{{ $feedLines }} baris</span>
+                                            </div>
+                                            <div class="form-text">Kurangi bila sisa kertas kosong terlalu panjang; tambah bila tulisan terakhir ikut tersobek. Cek dengan Tes Cetak.</div>
+                                        </div>
+                                        <div class="form-check form-switch mb-3">
+                                            <input class="form-check-input" type="checkbox" role="switch" id="printer-cut" wire:model.live="autoCut">
+                                            <label class="form-check-label small" for="printer-cut">Printer punya pemotong kertas otomatis</label>
+                                            <div class="form-text">Matikan untuk printer yang disobek manual; bila menyala, printer mendorong kertas jauh ke posisi pisau.</div>
                                         </div>
                                         @if($isAdmin)
                                         <div class="d-flex flex-wrap gap-2">
@@ -180,18 +179,6 @@
             window.addEventListener('thermal:status', (e) => render(e.detail));
             render(ThermalPrinter.status());
             el('baud').value = String(ThermalPrinter.baudRate());
-
-            const paper = ThermalPrinter.paperOptions();
-            const feedLabel = (n) => el('feed-label').textContent = n + ' baris';
-            el('feed').value = String(paper.feed);
-            feedLabel(paper.feed);
-            el('cut').checked = paper.cut;
-            el('feed').addEventListener('input', (e) => {
-                feedLabel(e.target.value);
-                ThermalPrinter.setPaperOptions({ feed: e.target.value });
-            });
-            el('cut').addEventListener('change', (e) => ThermalPrinter.setPaperOptions({ cut: e.target.checked }));
-
             el('choose').addEventListener('click', async () => {
                 try { await ThermalPrinter.choosePrinter(); } catch (e) { if (e.name !== 'NotFoundError') console.error(e); }
             });

@@ -2,6 +2,14 @@
 
 Semua perubahan pada aplikasi Mobile POS dicatat di file ini.
 
+## [1.5.1] - 2026-09-27
+
+### 🧾 Struk Mengikuti Pengaturan Web
+- **Header & Footer dari Server**: Nama toko, alamat/telepon, dan ucapan di struk kini diambil dari menu Printer di web, tidak lagi tertulis tetap di aplikasi. Disimpan di HP sehingga tetap dipakai saat offline.
+- **Sisa Kertas Lebih Pendek**: Jumlah baris kosong setelah footer mengikuti pengaturan "Sisa kertas di bawah struk" di web.
+- **Potong Otomatis Opsional**: Perintah potong kertas hanya dikirim bila di web diaktifkan "Printer punya pemotong kertas otomatis" (sebelumnya selalu dikirim, membuat printer tanpa pemotong mendorong kertas terlalu jauh).
+- **Cetak Ulang Ditandai**: Struk dari Riwayat diberi tanda `** CETAK ULANG **`, sama seperti di web.
+
 ## [1.5.0] - 2026-09-26
 
 ### 💳 QRIS Dinamis & Optimasi Tampilan
