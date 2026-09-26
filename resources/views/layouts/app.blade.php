@@ -22,9 +22,12 @@
             .sidebar {
                 width: 260px;
                 height: 100vh;
+                height: 100dvh; /* tinggi layar yang benar-benar terlihat di browser HP */
                 position: sticky;
                 top: 0;
                 z-index: 1000;
+                overflow-y: auto;
+                padding-bottom: calc(1rem + env(safe-area-inset-bottom, 0px)) !important;
             }
             .nav-link.active {
                 background-color: #198754 !important; /* Bootstrap Success */
@@ -48,11 +51,18 @@
             @media (max-width: 768px) {
                 .sidebar {
                     position: fixed;
+                    z-index: 1040; /* di atas header HP (sticky-top 1020) */
                     transform: translateX(-100%);
                     transition: transform 0.3s ease-in-out;
                 }
                 .sidebar.show {
                     transform: translateX(0);
+                }
+                .sidebar-backdrop {
+                    position: fixed;
+                    inset: 0;
+                    background: rgba(0, 0, 0, .35);
+                    z-index: 1035;
                 }
             }
             /* Print CSS adjustments */
@@ -121,7 +131,7 @@
                     @endrole
                 </ul>
                 <hr>
-                <div class="dropdown">
+                <div class="dropup">
                     <a href="#" class="d-flex align-items-center text-dark text-decoration-none dropdown-toggle px-2" id="dropdownUser1" data-bs-toggle="dropdown" aria-expanded="false">
                         <i class="bi bi-person-circle fs-4 me-2 text-success"></i>
                         <strong>{{ auth()->user()->username ?? 'Admin' }}</strong>
@@ -144,16 +154,25 @@
             </div>
 
             <!-- Main Content -->
-            <div class="flex-grow-1 d-flex flex-column main-content w-100" style="height: 100vh; overflow-y: auto;">
+            <div class="flex-grow-1 d-flex flex-column main-content w-100" style="height: 100vh; height: 100dvh; overflow-y: auto;">
                 <!-- Mobile Header (Visible only on small screens) -->
                 <div class="d-md-none bg-white shadow-sm p-3 d-flex justify-content-between align-items-center mobile-header sticky-top">
                     <h5 class="mb-0 text-success fw-bold">
                         <i class="bi bi-shop me-1"></i> NYEMIL BEBS
                     </h5>
-                    <button class="btn btn-outline-success" type="button" onclick="document.querySelector('.sidebar').classList.toggle('show')">
-                        <i class="bi bi-list fs-4"></i>
-                    </button>
+                    <div class="d-flex align-items-center gap-2">
+                        <form method="POST" action="{{ route('logout') }}" class="m-0">
+                            @csrf
+                            <button class="btn btn-outline-danger" type="submit" title="Keluar" aria-label="Keluar">
+                                <i class="bi bi-box-arrow-right fs-5"></i>
+                            </button>
+                        </form>
+                        <button class="btn btn-outline-success" type="button" aria-label="Buka menu" onclick="toggleSidebar()">
+                            <i class="bi bi-list fs-4"></i>
+                        </button>
+                    </div>
                 </div>
+                <div class="sidebar-backdrop d-md-none" hidden onclick="toggleSidebar(false)"></div>
 
                 <!-- Page Content Slot -->
                 <main class="flex-grow-1 p-3 p-md-4">
@@ -162,6 +181,14 @@
             </div>
         </div>
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+        <script>
+            // Buka/tutup sidebar di HP; ketuk area gelap untuk menutup.
+            function toggleSidebar(force) {
+                const sidebar = document.querySelector('.sidebar');
+                const open = sidebar.classList.toggle('show', force);
+                document.querySelector('.sidebar-backdrop').hidden = !open;
+            }
+        </script>
         <script>
             // Indikator status printer thermal di sidebar.
             (function () {
