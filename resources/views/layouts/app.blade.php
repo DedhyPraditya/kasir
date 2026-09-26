@@ -106,6 +106,11 @@
                             <i class="bi bi-qr-code me-2 fs-5"></i> Pengaturan QRIS
                         </a>
                     </li>
+                    <li>
+                        <a href="{{ route('login.settings') }}" class="nav-link py-3 px-3 {{ request()->routeIs('login.settings') ? 'active shadow-sm' : '' }}">
+                            <i class="bi bi-window-sidebar me-2 fs-5"></i> Tampilan Login
+                        </a>
+                    </li>
                     @endrole
                     @role('developer')
                     <li>

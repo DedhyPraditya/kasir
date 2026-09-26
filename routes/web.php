@@ -37,6 +37,11 @@ Route::middleware('auth')->group(function () {
     // Pengaturan Printer - semua akun (ubah header/footer struk hanya Admin)
     Route::get('/pengaturan/printer', \App\Livewire\PrinterSettings::class)->name('printer.settings');
 
+    // Tampilan Login - hanya Admin
+    Route::get('/pengaturan/login', \App\Livewire\LoginSettings::class)
+        ->middleware(['redirect.kasir', 'role:admin'])
+        ->name('login.settings');
+
     // Kelola Pengguna - hanya Developer
     Route::get('/pengaturan/pengguna', \App\Livewire\UserManagement::class)
         ->middleware(['redirect.kasir', 'role:developer'])
