@@ -94,11 +94,24 @@
                             <i class="bi bi-calculator-fill me-2 fs-5"></i> Kasir (POS)
                         </a>
                     </li>
+                    @role('admin')
+                        <a href="{{ route('produk') }}" class="nav-link py-3 px-3 {{ request()->routeIs('produk') ? 'active shadow-sm' : '' }}">
+                            <i class="bi bi-box-seam-fill me-2 fs-5"></i> Produk
+                        </a>
+                    </li>
+                    @endrole
                     <li>
                         <a href="{{ route('laporan') }}" class="nav-link py-3 px-3 {{ request()->routeIs('laporan') ? 'active shadow-sm' : '' }}">
                             <i class="bi bi-receipt me-2 fs-5"></i> Laporan
                         </a>
                     </li>
+                    @role('admin')
+                    <li>
+                        <a href="{{ route('qris.settings') }}" class="nav-link py-3 px-3 {{ request()->routeIs('qris.settings') ? 'active shadow-sm' : '' }}">
+                            <i class="bi bi-qr-code me-2 fs-5"></i> Pengaturan QRIS
+                        </a>
+                    </li>
+                    @endrole
                     <li>
                         <a href="{{ route('printer.settings') }}" class="nav-link py-3 px-3 d-flex align-items-center {{ request()->routeIs('printer.settings') ? 'active shadow-sm' : '' }}">
                             <i class="bi bi-printer-fill me-2 fs-5"></i> Printer
@@ -106,16 +119,6 @@
                         </a>
                     </li>
                     @role('admin')
-                    <li>
-                        <a href="{{ route('produk') }}" class="nav-link py-3 px-3 {{ request()->routeIs('produk') ? 'active shadow-sm' : '' }}">
-                            <i class="bi bi-box-seam-fill me-2 fs-5"></i> Produk
-                        </a>
-                    </li>
-                    <li>
-                        <a href="{{ route('qris.settings') }}" class="nav-link py-3 px-3 {{ request()->routeIs('qris.settings') ? 'active shadow-sm' : '' }}">
-                            <i class="bi bi-qr-code me-2 fs-5"></i> Pengaturan QRIS
-                        </a>
-                    </li>
                     <li>
                         <a href="{{ route('login.settings') }}" class="nav-link py-3 px-3 {{ request()->routeIs('login.settings') ? 'active shadow-sm' : '' }}">
                             <i class="bi bi-window-sidebar me-2 fs-5"></i> Tampilan Login
