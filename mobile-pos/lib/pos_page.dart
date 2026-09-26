@@ -731,10 +731,16 @@ class _PosHomePageState extends State<PosHomePage> {
     lines.add(_ThermalLine(''));
 
     // Info transaksi
-    lines.add(_ThermalLine('No: $invoiceNumber'));
-    lines.add(_ThermalLine('Tgl: $createdAt'));
-    lines.add(_ThermalLine('Kasir: ${widget.kasirName}'));
-    lines.add(_ThermalLine('Pelanggan: ${customerName.isEmpty ? 'Umum' : customerName}'));
+    for (final field in [
+      ['No', invoiceNumber],
+      ['Tgl', createdAt],
+      ['Kasir', widget.kasirName],
+      ['Pelanggan', customerName.isEmpty ? 'Umum' : customerName],
+    ]) {
+      for (final line in ReceiptSettings.fieldLines(field[0], field[1], width: _thermalWidth)) {
+        lines.add(_ThermalLine(line));
+      }
+    }
     lines.add(_ThermalLine(''));
 
     // Daftar item
@@ -928,10 +934,10 @@ class _PosHomePageState extends State<PosHomePage> {
       await _receiptSettings.printHeader(_printer);
 
       // Info transaksi
-      await _printer.printCustom('No: $invoiceNumber', 1, 0);
-      await _printer.printCustom('Tgl: $createdAt', 1, 0);
-      await _printer.printCustom('Kasir: ${widget.kasirName}', 1, 0);
-      await _printer.printCustom('Pelanggan: ${customerName.isEmpty ? 'Umum' : customerName}', 1, 0);
+      await ReceiptSettings.printField(_printer, 'No', invoiceNumber);
+      await ReceiptSettings.printField(_printer, 'Tgl', createdAt);
+      await ReceiptSettings.printField(_printer, 'Kasir', widget.kasirName);
+      await ReceiptSettings.printField(_printer, 'Pelanggan', customerName.isEmpty ? 'Umum' : customerName);
       await _printer.printNewLine();
 
       // Daftar item

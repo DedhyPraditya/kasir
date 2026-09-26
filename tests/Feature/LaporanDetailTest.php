@@ -121,7 +121,7 @@ class LaporanDetailTest extends TestCase
             ->set('lastOrder', Order::with('items.toppings')->find($order->id))
             ->set('lastKembalian', 5000)
             ->set('showReceiptModal', true)
-            ->assertSee('Kasir: '.$kasir->username)
+            ->assertSeeInOrder(['Kasir', $kasir->username])
             ->assertSee('Kembali')
             ->assertSeeHtml('data-receipt=')
             ->assertDontSee('** CETAK ULANG **');

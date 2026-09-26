@@ -2,6 +2,12 @@
 
 Semua perubahan pada aplikasi Mobile POS dicatat di file ini.
 
+## [1.5.2] - 2026-09-27
+
+### 🧾 Info Transaksi Rata Kanan
+- **No, Tgl, Kasir, Pelanggan**: Label di kiri, isi rata kanan selebar kertas, sama seperti baris TOTAL dan Metode. Isi yang terlalu panjang (mis. nama pelanggan) turun ke baris berikutnya tetap rata kanan.
+- Berlaku untuk cetak struk, cetak ulang dari Riwayat, dan pratinjau struk.
+
 ## [1.5.1] - 2026-09-27
 
 ### 🧾 Struk Mengikuti Pengaturan Web

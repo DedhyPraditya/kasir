@@ -89,6 +89,32 @@ class ReceiptSettings {
     return loadCached();
   }
 
+  /// Lebar karakter kertas 58 mm.
+  static const int paperWidth = 32;
+
+  /// Baris "label ... nilai" dengan nilai rata kanan selebar kertas. Nilai yang
+  /// terlalu panjang turun ke baris berikutnya, tetap rata kanan.
+  /// (printLeftRight bawaan plugin memakai kolom tetap 15 karakter sehingga
+  /// nilai panjang seperti nomor invoice tidak rata kanan.)
+  static List<String> fieldLines(String label, String value, {int width = paperWidth}) {
+    if (label.length + 1 + value.length <= width) {
+      return [label + ' ' * (width - label.length - value.length) + value];
+    }
+    final lines = <String>[label];
+    for (var i = 0; i < value.length; i += width) {
+      final chunk = value.substring(i, i + width > value.length ? value.length : i + width);
+      lines.add(chunk.padLeft(width));
+    }
+    return lines;
+  }
+
+  /// Cetak baris info transaksi (No, Tgl, Kasir, Pelanggan).
+  static Future<void> printField(BlueThermalPrinter printer, String label, String value) async {
+    for (final line in fieldLines(label, value)) {
+      await printer.printCustom(line, 1, 0);
+    }
+  }
+
   /// Cetak header toko (nama besar + baris header), diakhiri satu baris kosong.
   Future<void> printHeader(BlueThermalPrinter printer) async {
     await printer.printCustom(store, 3, 1);

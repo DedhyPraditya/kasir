@@ -105,10 +105,10 @@ class _HistoryPageState extends State<HistoryPage> {
   }) async {
     try {
       await widget.receiptSettings.printHeader(widget.printer);
-      await widget.printer.printCustom('No: $invoice', 1, 0);
-      await widget.printer.printCustom('Tgl: $createdAt', 1, 0);
-      await widget.printer.printCustom('Kasir: ${widget.kasirName}', 1, 0);
-      await widget.printer.printCustom('Pelanggan: ${customer.isEmpty ? 'Umum' : customer}', 1, 0);
+      await ReceiptSettings.printField(widget.printer, 'No', invoice);
+      await ReceiptSettings.printField(widget.printer, 'Tgl', createdAt);
+      await ReceiptSettings.printField(widget.printer, 'Kasir', widget.kasirName);
+      await ReceiptSettings.printField(widget.printer, 'Pelanggan', customer.isEmpty ? 'Umum' : customer);
       await widget.printer.printNewLine();
 
       for (final item in items) {

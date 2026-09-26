@@ -79,6 +79,15 @@
         return wrap(left, width).join('\n') + '\n' + ' '.repeat(Math.max(0, width - right.length)) + right;
     };
 
+    // Baris info transaksi: label di kiri, nilai rata kanan. Nilai yang terlalu
+    // panjang turun ke baris berikutnya, tetap rata kanan.
+    const field = (label, value, width = COLS) => {
+        label = ascii(label);
+        value = ascii(value);
+        if (label.length + 1 + value.length <= width) return [leftRight(label, value, width)];
+        return [label, ...wrap(value, width).map((v) => ' '.repeat(Math.max(0, width - v.length)) + v)];
+    };
+
     function buildReceipt(r) {
         const out = [];
         const push = (...bytes) => out.push(...bytes);
@@ -102,10 +111,11 @@
 
         // Info transaksi
         align(0);
-        lines('No: ' + r.invoice);
-        line('Tgl: ' + r.date);
-        if (r.kasir) lines('Kasir: ' + r.kasir);
-        lines('Pelanggan: ' + (r.customer || 'Umum'));
+        const info = (label, value) => field(label, value).forEach((l) => line(l));
+        info('No', r.invoice);
+        info('Tgl', r.date);
+        if (r.kasir) info('Kasir', r.kasir);
+        info('Pelanggan', r.customer || 'Umum');
         divider();
 
         // Item

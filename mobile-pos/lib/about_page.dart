@@ -15,6 +15,13 @@ class _ChangelogEntry {
 
 const List<_ChangelogEntry> _changelog = [
   _ChangelogEntry(
+    version: '1.5.2',
+    date: '27 September 2026',
+    points: [
+      'No, Tgl, Kasir, dan Pelanggan di struk kini rata kanan, rapi seperti baris TOTAL.',
+    ],
+  ),
+  _ChangelogEntry(
     version: '1.5.1',
     date: '27 September 2026',
     points: [

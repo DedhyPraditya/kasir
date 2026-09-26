@@ -123,7 +123,7 @@ return [
         'store' => env('APP_MAINTENANCE_STORE', 'database'),
     ],
 
-    'mobile_version' => '1.5.1',
-    'mobile_build_number' => 10,
-    'mobile_changelog' => "Pembaruan Versi 1.5.1:\n• Struk mengikuti pengaturan di web (nama toko, header, footer).\n• Sisa kertas kosong di bawah struk lebih pendek dan bisa diatur dari web.\n• Potong kertas otomatis hanya untuk printer yang punya pemotong.",
+    'mobile_version' => '1.5.2',
+    'mobile_build_number' => 11,
+    'mobile_changelog' => "Pembaruan Versi 1.5.2:\n• No, Tgl, Kasir, dan Pelanggan di struk kini rata kanan, rapi seperti baris TOTAL.\n• Struk mengikuti pengaturan di web (nama toko, header, footer, sisa kertas).\n• Potong kertas otomatis hanya untuk printer yang punya pemotong.",
 ];

@@ -22,18 +22,18 @@
 
 <div class="mb-3 border-bottom border-dashed pb-2" style="font-size: 13px;">
     <div class="d-flex justify-content-between">
-        <strong>No: {{ $order->invoice_number }}</strong>
+        <strong>No</strong><strong class="text-end">{{ $order->invoice_number }}</strong>
     </div>
     <div class="d-flex justify-content-between">
-        <strong>Tgl: {{ $order->created_at->format('d/m/Y H:i') }}</strong>
+        <strong>Tgl</strong><strong class="text-end">{{ $order->created_at->format('d/m/Y H:i') }}</strong>
     </div>
     @if($kasir)
     <div class="d-flex justify-content-between">
-        <strong>Kasir: {{ $kasir }}</strong>
+        <strong>Kasir</strong><strong class="text-end">{{ $kasir }}</strong>
     </div>
     @endif
     <div class="d-flex justify-content-between">
-        <strong>Pelanggan: {{ $order->customer_name }}</strong>
+        <strong>Pelanggan</strong><strong class="text-end">{{ $order->customer_name ?: 'Umum' }}</strong>
     </div>
 </div>
 
