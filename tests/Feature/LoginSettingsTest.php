@@ -33,7 +33,8 @@ class LoginSettingsTest extends TestCase
         $this->get(route('login'))
             ->assertOk()
             ->assertSee(LoginSetting::DEFAULT_HEADLINE)
-            ->assertSee('Sistem Kasir')
+            ->assertSee('Nyemil Bebs')
+            ->assertDontSee('Sistem Kasir')
             ->assertSee(asset('logo.png'))
             ->assertDontSee('Google');
     }

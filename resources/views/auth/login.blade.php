@@ -235,7 +235,7 @@
                             @endif
                         </div>
 
-                        <footer class="nb-foot">&copy; {{ date('Y') }} Nyemil Bebs &middot; Sistem Kasir</footer>
+                        <footer class="nb-foot">&copy; {{ date('Y') }} Nyemil Bebs</footer>
                     </section>
 
                     {{-- Form login --}}
