@@ -181,7 +181,8 @@ class UserManagement extends Component
 
     private function logoutEverywhere(User $user): void
     {
-        $user->forceFill(['api_token' => null, 'remember_token' => null])->save();
+        $user->apiTokens()->delete();
+        $user->forceFill(['remember_token' => null])->save();
         DB::table('sessions')->where('user_id', $user->id)->delete();
     }
 

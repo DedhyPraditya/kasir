@@ -4,66 +4,131 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Order;
+use App\Models\Product;
+use App\Models\Topping;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Str;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 
 class OrderSyncController extends Controller
 {
     public function sync(Request $request): JsonResponse
     {
         $data = $request->validate([
-            'invoice_number' => ['required', 'string', 'max:255', 'unique:orders,invoice_number'],
+            'invoice_number' => ['required', 'string', 'max:255'],
             'customer_name' => ['nullable', 'string', 'max:255'],
-            'subtotal' => ['required', 'numeric', 'min:0'],
-            'total' => ['required', 'numeric', 'min:0'],
+            // Nominal dari aplikasi hanya dibaca untuk kompatibilitas; harga dihitung ulang di server.
+            'subtotal' => ['nullable', 'numeric', 'min:0'],
+            'total' => ['nullable', 'numeric', 'min:0'],
             'payment_method' => ['nullable', 'string', Rule::in(['cash', 'qris'])],
-            'status' => ['required', 'string'],
-            'items' => ['required', 'array', 'min:1'],
+            'status' => ['required', 'string', Rule::in(['completed'])],
+            'items' => ['required', 'array', 'min:1', 'max:200'],
             'items.*.product_id' => ['required', 'string'],
             'items.*.variant_id' => ['nullable', 'string'],
-            'items.*.product_name' => ['required', 'string'],
-            'items.*.variant_name' => ['nullable', 'string'],
-            'items.*.quantity' => ['required', 'integer', 'min:1'],
-            'items.*.price' => ['required', 'numeric', 'min:0'],
-            'items.*.subtotal' => ['required', 'numeric', 'min:0'],
+            'items.*.quantity' => ['required', 'integer', 'min:1', 'max:1000'],
             'items.*.toppings' => ['sometimes', 'array'],
             'items.*.toppings.*.topping_id' => ['required_with:items.*.toppings', 'string'],
-            'items.*.toppings.*.topping_name' => ['required_with:items.*.toppings', 'string'],
-            'items.*.toppings.*.price' => ['required_with:items.*.toppings', 'numeric', 'min:0'],
         ]);
 
-        $order = Order::create([
-            'invoice_number' => $data['invoice_number'],
-            'customer_name' => $data['customer_name'] ?? null,
-            'subtotal' => $data['subtotal'],
-            'total' => $data['total'],
-            'payment_method' => $data['payment_method'] ?? null,
-            'status' => $data['status'],
-        ]);
+        // Kirim ulang invoice yang sudah tersimpan (mis. respons sebelumnya hilang di jaringan)
+        // dianggap berhasil, supaya antrean offline di aplikasi tidak macet.
+        $existing = Order::withoutGlobalScopes()->where('invoice_number', $data['invoice_number'])->first();
 
-        foreach ($data['items'] as $item) {
-            $orderItem = $order->items()->create([
-                'product_id' => $item['product_id'],
-                'variant_id' => $item['variant_id'] ?? null,
-                'product_name' => $item['product_name'],
-                'variant_name' => $item['variant_name'] ?? null,
-                'quantity' => $item['quantity'],
-                'price' => $item['price'],
-                'subtotal' => $item['subtotal'],
+        if ($existing) {
+            if ($existing->store_id === auth()->user()->tenantId()) {
+                return response()->json([
+                    'success' => true,
+                    'order_id' => $existing->id,
+                    'invoice_number' => $existing->invoice_number,
+                ], 201);
+            }
+
+            throw ValidationException::withMessages(['invoice_number' => 'Nomor invoice sudah dipakai.']);
+        }
+
+        // Harga, nama, dan total diambil dari database toko ini, bukan dari aplikasi.
+        $products = Product::with('variants')->whereIn('id', collect($data['items'])->pluck('product_id')->unique())->get()->keyBy('id');
+        $toppings = Topping::whereIn('id', collect($data['items'])->flatMap(fn ($i) => collect($i['toppings'] ?? [])->pluck('topping_id'))->unique())->get()->keyBy('id');
+
+        $lines = [];
+
+        foreach ($data['items'] as $index => $item) {
+            $product = $products->get($item['product_id']);
+
+            if (! $product) {
+                throw ValidationException::withMessages(["items.$index.product_id" => 'Produk tidak ditemukan.']);
+            }
+
+            $variant = null;
+
+            if (! empty($item['variant_id'])) {
+                $variant = $product->variants->firstWhere('id', $item['variant_id']);
+
+                if (! $variant) {
+                    throw ValidationException::withMessages(["items.$index.variant_id" => 'Varian tidak ditemukan.']);
+                }
+            }
+
+            $lineToppings = [];
+
+            foreach ($item['toppings'] ?? [] as $toppingIndex => $toppingData) {
+                $topping = $toppings->get($toppingData['topping_id']);
+
+                if (! $topping) {
+                    throw ValidationException::withMessages(["items.$index.toppings.$toppingIndex.topping_id" => 'Topping tidak ditemukan.']);
+                }
+
+                $lineToppings[] = $topping;
+            }
+
+            $price = ($variant?->price ?? $product->base_price) + collect($lineToppings)->sum('price');
+
+            $lines[] = [
+                'product' => $product,
+                'variant' => $variant,
+                'toppings' => $lineToppings,
+                'quantity' => (int) $item['quantity'],
+                'price' => $price,
+                'subtotal' => $price * (int) $item['quantity'],
+            ];
+        }
+
+        $total = collect($lines)->sum('subtotal');
+
+        $order = DB::transaction(function () use ($data, $lines, $total) {
+            $order = Order::create([
+                'invoice_number' => $data['invoice_number'],
+                'customer_name' => $data['customer_name'] ?? null,
+                'subtotal' => $total,
+                'total' => $total,
+                'payment_method' => $data['payment_method'] ?? null,
+                'status' => $data['status'],
             ]);
 
-            if (! empty($item['toppings'])) {
-                foreach ($item['toppings'] as $topping) {
+            foreach ($lines as $line) {
+                $orderItem = $order->items()->create([
+                    'product_id' => $line['product']->id,
+                    'variant_id' => $line['variant']?->id,
+                    'product_name' => $line['product']->name,
+                    'variant_name' => $line['variant']?->name,
+                    'quantity' => $line['quantity'],
+                    'price' => $line['price'],
+                    'subtotal' => $line['subtotal'],
+                ]);
+
+                foreach ($line['toppings'] as $topping) {
                     $orderItem->toppings()->create([
-                        'topping_id' => $topping['topping_id'],
-                        'topping_name' => $topping['topping_name'],
-                        'price' => $topping['price'],
+                        'topping_id' => $topping->id,
+                        'topping_name' => $topping->name,
+                        'price' => $topping->price,
                     ]);
                 }
             }
-        }
+
+            return $order;
+        });
 
         return response()->json([
             'success' => true,

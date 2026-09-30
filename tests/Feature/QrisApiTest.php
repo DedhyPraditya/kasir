@@ -34,10 +34,7 @@ class QrisApiTest extends TestCase
             'password' => Hash::make('secret'),
         ]);
 
-        // api_token sengaja tidak mass-assignable (lihat #[Fillable] di App\Models\User),
-        // jadi diisi langsung seperti pola di AuthController::login().
-        $user->api_token = $token;
-        $user->save();
+        $this->giveApiToken($user, $token);
 
         return $user;
     }

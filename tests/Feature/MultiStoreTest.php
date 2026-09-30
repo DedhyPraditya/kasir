@@ -36,7 +36,7 @@ class MultiStoreTest extends TestCase
             'password' => Hash::make('secret'),
             'store_id' => $store?->id,
         ]);
-        $user->forceFill(['api_token' => Str::random(80)])->save();
+        $this->giveApiToken($user);
 
         foreach ($roles as $role) {
             $user->assignRole(Role::firstOrCreate(['name' => $role]));
@@ -147,9 +147,9 @@ class MultiStoreTest extends TestCase
         $storeB = $this->makeStore('Toko B', 'toko-b');
         $kasirB = $this->makeUser(['kasir'], $storeB);
         $this->makeProduct($storeA, 'Produk A');
-        $this->makeProduct($storeB, 'Produk B');
+        $produkB = $this->makeProduct($storeB, 'Produk B');
 
-        $this->getJson('/api/products', ['X-Api-Token' => $kasirB->api_token])
+        $this->getJson('/api/products', ['X-Api-Token' => $this->apiTokenOf($kasirB)])
             ->assertOk()
             ->assertJsonCount(1, 'data')
             ->assertJsonPath('data.0.name', 'Produk B');
@@ -157,8 +157,8 @@ class MultiStoreTest extends TestCase
         $this->postJson('/api/orders/sync', [
             'invoice_number' => 'INV-API-1',
             'subtotal' => 1000, 'total' => 1000, 'payment_method' => 'cash', 'status' => 'completed',
-            'items' => [['product_id' => 'x', 'product_name' => 'Produk B', 'quantity' => 1, 'price' => 1000, 'subtotal' => 1000]],
-        ], ['X-Api-Token' => $kasirB->api_token])->assertCreated();
+            'items' => [['product_id' => $produkB->id, 'quantity' => 1]],
+        ], ['X-Api-Token' => $this->apiTokenOf($kasirB)])->assertCreated();
 
         $this->assertSame($storeB->id, Order::withoutGlobalScopes()->where('invoice_number', 'INV-API-1')->value('store_id'));
     }
@@ -170,11 +170,11 @@ class MultiStoreTest extends TestCase
         Store::whereKey($storeA->id)->update(['created_at' => now()->subDay()]);
         ReceiptSetting::create(['store_id' => $storeA->id, 'store_name' => 'Struk A', 'feed_lines' => 4, 'auto_cut' => false]);
 
-        $this->getJson('/api/receipt-settings', ['X-Api-Token' => $this->makeUser(['admin'], $storeA)->api_token])
+        $this->getJson('/api/receipt-settings', ['X-Api-Token' => $this->apiTokenOf($this->makeUser(['admin'], $storeA))])
             ->assertJsonPath('data.store', 'Struk A');
 
         // Toko B belum menyimpan apa pun: nama & alamat diambil dari data tokonya.
-        $this->getJson('/api/receipt-settings', ['X-Api-Token' => $this->makeUser(['admin'], $storeB)->api_token])
+        $this->getJson('/api/receipt-settings', ['X-Api-Token' => $this->apiTokenOf($this->makeUser(['admin'], $storeB))])
             ->assertJsonPath('data.store', 'Toko B')
             ->assertJsonPath('data.header', ['Jl. Baru 2', 'Telp: 0812']);
     }

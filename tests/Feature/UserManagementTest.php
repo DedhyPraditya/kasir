@@ -30,10 +30,10 @@ class UserManagementTest extends TestCase
         $user = User::create([
             'username' => $username ?? $role.'_'.uniqid(),
             'password' => Hash::make('secret'),
-            'api_token' => str_repeat('t', 70).uniqid(),
             'store_id' => $role === 'developer' ? null : $this->store()->id,
         ]);
         $user->syncRoles(array_map(fn ($r) => Role::firstOrCreate(['name' => $r]), UserManagement::ROLE_MAP[$role]));
+        $this->giveApiToken($user);
 
         return $user;
     }
@@ -118,14 +118,13 @@ class UserManagementTest extends TestCase
 
         $kasir->refresh();
         $this->assertTrue(Hash::check('baru1234', $kasir->password));
-        $this->assertNull($kasir->api_token);
+        $this->assertSame(0, $kasir->apiTokens()->count());
         $this->assertSame(0, DB::table('sessions')->where('user_id', $kasir->id)->count());
     }
 
     public function test_edit_without_password_keeps_old_password_and_token(): void
     {
         $kasir = $this->makeUser('kasir');
-        $token = $kasir->api_token;
 
         Livewire::actingAs($this->makeUser('developer'))
             ->test(UserManagement::class)
@@ -137,7 +136,7 @@ class UserManagementTest extends TestCase
         $kasir->refresh();
         $this->assertSame('kasir_ganti', $kasir->username);
         $this->assertTrue(Hash::check('secret', $kasir->password));
-        $this->assertSame($token, $kasir->api_token);
+        $this->assertSame(1, $kasir->apiTokens()->count());
     }
 
     public function test_role_change_updates_roles(): void
@@ -152,7 +151,7 @@ class UserManagementTest extends TestCase
             ->assertHasNoErrors();
 
         $this->assertSame(['admin'], $kasir->fresh()->getRoleNames()->all());
-        $this->assertNull($kasir->fresh()->api_token);
+        $this->assertSame(0, $kasir->apiTokens()->count());
     }
 
     public function test_developer_can_delete_other_user(): void

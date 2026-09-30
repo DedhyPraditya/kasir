@@ -2,26 +2,35 @@
 
 namespace App\Http\Middleware;
 
-use App\Models\User;
+use App\Models\ApiToken;
 use Closure;
 use Illuminate\Http\Request;
-use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Auth;
 
 class ApiTokenMiddleware
 {
     public function handle(Request $request, Closure $next)
     {
-        $token = $request->header('X-Api-Token');
+        $plain = $request->header('X-Api-Token');
 
-        $user = $token ? User::where('api_token', $token)->first() : null;
+        $token = $plain
+            ? ApiToken::with('user')->where('token', ApiToken::hash($plain))->where('expires_at', '>', now())->first()
+            : null;
 
-        if (! $user) {
+        if (! $token?->user) {
             return response()->json(['message' => 'Unauthorized'], 401);
         }
 
+        // Perpanjang masa berlaku bila dipakai, maksimal sekali per jam agar tidak menulis DB di setiap request.
+        if (! $token->last_used_at || $token->last_used_at->lt(now()->subHour())) {
+            $token->forceFill([
+                'last_used_at' => now(),
+                'expires_at' => now()->addDays(ApiToken::LIFETIME_DAYS),
+            ])->save();
+        }
+
         // Agar query model otomatis terbatas ke toko user ini.
-        Auth::setUser($user);
+        Auth::setUser($token->user);
 
         return $next($request);
     }

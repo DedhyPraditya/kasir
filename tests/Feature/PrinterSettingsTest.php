@@ -183,7 +183,7 @@ class PrinterSettingsTest extends TestCase
     public function test_mobile_api_returns_receipt_settings(): void
     {
         $user = $this->makeUser('kasir');
-        $user->forceFill(['api_token' => str_repeat('a', 80)])->save();
+        $this->giveApiToken($user, str_repeat('a', 80));
 
         ReceiptSetting::create(['store_id' => self::STORE,
             'store_name' => 'Toko Baru', 'header_text' => "Jl. A\nWA 1", 'footer_text' => 'Makasih',
@@ -206,7 +206,7 @@ class PrinterSettingsTest extends TestCase
     public function test_mobile_api_returns_defaults_when_not_saved(): void
     {
         $user = $this->makeUser('kasir');
-        $user->forceFill(['api_token' => str_repeat('b', 80)])->save();
+        $this->giveApiToken($user, str_repeat('b', 80));
 
         $this->getJson('/api/receipt-settings', ['X-Api-Token' => str_repeat('b', 80)])
             ->assertOk()

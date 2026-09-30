@@ -10,7 +10,7 @@ use Illuminate\Support\Facades\Route;
 
 use App\Http\Controllers\Api\AppVersionController;
 
-Route::post('/login', [AuthController::class, 'login']);
+Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:20,1');
 Route::get('/app-version', [AppVersionController::class, 'check']);
 Route::get('/download-apk', [AppVersionController::class, 'download']);
 

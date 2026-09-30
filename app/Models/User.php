@@ -49,6 +49,11 @@ class User extends Authenticatable
         return null;
     }
 
+    public function apiTokens()
+    {
+        return $this->hasMany(ApiToken::class);
+    }
+
     public function store()
     {
         return $this->belongsTo(Store::class);
