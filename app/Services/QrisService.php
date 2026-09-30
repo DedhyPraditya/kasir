@@ -3,6 +3,8 @@
 namespace App\Services;
 
 use App\Models\QrisSetting;
+use App\Models\Store;
+use App\Models\User;
 use InvalidArgumentException;
 
 class QrisService
@@ -15,7 +17,18 @@ class QrisService
     {
         $payload = QrisSetting::query()->latest('id')->value('payload');
 
-        return $payload ?: config('qris.static_payload');
+        if ($payload) {
+            return $payload;
+        }
+
+        // QRIS bawaan (.env) hanya untuk toko default; toko lain wajib mengisi QRIS sendiri.
+        $user = auth()->user();
+
+        if ($user instanceof User && $user->tenantId() !== Store::defaultId()) {
+            return null;
+        }
+
+        return config('qris.static_payload');
     }
 
     /**

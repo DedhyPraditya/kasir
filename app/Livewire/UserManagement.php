@@ -2,6 +2,7 @@
 
 namespace App\Livewire;
 
+use App\Models\Store;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
@@ -30,6 +31,7 @@ class UserManagement extends Component
     public ?string $editingId = null;
     public string $username = '';
     public string $role = 'kasir';
+    public ?string $storeId = null;
     public string $password = '';
     public string $password_confirmation = '';
 
@@ -48,6 +50,7 @@ class UserManagement extends Component
     public function create(): void
     {
         $this->resetForm();
+        $this->storeId = Store::defaultId();
         $this->showForm = true;
     }
 
@@ -59,6 +62,7 @@ class UserManagement extends Component
         $this->editingId = $user->id;
         $this->username  = $user->username;
         $this->role      = self::roleOf($user);
+        $this->storeId   = $user->store_id;
         $this->showForm  = true;
     }
 
@@ -74,6 +78,11 @@ class UserManagement extends Component
         $this->validate([
             'username' => ['required', 'string', 'min:3', 'max:50', 'alpha_dash', Rule::unique('users', 'username')->ignore($user?->id)],
             'role'     => ['required', Rule::in(array_keys(self::ROLE_MAP))],
+            'storeId'  => [
+                Rule::requiredIf($this->role !== 'developer'),
+                'nullable',
+                Rule::exists('stores', 'id'),
+            ],
             'password' => [$user ? 'nullable' : 'required', 'string', 'min:6', 'confirmed'],
         ], [
             'username.required'  => 'Username wajib diisi.',
@@ -82,6 +91,8 @@ class UserManagement extends Component
             'password.required'  => 'Password wajib diisi.',
             'password.min'       => 'Password minimal 6 karakter.',
             'password.confirmed' => 'Konfirmasi password tidak sama.',
+            'storeId.required'   => 'Pilih toko untuk akun ini.',
+            'storeId.exists'     => 'Toko tidak valid.',
         ]);
 
         if ($user && $user->is(auth()->user()) && $this->role !== 'developer') {
@@ -99,6 +110,7 @@ class UserManagement extends Component
             $roleChanged = $user->exists && self::roleOf($user) !== $this->role;
 
             $user->username = trim($this->username);
+            $user->store_id = $this->role === 'developer' ? null : $this->storeId;
             if ($this->password !== '') {
                 $user->password = $this->password;
             }
@@ -175,13 +187,13 @@ class UserManagement extends Component
 
     private function resetForm(): void
     {
-        $this->reset(['showForm', 'editingId', 'username', 'role', 'password', 'password_confirmation']);
+        $this->reset(['showForm', 'editingId', 'username', 'role', 'storeId', 'password', 'password_confirmation']);
         $this->resetErrorBag();
     }
 
     public function render()
     {
-        $users = User::with('roles')
+        $users = User::with(['roles', 'store'])
             ->when($this->search, fn ($q) => $q->where('username', 'like', '%'.$this->search.'%'))
             ->orderBy('username')
             ->get();
@@ -190,6 +202,7 @@ class UserManagement extends Component
             'users'      => $users,
             'deleting'   => $this->deletingId ? User::find($this->deletingId) : null,
             'roleLabels' => self::ROLE_LABELS,
+            'stores'     => Store::orderBy('name')->get(['id', 'name']),
         ])->layout('layouts.app');
     }
 }

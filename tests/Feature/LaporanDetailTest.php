@@ -16,11 +16,14 @@ class LaporanDetailTest extends TestCase
 {
     use RefreshDatabase;
 
+    private const STORE = '00000000-0000-4000-8000-000000000001';
+
     private function makeUser(string $role): User
     {
         $user = User::create([
             'username' => $role.'_'.uniqid(),
             'password' => Hash::make('secret'),
+            'store_id' => self::STORE,
         ]);
         $user->assignRole(Role::firstOrCreate(['name' => $role]));
 
@@ -29,7 +32,7 @@ class LaporanDetailTest extends TestCase
 
     private function makeOrder(): Order
     {
-        $order = Order::create([
+        $order = Order::create(['store_id' => self::STORE,
             'invoice_number' => 'INV-'.Str::random(8),
             'customer_name' => 'Budi',
             'subtotal' => 15000,

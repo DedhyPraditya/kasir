@@ -48,6 +48,7 @@
                             <tr>
                                 <th class="ps-4">Username</th>
                                 <th>Peran</th>
+                                <th>Toko</th>
                                 <th>Dibuat</th>
                                 <th class="text-end pe-4">Aksi</th>
                             </tr>
@@ -71,6 +72,13 @@
                                         <span class="badge bg-success">Kasir</span>
                                     @endif
                                 </td>
+                                <td class="small">
+                                    @if($userRole === 'developer')
+                                        <span class="text-muted">Semua toko</span>
+                                    @else
+                                        {{ $user->store?->name ?? '—' }}
+                                    @endif
+                                </td>
                                 <td class="text-muted small text-nowrap">{{ $user->created_at?->format('d/m/Y') }}</td>
                                 <td class="text-end pe-4 text-nowrap">
                                     <button type="button" class="btn btn-outline-primary btn-sm" wire:click="edit('{{ $user->id }}')">
@@ -85,7 +93,7 @@
                             </tr>
                             @empty
                             <tr>
-                                <td colspan="4" class="text-center py-5 text-muted">Tidak ada akun yang cocok.</td>
+                                <td colspan="5" class="text-center py-5 text-muted">Tidak ada akun yang cocok.</td>
                             </tr>
                             @endforelse
                         </tbody>
@@ -120,9 +128,23 @@
                                 <option value="{{ $value }}">{{ $label }}</option>
                                 @endforeach
                             </select>
-                            <div class="form-text">Kasir: hanya POS &amp; Laporan. Admin: semua menu. Developer: admin + hapus transaksi &amp; kelola pengguna.</div>
+                            <div class="form-text">Kasir: hanya POS &amp; Laporan di tokonya. Admin: semua menu di tokonya. Developer: semua toko, kelola toko &amp; pengguna.</div>
                             @error('role') <span class="text-danger small">{{ $message }}</span> @enderror
                         </div>
+
+                        @if($role !== 'developer')
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Toko <span class="text-danger">*</span></label>
+                            <select class="form-select @error('storeId') is-invalid @enderror" wire:model="storeId">
+                                <option value="">— Pilih toko —</option>
+                                @foreach($stores as $store)
+                                <option value="{{ $store->id }}">{{ $store->name }}</option>
+                                @endforeach
+                            </select>
+                            <div class="form-text">Akun hanya melihat data toko ini. Toko baru dibuat di menu Kelola Toko.</div>
+                            @error('storeId') <span class="text-danger small">{{ $message }}</span> @enderror
+                        </div>
+                        @endif
 
                         <div class="mb-3">
                             <label class="form-label fw-bold">

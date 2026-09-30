@@ -18,11 +18,14 @@ class PrinterSettingsTest extends TestCase
 {
     use RefreshDatabase;
 
+    private const STORE = '00000000-0000-4000-8000-000000000001';
+
     private function makeUser(string $role): User
     {
         $user = User::create([
             'username' => $role.'_'.uniqid(),
             'password' => Hash::make('secret'),
+            'store_id' => self::STORE,
         ]);
         $user->assignRole(Role::firstOrCreate(['name' => $role]));
 
@@ -97,13 +100,13 @@ class PrinterSettingsTest extends TestCase
 
     public function test_receipts_use_saved_header_and_footer(): void
     {
-        ReceiptSetting::create([
+        ReceiptSetting::create(['store_id' => self::STORE,
             'store_name' => 'Toko Baru',
             'header_text' => 'Jl. Merdeka 1',
             'footer_text' => 'Sampai jumpa lagi',
         ]);
 
-        $order = Order::create([
+        $order = Order::create(['store_id' => self::STORE,
             'invoice_number' => 'INV-'.Str::random(8),
             'customer_name' => 'Budi',
             'subtotal' => 10000,
@@ -162,12 +165,12 @@ class PrinterSettingsTest extends TestCase
 
     public function test_receipt_data_carries_paper_options(): void
     {
-        ReceiptSetting::create([
+        ReceiptSetting::create(['store_id' => self::STORE,
             'store_name' => 'Toko', 'header_text' => '', 'footer_text' => '',
             'feed_lines' => 1, 'auto_cut' => false,
         ]);
 
-        $order = Order::create([
+        $order = Order::create(['store_id' => self::STORE,
             'invoice_number' => 'INV-'.Str::random(8), 'customer_name' => 'A',
             'subtotal' => 1000, 'total' => 1000, 'payment_method' => 'cash', 'status' => 'completed',
         ]);
@@ -182,7 +185,7 @@ class PrinterSettingsTest extends TestCase
         $user = $this->makeUser('kasir');
         $user->forceFill(['api_token' => str_repeat('a', 80)])->save();
 
-        ReceiptSetting::create([
+        ReceiptSetting::create(['store_id' => self::STORE,
             'store_name' => 'Toko Baru', 'header_text' => "Jl. A\nWA 1", 'footer_text' => 'Makasih',
             'feed_lines' => 2, 'auto_cut' => true,
         ]);

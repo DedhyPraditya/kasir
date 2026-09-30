@@ -4,16 +4,17 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use App\Models\Concerns\BelongsToTenant;
 use Illuminate\Database\Eloquent\Model;
 
 class Category extends Model
 {
-    use HasFactory, HasUuids;
+    use HasFactory, HasUuids, BelongsToTenant;
 
     protected $keyType = 'string';
     public $incrementing = false;
 
-    protected $fillable = ['name', 'slug', 'allow_topping'];
+    protected $fillable = ['store_id', 'name', 'slug', 'allow_topping'];
 
     protected $casts = [
         'allow_topping' => 'boolean',

@@ -18,11 +18,14 @@ class DeveloperDeleteOrderTest extends TestCase
 {
     use RefreshDatabase;
 
+    private const STORE = '00000000-0000-4000-8000-000000000001';
+
     private function makeUser(array $roles): User
     {
         $user = User::create([
             'username' => 'user_'.uniqid(),
             'password' => Hash::make('secret'),
+            'store_id' => self::STORE,
         ]);
 
         foreach ($roles as $role) {
@@ -34,7 +37,7 @@ class DeveloperDeleteOrderTest extends TestCase
 
     private function makeOrder(): Order
     {
-        $order = Order::create([
+        $order = Order::create(['store_id' => self::STORE,
             'invoice_number' => 'INV-'.Str::random(8),
             'customer_name' => 'Tes',
             'subtotal' => 10000,

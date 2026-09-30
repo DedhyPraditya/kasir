@@ -25,7 +25,8 @@ class QrisSettingSeeder extends Seeder
         }
 
         // Hanya insert jika belum ada payload yang sama persis
-        $exists = QrisSetting::where('payload', $payload)->exists();
+        $ownerId = \App\Models\Store::defaultId();
+        $exists = QrisSetting::withoutGlobalScopes()->where('store_id', $ownerId)->where('payload', $payload)->exists();
 
         if ($exists) {
             $this->command->info('Payload QRIS sudah ada di database — dilewati.');
@@ -33,6 +34,7 @@ class QrisSettingSeeder extends Seeder
         }
 
         QrisSetting::create([
+            'store_id'   => $ownerId,
             'payload'    => $payload,
             'image_path' => null,
             'updated_by' => null,

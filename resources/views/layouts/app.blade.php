@@ -76,9 +76,8 @@
         <div class="d-flex min-vh-100">
             <!-- Sidebar -->
             <div class="sidebar bg-white shadow-sm d-flex flex-column p-3">
-                <a href="{{ route('dashboard') }}" class="d-flex align-items-center mb-4 mt-2 text-success text-decoration-none px-2">
-                    <i class="bi bi-shop fs-2 me-2"></i>
-                    <span class="fs-5 fw-bolder text-nowrap" style="letter-spacing: 0.5px;">NYEMIL BEBS</span>
+                <a href="{{ route('dashboard') }}" class="d-flex align-items-center justify-content-center mb-3 mt-2 text-decoration-none px-2">
+                    <img src="{{ asset('logo-apps.png') }}" alt="Logo Aplikasi" class="img-fluid" style="max-height: 72px;">
                 </a>
                 <hr>
                 <ul class="nav nav-pills flex-column mb-auto">
@@ -118,14 +117,12 @@
                             <span id="printer-status-badge" class="rounded-circle ms-auto border border-white" style="width: 10px; height: 10px; background: #adb5bd;"></span>
                         </a>
                     </li>
-                    @role('admin')
+                    @role('developer')
                     <li>
-                        <a href="{{ route('login.settings') }}" class="nav-link py-3 px-3 {{ request()->routeIs('login.settings') ? 'active shadow-sm' : '' }}">
-                            <i class="bi bi-window-sidebar me-2 fs-5"></i> Tampilan Login
+                        <a href="{{ route('stores.index') }}" class="nav-link py-3 px-3 {{ request()->routeIs('stores.index') ? 'active shadow-sm' : '' }}">
+                            <i class="bi bi-shop-window me-2 fs-5"></i> Kelola Toko
                         </a>
                     </li>
-                    @endrole
-                    @role('developer')
                     <li>
                         <a href="{{ route('users.index') }}" class="nav-link py-3 px-3 {{ request()->routeIs('users.index') ? 'active shadow-sm' : '' }}">
                             <i class="bi bi-people-fill me-2 fs-5"></i> Kelola Pengguna
@@ -133,11 +130,32 @@
                     </li>
                     @endrole
                 </ul>
+                @role('developer')
+                @php
+                    $switchStores = \App\Models\Store::orderBy('name')->get(['id', 'name']);
+                    $activeStoreId = auth()->user()->tenantId();
+                @endphp
+                <form method="POST" action="{{ route('store.switch') }}" class="px-2 mb-2">
+                    @csrf
+                    <label class="form-label small text-muted mb-1"><i class="bi bi-shop me-1"></i> Toko aktif</label>
+                    <select name="store" class="form-select form-select-sm" onchange="this.form.submit()">
+                        @foreach($switchStores as $store)
+                        <option value="{{ $store->id }}" @selected($store->id === $activeStoreId)>{{ $store->name }}</option>
+                        @endforeach
+                    </select>
+                </form>
+                @endrole
+                @php $currentStore = auth()->user()->tenantId() ? \App\Models\Store::find(auth()->user()->tenantId()) : null; @endphp
                 <hr>
                 <div class="dropup">
                     <a href="#" class="d-flex align-items-center text-dark text-decoration-none dropdown-toggle px-2" id="dropdownUser1" data-bs-toggle="dropdown" aria-expanded="false">
-                        <i class="bi bi-person-circle fs-4 me-2 text-success"></i>
-                        <strong>{{ auth()->user()->username ?? 'Admin' }}</strong>
+                        <i class="bi bi-person-circle fs-3 me-2 text-success"></i>
+                        <span class="d-flex flex-column lh-sm overflow-hidden">
+                            <strong class="text-truncate">{{ auth()->user()->username ?? 'Admin' }}</strong>
+                            @if($currentStore)
+                            <small class="text-muted text-truncate" title="{{ $currentStore->name }}">{{ $currentStore->name }}</small>
+                            @endif
+                        </span>
                     </a>
                     <ul class="dropdown-menu dropdown-menu-light text-small shadow" aria-labelledby="dropdownUser1">
                         @role('admin')
@@ -160,9 +178,7 @@
             <div class="flex-grow-1 d-flex flex-column main-content w-100" style="height: 100vh; height: 100dvh; overflow-y: auto;">
                 <!-- Mobile Header (Visible only on small screens) -->
                 <div class="d-md-none bg-white shadow-sm p-3 d-flex justify-content-between align-items-center mobile-header sticky-top">
-                    <h5 class="mb-0 text-success fw-bold">
-                        <i class="bi bi-shop me-1"></i> NYEMIL BEBS
-                    </h5>
+                    <img src="{{ asset('logo-apps.png') }}" alt="Logo Aplikasi" style="height: 40px;">
                     <div class="d-flex align-items-center gap-2">
                         <form method="POST" action="{{ route('logout') }}" class="m-0">
                             @csrf

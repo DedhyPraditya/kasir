@@ -16,20 +16,22 @@ class MenuSeeder extends Seeder
      */
     public function run(): void
     {
+        $ownerId = \App\Models\Store::defaultId();
+
         // 1. Kategori
         $categoryGabin = Category::firstOrCreate(
-            ['slug' => Str::slug('Gabin Fla')],
+            ['store_id' => $ownerId, 'slug' => Str::slug('Gabin Fla')],
             ['name' => 'Gabin Fla']
         );
 
         $categoryBanana = Category::firstOrCreate(
-            ['slug' => Str::slug('Banana Roll')],
+            ['store_id' => $ownerId, 'slug' => Str::slug('Banana Roll')],
             ['name' => 'Banana Roll']
         );
 
         // 2. Produk & Varian Gabin Fla
         $gabinProduct = Product::firstOrCreate(
-            ['slug' => Str::slug('Gabin Fla')],
+            ['store_id' => $ownerId, 'slug' => Str::slug('Gabin Fla')],
             [
                 'category_id' => $categoryGabin->id,
                 'name' => 'Gabin Fla',
@@ -48,7 +50,7 @@ class MenuSeeder extends Seeder
 
         // 3. Produk & Varian Banana Roll
         $bananaProduct = Product::firstOrCreate(
-            ['slug' => Str::slug('Banana Roll')],
+            ['store_id' => $ownerId, 'slug' => Str::slug('Banana Roll')],
             [
                 'category_id' => $categoryBanana->id,
                 'name' => 'Banana Roll',
@@ -74,7 +76,7 @@ class MenuSeeder extends Seeder
 
         foreach ($toppings as $topping) {
             Topping::firstOrCreate(
-                ['name' => $topping['name']],
+                ['store_id' => $ownerId, 'name' => $topping['name']],
                 ['price' => $topping['price']]
             );
         }

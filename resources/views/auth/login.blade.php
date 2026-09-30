@@ -1,5 +1,5 @@
 @php
-    $login = \App\Models\LoginSetting::current();
+    $brand = config('brand');
 @endphp
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
@@ -7,10 +7,10 @@
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="csrf-token" content="{{ csrf_token() }}">
-        <meta name="theme-color" content="#198754">
+        <meta name="theme-color" content="#1560a8">
 
         <title>Masuk · {{ config('app.name', 'Nyemil Bebs POS') }}</title>
-        <link rel="icon" type="image/png" href="{{ $login->logoUrl() }}">
+        <link rel="icon" type="image/png" href="{{ asset($brand['logo']) }}">
 
         <link rel="preconnect" href="https://fonts.bunny.net">
         <link href="https://fonts.bunny.net/css?family=figtree:400,500,600,700,800&display=swap" rel="stylesheet" />
@@ -19,18 +19,18 @@
 
         <style>
             /*
-             * Halaman login Nyemil Bebs: seluruh latar hijau merek (#198754),
+             * Halaman login aplikasi kasir: seluruh latar biru merek (#1560a8),
              * panel merek di kiri (merek di atas, judul + deskripsi di tengah, hak cipta di bawah),
              * kartu form putih di kanan. Di layar kecil form tampil lebih dulu.
              */
             :root {
-                --nb-green: #198754;
-                --nb-green-deep: #146c43;
-                --nb-green-ink: #0f5132;
+                --nb-green: #1560a8;
+                --nb-green-deep: #0f4c85;
+                --nb-green-ink: #0b3a66;
                 --nb-on-green: #ffffff;
-                --nb-on-green-soft: #d1e7dd;
-                --nb-ink: #1b2a22;
-                --nb-muted: #5c6f64;
+                --nb-on-green-soft: #d6e6f7;
+                --nb-ink: #14243a;
+                --nb-muted: #5a6b7d;
             }
 
             html, body { min-height: 100%; }
@@ -67,18 +67,13 @@
             }
 
             .nb-brand-mark img {
-                width: 52px;
-                height: 52px;
+                height: 64px;
+                width: auto;
+                max-width: 240px;
                 object-fit: contain;
                 background: #fff;
                 border-radius: 14px;
-                padding: 5px;
-            }
-
-            .nb-brand-mark span {
-                font-weight: 800;
-                font-size: 1.25rem;
-                letter-spacing: .14em;
+                padding: 6px 14px;
             }
 
             .nb-headline {
@@ -161,7 +156,7 @@
             .nb-card .form-control {
                 padding: .7rem .9rem;
                 border-radius: 10px;
-                border-color: #cfd8d3;
+                border-color: #cbd8e6;
                 caret-color: var(--nb-green);
             }
 
@@ -171,17 +166,17 @@
             .nb-card .form-check-input:focus,
             .nb-card .btn:focus-visible {
                 border-color: var(--nb-green);
-                box-shadow: 0 0 0 .25rem rgba(25, 135, 84, .22);
+                box-shadow: 0 0 0 .25rem rgba(21, 96, 168, .25);
             }
 
             .nb-eye {
-                border-color: #cfd8d3;
+                border-color: #cbd8e6;
                 border-radius: 0 10px 10px 0;
                 color: var(--nb-muted);
                 padding-inline: .9rem;
             }
 
-            .nb-eye:hover { background: #eef6f1; color: var(--nb-green-ink); border-color: #cfd8d3; }
+            .nb-eye:hover { background: #eef4fb; color: var(--nb-green-ink); border-color: #cbd8e6; }
 
             .nb-card .form-check-input:checked {
                 background-color: var(--nb-green);
@@ -189,11 +184,16 @@
             }
 
             .nb-submit {
+                background-color: var(--nb-green);
+                border-color: var(--nb-green);
+                color: #fff;
                 padding: .8rem 1rem;
                 border-radius: 10px;
                 font-weight: 600;
                 font-size: 1.05rem;
             }
+
+            .nb-submit:hover, .nb-submit:focus { background-color: var(--nb-green-deep); border-color: var(--nb-green-deep); color: #fff; }
 
             .nb-error { color: #b02a37; font-size: .875rem; list-style: none; padding: 0; margin: .4rem 0 0; }
 
@@ -222,26 +222,23 @@
             <div class="container">
                 <div class="row align-items-center gy-4 gx-lg-5">
                     {{-- Panel merek --}}
-                    <section class="col-lg-6 order-2 order-lg-1 nb-brand" aria-label="Tentang Nyemil Bebs">
+                    <section class="col-lg-6 order-2 order-lg-1 nb-brand" aria-label="Tentang aplikasi">
                         <div class="nb-brand-mark">
-                            <img src="{{ $login->logoUrl() }}" alt="">
-                            <span>NYEMIL BEBS</span>
+                            <img src="{{ asset($brand['logo']) }}" alt="{{ $brand['name'] }}">
                         </div>
 
                         <div class="nb-brand-body">
-                            <h2 class="nb-headline nb-rise nb-rise-2">{{ $login->headline }}</h2>
-                            @if($login->description)
-                            <p class="nb-lead nb-rise nb-rise-2">{{ $login->description }}</p>
-                            @endif
+                            <h2 class="nb-headline nb-rise nb-rise-2">{{ $brand['headline'] }}</h2>
+                            <p class="nb-lead nb-rise nb-rise-2">{{ $brand['description'] }}</p>
                         </div>
 
-                        <footer class="nb-foot">&copy; {{ date('Y') }} Nyemil Bebs</footer>
+                        <footer class="nb-foot">&copy; {{ date('Y') }} {{ $brand['name'] }}</footer>
                     </section>
 
                     {{-- Form login --}}
                     <section class="col-lg-5 offset-lg-1 order-1 order-lg-2">
                         <div class="nb-card nb-rise">
-                            <img class="nb-card-logo" src="{{ $login->logoUrl() }}" alt="Nyemil Bebs">
+                            <img class="nb-card-logo" src="{{ asset($brand['logo']) }}" alt="{{ $brand['name'] }}">
                             <h1>Masuk</h1>
                             <p class="nb-sub">Masuk untuk mulai berjualan.</p>
 
@@ -277,7 +274,7 @@
                                     <label for="remember_me" class="form-check-label">Ingat saya</label>
                                 </div>
 
-                                <button class="btn btn-success w-100 nb-submit" type="submit">
+                                <button class="btn w-100 nb-submit" type="submit">
                                     Masuk
                                 </button>
                             </form>

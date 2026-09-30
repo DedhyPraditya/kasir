@@ -37,10 +37,15 @@ Route::middleware('auth')->group(function () {
     // Pengaturan Printer - semua akun (ubah header/footer struk hanya Admin)
     Route::get('/pengaturan/printer', \App\Livewire\PrinterSettings::class)->name('printer.settings');
 
-    // Tampilan Login - hanya Admin
-    Route::get('/pengaturan/login', \App\Livewire\LoginSettings::class)
-        ->middleware(['redirect.kasir', 'role:admin'])
-        ->name('login.settings');
+    // Developer memilih toko aktif
+    Route::post('/toko-aktif', \App\Http\Controllers\StoreSwitchController::class)
+        ->middleware('role:developer')
+        ->name('store.switch');
+
+    // Kelola Toko - hanya Developer
+    Route::get('/pengaturan/toko', \App\Livewire\StoreManagement::class)
+        ->middleware(['redirect.kasir', 'role:developer'])
+        ->name('stores.index');
 
     // Kelola Pengguna - hanya Developer
     Route::get('/pengaturan/pengguna', \App\Livewire\UserManagement::class)

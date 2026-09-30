@@ -103,7 +103,7 @@ class Laporan extends Component
     {
         $this->authorizeDeveloper();
 
-        $ids = $this->pendingDelete;
+        $ids = Order::whereIn('id', $this->pendingDelete)->pluck('id')->all();
         if (empty($ids)) {
             return;
         }

@@ -3,10 +3,12 @@
 namespace Tests\Feature;
 
 use App\Livewire\UserManagement;
+use App\Models\Store;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 use Livewire\Livewire;
 use Spatie\Permission\Models\Role;
 use Tests\TestCase;
@@ -15,12 +17,21 @@ class UserManagementTest extends TestCase
 {
     use RefreshDatabase;
 
+    private ?Store $store = null;
+
+    /** Toko tempat admin & kasir uji bernaung. */
+    private function store(): Store
+    {
+        return $this->store ??= Store::create(['name' => 'Toko Uji', 'slug' => 'toko-uji']);
+    }
+
     private function makeUser(string $role, string $username = null): User
     {
         $user = User::create([
             'username' => $username ?? $role.'_'.uniqid(),
             'password' => Hash::make('secret'),
             'api_token' => str_repeat('t', 70).uniqid(),
+            'store_id' => $role === 'developer' ? null : $this->store()->id,
         ]);
         $user->syncRoles(array_map(fn ($r) => Role::firstOrCreate(['name' => $r]), UserManagement::ROLE_MAP[$role]));
 
@@ -48,6 +59,7 @@ class UserManagementTest extends TestCase
             ->call('create')
             ->set('username', 'kasir2')
             ->set('role', 'kasir')
+            ->set('storeId', $this->store()->id)
             ->set('password', 'rahasia1')
             ->set('password_confirmation', 'rahasia1')
             ->call('save')
@@ -167,6 +179,7 @@ class UserManagementTest extends TestCase
             ->call('delete')
             ->call('edit', $dev->id)
             ->set('role', 'kasir')
+            ->set('storeId', $this->store()->id)
             ->call('save')
             ->assertHasErrors('role');
 
@@ -187,5 +200,75 @@ class UserManagementTest extends TestCase
         $this->assertDatabaseMissing('users', ['id' => $otherDev->id]);
 
         $this->assertSame(1, User::role('developer')->count());
+    }
+
+    public function test_kasir_and_admin_require_store_but_developer_does_not(): void
+    {
+        foreach (['kasir', 'admin'] as $role) {
+            Livewire::actingAs($this->makeUser('developer'))
+                ->test(UserManagement::class)
+                ->call('create')
+                ->set('username', 'akun_'.$role)
+                ->set('role', $role)
+                ->set('storeId', null)
+                ->set('password', 'rahasia1')
+                ->set('password_confirmation', 'rahasia1')
+                ->call('save')
+                ->assertHasErrors('storeId');
+        }
+
+        Livewire::actingAs($this->makeUser('developer'))
+            ->test(UserManagement::class)
+            ->call('create')
+            ->set('username', 'dev_baru')
+            ->set('role', 'developer')
+            ->set('storeId', null)
+            ->set('password', 'rahasia1')
+            ->set('password_confirmation', 'rahasia1')
+            ->call('save')
+            ->assertHasNoErrors();
+
+        $this->assertNull(User::where('username', 'dev_baru')->value('store_id'));
+    }
+
+    public function test_account_is_saved_under_chosen_store(): void
+    {
+        $store = $this->store();
+
+        Livewire::actingAs($this->makeUser('developer'))
+            ->test(UserManagement::class)
+            ->call('create')
+            ->set('username', 'kasir_a')
+            ->set('role', 'kasir')
+            ->set('storeId', $store->id)
+            ->set('password', 'rahasia1')
+            ->set('password_confirmation', 'rahasia1')
+            ->call('save')
+            ->assertHasNoErrors()
+            ->call('create')
+            ->set('username', 'admin_a')
+            ->set('role', 'admin')
+            ->set('storeId', $store->id)
+            ->set('password', 'rahasia1')
+            ->set('password_confirmation', 'rahasia1')
+            ->call('save')
+            ->assertHasNoErrors();
+
+        $this->assertSame($store->id, User::where('username', 'kasir_a')->value('store_id'));
+        $this->assertSame($store->id, User::where('username', 'admin_a')->value('store_id'));
+    }
+
+    public function test_unknown_store_is_rejected(): void
+    {
+        Livewire::actingAs($this->makeUser('developer'))
+            ->test(UserManagement::class)
+            ->call('create')
+            ->set('username', 'kasir_x')
+            ->set('role', 'kasir')
+            ->set('storeId', (string) Str::uuid())
+            ->set('password', 'rahasia1')
+            ->set('password_confirmation', 'rahasia1')
+            ->call('save')
+            ->assertHasErrors('storeId');
     }
 }

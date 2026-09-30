@@ -57,7 +57,7 @@ class Produk extends Component
 
     protected $rules = [
         'name'        => 'required|string|max:255',
-        'category_id' => 'required|exists:categories,id',
+        'category_id' => 'required',
         'base_price'  => 'required|numeric|min:0',
         'description' => 'nullable|string',
         'is_active'   => 'boolean',
@@ -226,7 +226,7 @@ class Produk extends Component
     {
         $this->validate([
             'name'        => 'required|string|max:255',
-            'category_id' => 'required|exists:categories,id',
+            'category_id' => ['required', Rule::exists('categories', 'id')->where('store_id', auth()->user()->tenantId())],
             'base_price'  => 'required|numeric|min:0',
             'description' => 'nullable|string',
             'image'       => 'nullable|image|max:2048',
