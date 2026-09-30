@@ -123,7 +123,9 @@ return [
         'store' => env('APP_MAINTENANCE_STORE', 'database'),
     ],
 
-    'mobile_version' => '1.5.2',
-    'mobile_build_number' => 11,
-    'mobile_changelog' => "Pembaruan Versi 1.5.2:\n• No, Tgl, Kasir, dan Pelanggan di struk kini rata kanan, rapi seperti baris TOTAL.\n• Struk mengikuti pengaturan di web (nama toko, header, footer, sisa kertas).\n• Potong kertas otomatis hanya untuk printer yang punya pemotong.",
+    'mobile_version' => '1.5.3',
+    'mobile_build_number' => 12,
+    'mobile_changelog' => "Pembaruan Versi 1.5.3:
+• Tampilan baru: logo, ikon, dan nama aplikasi menjadi deo'ku.
+• Warna tema aplikasi disamakan dengan versi web (biru).",
 ];

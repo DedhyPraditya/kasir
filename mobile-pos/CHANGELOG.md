@@ -2,6 +2,12 @@
 
 Semua perubahan pada aplikasi Mobile POS dicatat di file ini.
 
+## [1.5.3] - 2026-09-30
+
+### 🎨 Branding deo'ku
+- **Logo, Ikon, Nama**: Aplikasi kini bernama deo'ku dengan logo dan ikon baru.
+- **Warna Tema**: Disamakan dengan versi web (biru).
+
 ## [1.5.2] - 2026-09-27
 
 ### 🧾 Info Transaksi Rata Kanan
