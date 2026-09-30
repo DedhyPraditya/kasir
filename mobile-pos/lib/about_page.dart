@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:package_info_plus/package_info_plus.dart';
+import 'brand_colors.dart';
 
 class _ChangelogEntry {
   final String version;
@@ -72,7 +73,7 @@ class AboutPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const themeColor = Color(0xFF1B6A6B);
+    const themeColor = kBrandBlue;
 
     return Scaffold(
       appBar: AppBar(

@@ -18,6 +18,7 @@ import 'offline_store.dart';
 import 'receipt_settings.dart';
 
 import 'package:permission_handler/permission_handler.dart';
+import 'brand_colors.dart';
 
 enum SnackBarType { info, success, warning, error }
 
@@ -304,7 +305,7 @@ class _PosHomePageState extends State<PosHomePage> {
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
           title: Row(
             children: const [
-              Icon(Icons.system_update, color: Colors.green),
+              Icon(Icons.system_update, color: kBrandBlue),
               SizedBox(width: 8),
               Text('Update Tersedia'),
             ],
@@ -331,7 +332,7 @@ class _PosHomePageState extends State<PosHomePage> {
               icon: const Icon(Icons.download),
               label: const Text('Update Sekarang'),
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.green,
+                backgroundColor: kBrandBlue,
                 foregroundColor: Colors.white,
               ),
               onPressed: () async {
@@ -814,7 +815,7 @@ class _PosHomePageState extends State<PosHomePage> {
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
           title: Row(
             children: const [
-              Icon(Icons.receipt_long, color: Colors.green),
+              Icon(Icons.receipt_long, color: kBrandBlue),
               SizedBox(width: 8),
               Text('Preview Struk Belanja'),
             ],
@@ -891,7 +892,7 @@ class _PosHomePageState extends State<PosHomePage> {
               icon: const Icon(Icons.print),
               label: const Text('Cetak Ke Printer'),
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.green,
+                backgroundColor: kBrandBlue,
                 foregroundColor: Colors.white,
               ),
               onPressed: () async {
@@ -1563,7 +1564,7 @@ class _PosHomePageState extends State<PosHomePage> {
                 icon: const Icon(Icons.print),
                 label: const Text('Cetak Struk'),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.green,
+                  backgroundColor: kBrandBlue,
                   foregroundColor: Colors.white,
                 ),
                 onPressed: () async {
@@ -1965,7 +1966,7 @@ class _PosHomePageState extends State<PosHomePage> {
             _buildBottomNavItem(
               icon: Icons.home_rounded,
               label: 'Home',
-              color: Colors.green,
+              color: kBrandBlue,
               onTap: () {},
             ),
             _buildBottomNavItem(
@@ -2064,7 +2065,7 @@ class _PosHomePageState extends State<PosHomePage> {
                                                 child: Container(
                                                   width: double.infinity,
                                                   padding: const EdgeInsets.all(6),
-                                                  color: Colors.green.shade50,
+                                                  color: kBrandBlue.withOpacity(0.08),
                                                   child: product.imageUrl != null &&
                                                           product.imageUrl!.isNotEmpty
                                                       ? Image.network(
@@ -2073,13 +2074,13 @@ class _PosHomePageState extends State<PosHomePage> {
                                                           errorBuilder: (context, error, stackTrace) =>
                                                               const Icon(
                                                                 Icons.fastfood,
-                                                                color: Colors.green,
+                                                                color: kBrandBlue,
                                                                 size: 32,
                                                               ),
                                                         )
                                                       : const Icon(
                                                           Icons.fastfood,
-                                                          color: Colors.green,
+                                                          color: kBrandBlue,
                                                           size: 32,
                                                         ),
                                                 ),
@@ -2102,7 +2103,7 @@ class _PosHomePageState extends State<PosHomePage> {
                                                     Text(
                                                       '${_formatRp(product.price)}',
                                                       style: const TextStyle(
-                                                        color: Colors.green,
+                                                        color: kBrandBlue,
                                                         fontWeight: FontWeight.bold,
                                                         fontSize: 13,
                                                       ),

@@ -11,6 +11,7 @@ import 'package:share_plus/share_plus.dart';
 import 'dart:io';
 
 import 'receipt_settings.dart';
+import 'brand_colors.dart';
 
 const String _historyBackendUrl = 'https://kasir.madignet.site/api';
 
@@ -214,7 +215,7 @@ class _HistoryPageState extends State<HistoryPage> {
       backgroundColor: Colors.grey.shade100,
       appBar: AppBar(
         title: const Text('Riwayat Hari Ini'),
-        backgroundColor: Colors.green,
+        backgroundColor: kBrandBlue,
         foregroundColor: Colors.white,
         leading: const BackButton(),
         actions: [
@@ -229,7 +230,7 @@ class _HistoryPageState extends State<HistoryPage> {
         future: _ordersFuture,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: Column(mainAxisSize: MainAxisSize.min, children: [CircularProgressIndicator(color: Colors.green), SizedBox(height: 12), Text('Memuat riwayat...')]));
+            return const Center(child: Column(mainAxisSize: MainAxisSize.min, children: [CircularProgressIndicator(color: kBrandBlue), SizedBox(height: 12), Text('Memuat riwayat...')]));
           }
           if (snapshot.hasError) {
             return Center(child: Column(mainAxisSize: MainAxisSize.min, children: [
@@ -238,7 +239,7 @@ class _HistoryPageState extends State<HistoryPage> {
               Text('${snapshot.error}', textAlign: TextAlign.center, style: const TextStyle(color: Colors.grey)),
               const SizedBox(height: 16),
               ElevatedButton.icon(
-                style: ElevatedButton.styleFrom(backgroundColor: Colors.green, foregroundColor: Colors.white),
+                style: ElevatedButton.styleFrom(backgroundColor: kBrandBlue, foregroundColor: Colors.white),
                 onPressed: () => setState(() { _ordersFuture = _fetchOrders(); }),
                 icon: const Icon(Icons.refresh),
                 label: const Text('Coba Lagi'),
@@ -277,7 +278,7 @@ class _HistoryPageState extends State<HistoryPage> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Row(children: [
-                        const Icon(Icons.receipt_long, size: 18, color: Colors.green),
+                        const Icon(Icons.receipt_long, size: 18, color: kBrandBlue),
                         const SizedBox(width: 6),
                         Expanded(child: Text(invoice, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14))),
                         Container(
@@ -308,7 +309,7 @@ class _HistoryPageState extends State<HistoryPage> {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Text(_formatRp(total), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: Colors.green)),
+                          Text(_formatRp(total), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: kBrandBlue)),
                           Row(children: [
                             OutlinedButton.icon(
                               icon: const Icon(Icons.share, size: 15),
@@ -320,7 +321,7 @@ class _HistoryPageState extends State<HistoryPage> {
                             ElevatedButton.icon(
                               icon: const Icon(Icons.print, size: 15),
                               label: const Text('Print Ulang', style: TextStyle(fontSize: 12)),
-                              style: ElevatedButton.styleFrom(backgroundColor: Colors.green, foregroundColor: Colors.white, padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4), tapTargetSize: MaterialTapTargetSize.shrinkWrap),
+                              style: ElevatedButton.styleFrom(backgroundColor: kBrandBlue, foregroundColor: Colors.white, padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4), tapTargetSize: MaterialTapTargetSize.shrinkWrap),
                               onPressed: () => _printReceipt(invoice: invoice, customer: customer, method: method, total: total, createdAt: createdAt, items: items),
                             ),
                           ]),

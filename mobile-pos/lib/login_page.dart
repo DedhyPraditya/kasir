@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'offline_store.dart';
 import 'pos_page.dart';
+import 'brand_colors.dart';
 
 const String backendUrl = 'https://kasir.madignet.site/api';
 
@@ -78,7 +79,7 @@ class _LoginPageState extends State<LoginPage> {
 
   @override
   Widget build(BuildContext context) {
-    const themeColor = Color(0xFF1B6A6B); // Warna teal senada dengan logo Nyemil Bebs
+    const themeColor = kBrandBlue;
     return Scaffold(
       body: Container(
         decoration: BoxDecoration(

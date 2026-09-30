@@ -3,6 +3,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'login_page.dart';
 import 'offline_store.dart';
 import 'pos_page.dart';
+import 'brand_colors.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -20,7 +21,11 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'NYEMIL BEBS POS',
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
+        colorScheme: ColorScheme.fromSeed(seedColor: kBrandBlue),
+        appBarTheme: const AppBarTheme(
+          backgroundColor: kBrandBlue,
+          foregroundColor: Colors.white,
+        ),
         useMaterial3: true,
       ),
       home: const _StartupGate(),
