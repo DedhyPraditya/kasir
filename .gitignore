@@ -27,3 +27,8 @@ Homestead.json
 Homestead.yaml
 Thumbs.db
 mobile-pos/build/
+
+# Sisa build/cache Android & Capacitor lama
+mobile-pos/node_modules/
+mobile-pos/android/build/
+mobile-pos/android/.gradle/
