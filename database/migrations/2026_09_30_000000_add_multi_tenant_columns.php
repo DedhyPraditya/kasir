@@ -15,26 +15,25 @@ return new class extends Migration
 
     public function up(): void
     {
+        // Aman dijalankan ulang: MySQL tidak membatalkan DDL bila migrasi gagal di tengah jalan.
         // users.owner_id: null = admin/developer, terisi = kasir milik admin (toko) tsb.
-        Schema::table('users', function (Blueprint $table) {
-            $table->uuid('owner_id')->nullable()->index();
-        });
-
-        foreach ($this->tenantTables as $name) {
-            Schema::table($name, function (Blueprint $table) {
-                $table->uuid('owner_id')->nullable()->index();
-            });
+        foreach (array_merge(['users'], $this->tenantTables) as $name) {
+            if (! Schema::hasColumn($name, 'owner_id')) {
+                Schema::table($name, function (Blueprint $table) {
+                    $table->uuid('owner_id')->nullable()->index();
+                });
+            }
         }
 
         // slug unik per toko, bukan global
-        Schema::table('categories', function (Blueprint $table) {
-            $table->dropUnique(['slug']);
-            $table->unique(['owner_id', 'slug']);
-        });
-        Schema::table('products', function (Blueprint $table) {
-            $table->dropUnique(['slug']);
-            $table->unique(['owner_id', 'slug']);
-        });
+        foreach (['categories', 'products'] as $name) {
+            if (Schema::hasIndex($name, ['slug'], 'unique')) {
+                Schema::table($name, fn (Blueprint $table) => $table->dropUnique(['slug']));
+            }
+            if (! Schema::hasIndex($name, ['owner_id', 'slug'], 'unique')) {
+                Schema::table($name, fn (Blueprint $table) => $table->unique(['owner_id', 'slug']));
+            }
+        }
 
         $this->backfillToDefaultStore();
     }
@@ -77,7 +76,9 @@ return new class extends Migration
             return [];
         }
 
-        return DB::table('model_has_roles')->where('role_id', $roleId)->pluck('model_id')->all();
+        $morphKey = config('permission.column_names.model_morph_key', 'model_id');
+
+        return DB::table('model_has_roles')->where('role_id', $roleId)->pluck($morphKey)->all();
     }
 
     public function down(): void

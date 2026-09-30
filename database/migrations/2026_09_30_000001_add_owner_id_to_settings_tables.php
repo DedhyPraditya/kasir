@@ -27,14 +27,15 @@ return new class extends Migration
         $adminId = DB::table('users')->where('username', 'admin')->value('id');
 
         if (! $adminId) {
+            $morphKey = config('permission.column_names.model_morph_key', 'model_id');
             $adminRoleId = DB::table('roles')->where('name', 'admin')->value('id');
             $developerRoleId = DB::table('roles')->where('name', 'developer')->value('id');
 
             $adminIds = $adminRoleId
-                ? DB::table('model_has_roles')->where('role_id', $adminRoleId)->pluck('model_id')->all()
+                ? DB::table('model_has_roles')->where('role_id', $adminRoleId)->pluck($morphKey)->all()
                 : [];
             $developerIds = $developerRoleId
-                ? DB::table('model_has_roles')->where('role_id', $developerRoleId)->pluck('model_id')->all()
+                ? DB::table('model_has_roles')->where('role_id', $developerRoleId)->pluck($morphKey)->all()
                 : [];
 
             $adminId = DB::table('users')
