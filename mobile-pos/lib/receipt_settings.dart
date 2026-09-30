@@ -25,11 +25,11 @@ class ReceiptSettings {
     required this.autoCut,
   });
 
-  /// Nilai bawaan, sama dengan bawaan server.
+  /// Nilai bawaan netral, dipakai bila pengaturan toko dari server belum terbaca.
   static const ReceiptSettings defaults = ReceiptSettings(
-    store: 'NYEMIL BEBS',
-    header: ['Purnama Town House Blok H/1', 'Telp: +62 823-9943-0312'],
-    footer: ['Terima Kasih atas Kunjungan Anda!', '~ Nyemil Bebs ~'],
+    store: 'TOKO',
+    header: [],
+    footer: ['Terima Kasih atas Kunjungan Anda!'],
     feedLines: 4,
     autoCut: false,
   );

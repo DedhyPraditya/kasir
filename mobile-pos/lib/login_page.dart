@@ -99,22 +99,11 @@ class _LoginPageState extends State<LoginPage> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  // Logo Nyemil Bebs
+                  // Logo aplikasi
                   Image.asset(
-                    'assets/images/logo.png',
+                    'assets/images/logo-apps.png',
                     height: 140,
                     fit: BoxFit.contain,
-                  ),
-                  const SizedBox(height: 16),
-                  // App Branding
-                  const Text(
-                    'NYEMIL BEBS',
-                    style: TextStyle(
-                      fontSize: 28,
-                      fontWeight: FontWeight.w900,
-                      color: themeColor,
-                      letterSpacing: 1.5,
-                    ),
                   ),
                   // const SizedBox(height: 8),
                   // Text(

@@ -1873,7 +1873,7 @@ class _PosHomePageState extends State<PosHomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('NYEMIL BEBS'),
+        title: const Text("deo'ku"),
         actions: [
           // Indikator online/offline + antrian order belum sinkron
           Tooltip(

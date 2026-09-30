@@ -19,7 +19,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'NYEMIL BEBS POS',
+      title: "deo'ku",
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: kBrandBlue),
         appBarTheme: const AppBarTheme(

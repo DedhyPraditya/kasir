@@ -87,17 +87,7 @@ class AboutPage extends StatelessWidget {
           Center(
             child: Column(
               children: [
-                Image.asset('assets/images/logo.png', height: 96),
-                const SizedBox(height: 12),
-                const Text(
-                  'NYEMIL BEBS POS',
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.w900,
-                    color: themeColor,
-                    letterSpacing: 1.2,
-                  ),
-                ),
+                Image.asset('assets/images/logo-apps.png', height: 96),
                 const SizedBox(height: 4),
                 FutureBuilder<PackageInfo>(
                   future: PackageInfo.fromPlatform(),
@@ -200,7 +190,7 @@ class AboutPage extends StatelessWidget {
           const SizedBox(height: 8),
           Center(
             child: Text(
-              '© Nyemil Bebs',
+              "© deo'ku",
               style: TextStyle(color: Colors.grey.shade400, fontSize: 11),
             ),
           ),

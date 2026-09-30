@@ -198,8 +198,8 @@ class _HistoryPageState extends State<HistoryPage> {
 
       await Share.shareXFiles(
         [XFile(file.path, mimeType: 'image/png')],
-        subject: 'Struk NYEMIL BEBS',
-        text: 'Struk NYEMIL BEBS - $invoice\n$createdAt',
+        subject: 'Struk Belanja',
+        text: 'Struk Belanja - $invoice\n$createdAt',
       );
     } catch (e) {
       if (mounted && !popped) Navigator.of(context).pop();
