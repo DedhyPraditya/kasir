@@ -19,11 +19,52 @@
             <div class="col-md-8">
                 <div class="card shadow-sm mb-4 border-0">
                     <div class="card-header bg-white border-bottom-0 pt-4 pb-0">
-                        <h4 class="mb-0 fw-bold text-success">Daftar Menu</h4>
+                        <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+                            <h4 class="mb-0 fw-bold text-success">
+                                <i class="bi bi-grid-fill me-2"></i>Daftar Menu
+                            </h4>
+                            <div class="position-relative" style="min-width: 250px; max-width: 350px; flex-grow: 1;">
+                                <div class="input-group shadow-sm" style="border-radius: 10px; overflow: hidden;">
+                                    <span class="input-group-text bg-light border-end-0 text-muted">
+                                        <i class="bi bi-search"></i>
+                                    </span>
+                                    <input type="text" 
+                                           class="form-control bg-light border-start-0 ps-0" 
+                                           placeholder="Cari nama menu..." 
+                                           wire:model.live.debounce.300ms="search">
+                                    @if(!empty($search))
+                                        <button class="btn btn-light border-start-0 text-muted" 
+                                                type="button" 
+                                                wire:click="resetSearch"
+                                                title="Hapus pencarian">
+                                            <i class="bi bi-x-lg"></i>
+                                        </button>
+                                    @endif
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Category Filter Pills -->
+                        @if($categories->count() > 0)
+                        <div class="d-flex gap-2 overflow-auto pb-3 pt-1" style="white-space: nowrap; scrollbar-width: thin;">
+                            <button type="button" 
+                                    class="btn btn-sm rounded-pill px-3 {{ empty($selectedCategory) ? 'btn-success text-white fw-bold shadow-sm' : 'btn-outline-secondary' }}" 
+                                    wire:click="filterCategory('')">
+                                Semua ({{ $products->count() }})
+                            </button>
+                            @foreach($categories as $cat)
+                                <button type="button" 
+                                        class="btn btn-sm rounded-pill px-3 {{ $selectedCategory === $cat->id ? 'btn-success text-white fw-bold shadow-sm' : 'btn-outline-secondary' }}" 
+                                        wire:click="filterCategory('{{ $cat->id }}')">
+                                    {{ $cat->name }}
+                                </button>
+                            @endforeach
+                        </div>
+                        @endif
                     </div>
                     <div class="card-body">
                         <div class="row g-3">
-                            @foreach($products as $product)
+                            @forelse($products as $product)
                             <div class="col-md-4 col-sm-6">
                                 <div class="card h-100 shadow-sm border-0 cursor-pointer overflow-hidden" wire:click="selectProduct('{{ $product->id }}')" style="cursor: pointer; transition: transform 0.2s; border-radius: 12px;" onmouseover="this.style.transform='scale(1.03)'" onmouseout="this.style.transform='scale(1)'">
                                     @if($product->image)
@@ -41,7 +82,26 @@
                                     </div>
                                 </div>
                             </div>
-                            @endforeach
+                            @empty
+                            <div class="col-12 text-center py-5">
+                                <div class="text-muted">
+                                    <i class="bi bi-search fs-1 d-block mb-2 text-secondary opacity-50"></i>
+                                    <h5 class="fw-bold text-dark">Menu tidak ditemukan</h5>
+                                    <p class="small text-muted mb-3">
+                                        @if(!empty($search))
+                                            Tidak ada menu dengan kata kunci "<strong>{{ $search }}</strong>".
+                                        @else
+                                            Tidak ada menu di kategori ini.
+                                        @endif
+                                    </p>
+                                    @if(!empty($search) || !empty($selectedCategory))
+                                        <button class="btn btn-sm btn-outline-success rounded-pill px-3" wire:click="$set('search', ''); $set('selectedCategory', '')">
+                                            <i class="bi bi-arrow-counterclockwise me-1"></i>Reset Filter
+                                        </button>
+                                    @endif
+                                </div>
+                            </div>
+                            @endforelse
                         </div>
                     </div>
                 </div>

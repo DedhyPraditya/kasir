@@ -2,6 +2,7 @@
 
 namespace App\Livewire;
 
+use App\Models\Category;
 use App\Models\Product;
 use App\Models\Topping;
 use App\Models\Order;
@@ -15,6 +16,10 @@ class Pos extends Component
 {
     public $cart = [];
     
+    // Search & Filter State
+    public $search = '';
+    public $selectedCategory = '';
+
     // Modal Product State
     public $showModal = false;
     public $selectedProduct = null;
@@ -200,13 +205,36 @@ class Pos extends Component
         $this->showReceiptModal = true;
     }
 
+    public function filterCategory($categoryId = '')
+    {
+        $this->selectedCategory = $categoryId;
+    }
+
+    public function resetSearch()
+    {
+        $this->search = '';
+    }
+
     public function render()
     {
+        $categories = Category::has('products')->orderBy('name')->get();
+
+        $productsQuery = Product::where('is_active', true)
+            ->with(['category', 'variants' => function($query) {
+                $query->where('is_active', true);
+            }]);
+
+        if (!empty($this->search)) {
+            $productsQuery->where('name', 'like', '%' . trim($this->search) . '%');
+        }
+
+        if (!empty($this->selectedCategory)) {
+            $productsQuery->where('category_id', $this->selectedCategory);
+        }
+
         return view('livewire.pos', [
-            'products' => Product::where('is_active', true)
-                ->with(['category', 'variants' => function($query) {
-                    $query->where('is_active', true);
-                }])->get(),
+            'products' => $productsQuery->orderBy('name')->get(),
+            'categories' => $categories,
             'toppings' => Topping::where('is_active', true)->get(),
         ])->layout('layouts.app');
     }
