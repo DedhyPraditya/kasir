@@ -1901,6 +1901,8 @@ class _PosHomePageState extends State<PosHomePage> {
         ),
       ),
     );
+  }
+
   Widget _buildCategoryChip({
     required String label,
     required bool isSelected,
