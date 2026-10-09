@@ -1,7 +1,67 @@
 <div>
     @include('partials.struk-style')
 
-    <div class="container-fluid py-4 d-print-none">
+    <style>
+        .pos-product-card {
+            border-radius: 14px;
+            transition: transform 0.15s ease, box-shadow 0.15s ease;
+            cursor: pointer;
+            border: 1px solid rgba(0, 0, 0, 0.06) !important;
+            background: #ffffff;
+        }
+        .pos-product-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08) !important;
+        }
+        .pos-product-card:active {
+            transform: scale(0.96) !important;
+        }
+        .pos-product-img-box {
+            height: 90px;
+            background-color: rgba(25, 135, 84, 0.08);
+            border-top-left-radius: 14px;
+            border-top-right-radius: 14px;
+        }
+        .pos-product-img {
+            max-height: 75px;
+            max-width: 90%;
+            object-fit: contain;
+        }
+        .pos-product-title {
+            font-size: 0.82rem;
+            line-height: 1.25;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            min-height: 2.05rem;
+        }
+        .pos-product-price {
+            font-size: 0.8rem;
+        }
+        @media (min-width: 768px) {
+            .pos-product-card {
+                border-radius: 16px;
+            }
+            .pos-product-img-box {
+                height: 125px;
+                border-top-left-radius: 16px;
+                border-top-right-radius: 16px;
+            }
+            .pos-product-img {
+                max-height: 110px;
+            }
+            .pos-product-title {
+                font-size: 0.92rem;
+                min-height: 2.3rem;
+            }
+            .pos-product-price {
+                font-size: 0.88rem;
+            }
+        }
+    </style>
+
+    <div class="container-fluid py-3 px-2 px-md-3 d-print-none {{ count($cart) > 0 ? 'pb-5 mb-4' : '' }}">
         @if (session()->has('success'))
             <div class="position-fixed top-0 start-50 translate-middle-x p-3 d-print-none" style="z-index: 9999; width: 90%; max-width: 400px;">
                 <div class="alert alert-success alert-dismissible fade show shadow border-0" role="alert" style="background-color: #198754; color: white;">
@@ -14,23 +74,23 @@
             </div>
         @endif
 
-        <div class="row">
+        <div class="row g-3">
             <!-- Left Side: Products -->
-            <div class="col-md-8">
-                <div class="card shadow-sm mb-4 border-0">
-                    <div class="card-header bg-white border-bottom-0 pt-4 pb-0">
+            <div class="col-md-7 col-lg-8">
+                <div class="card shadow-sm mb-4 border-0" style="border-radius: 16px;">
+                    <div class="card-header bg-white border-bottom-0 pt-3 pt-md-4 pb-0">
                         <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
-                            <h4 class="mb-0 fw-bold text-success">
+                            <h5 class="mb-0 fw-bold text-success">
                                 <i class="bi bi-grid-fill me-2"></i>Daftar Menu
-                            </h4>
-                            <div class="position-relative" style="min-width: 250px; max-width: 350px; flex-grow: 1;">
-                                <div class="input-group shadow-sm" style="border-radius: 10px; overflow: hidden;">
+                            </h5>
+                            <div class="position-relative" style="min-width: 220px; max-width: 320px; flex-grow: 1;">
+                                <div class="input-group input-group-sm shadow-sm" style="border-radius: 10px; overflow: hidden;">
                                     <span class="input-group-text bg-light border-end-0 text-muted">
                                         <i class="bi bi-search"></i>
                                     </span>
                                     <input type="text" 
                                            class="form-control bg-light border-start-0 ps-0" 
-                                           placeholder="Cari nama menu..." 
+                                           placeholder="Cari menu..." 
                                            wire:model.live.debounce.300ms="search">
                                     @if(!empty($search))
                                         <button class="btn btn-light border-start-0 text-muted" 
@@ -62,23 +122,30 @@
                         </div>
                         @endif
                     </div>
-                    <div class="card-body">
-                        <div class="row g-3">
+                    <div class="card-body p-2 p-md-3">
+                        <div class="row g-2 g-md-3">
                             @forelse($products as $product)
-                            <div class="col-md-4 col-sm-6">
-                                <div class="card h-100 shadow-sm border-0 cursor-pointer overflow-hidden" wire:click="selectProduct('{{ $product->id }}')" style="cursor: pointer; transition: transform 0.2s; border-radius: 12px;" onmouseover="this.style.transform='scale(1.03)'" onmouseout="this.style.transform='scale(1)'">
+                            <div class="col-6 col-sm-6 col-md-4 col-xl-3">
+                                <div class="card h-100 shadow-sm border-0 pos-product-card overflow-hidden" 
+                                     wire:click="selectProduct('{{ $product->id }}')">
                                     @if($product->image)
-                                        <div class="d-flex align-items-center justify-content-center p-2" style="height: 140px; background-color: #f8f9fa;">
-                                            <img src="{{ asset('storage/' . $product->image) }}" alt="{{ $product->name }}" class="mw-100 mh-100 rounded" style="object-fit: contain; max-height: 125px;">
+                                        <div class="d-flex align-items-center justify-content-center p-2 pos-product-img-box">
+                                            <img src="{{ asset('storage/' . $product->image) }}" 
+                                                 alt="{{ $product->name }}" 
+                                                 class="pos-product-img rounded">
                                         </div>
                                     @else
-                                        <div class="d-flex align-items-center justify-content-center bg-light text-muted" style="height: 120px;">
-                                            <i class="bi bi-cup-hot-fill fs-1 text-success opacity-50"></i>
+                                        <div class="d-flex align-items-center justify-content-center pos-product-img-box">
+                                            <i class="bi bi-cup-hot-fill text-success opacity-50" style="font-size: 1.8rem;"></i>
                                         </div>
                                     @endif
-                                    <div class="card-body text-center d-flex flex-column justify-content-center p-3">
-                                        <h6 class="card-title fw-bold mb-1" style="font-size: 0.95rem;">{{ $product->name }}</h6>
-                                        <p class="text-success fw-bold mb-0" style="font-size: 0.9rem;">Rp {{ number_format($product->base_price, 0, ',', '.') }}</p>
+                                    <div class="card-body p-2 p-md-3 d-flex flex-column justify-content-between">
+                                        <div class="pos-product-title fw-bold text-dark mb-1 text-start">
+                                            {{ $product->name }}
+                                        </div>
+                                        <div class="pos-product-price text-success fw-bold text-start">
+                                            Rp {{ number_format($product->base_price, 0, ',', '.') }}
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -108,19 +175,28 @@
             </div>
 
             <!-- Right Side: Cart -->
-            <div class="col-md-4">
-                <div class="card shadow-sm border-0 h-100 d-flex flex-column">
-                    <div class="card-header bg-white border-bottom-0 pt-4 pb-0">
-                        <h4 class="mb-0 fw-bold">Pesanan</h4>
+            <div class="col-md-5 col-lg-4" id="cart-section">
+                <div class="card shadow-sm border-0 h-100 d-flex flex-column" style="border-radius: 16px;">
+                    <div class="card-header bg-white border-bottom-0 pt-3 pt-md-4 pb-0">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0 fw-bold">
+                                <i class="bi bi-cart3 me-1 text-success"></i>Pesanan
+                            </h5>
+                            @if(count($cart) > 0)
+                                <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2">
+                                    {{ count($cart) }} item
+                                </span>
+                            @endif
+                        </div>
                     </div>
                     <div class="card-body p-0 flex-grow-1" style="overflow-y: auto; max-height: 60vh;">
                         <ul class="list-group list-group-flush">
                             @forelse($cart as $item)
-                                <li class="list-group-item py-3">
+                                <li class="list-group-item py-2 py-md-3 px-3">
                                     <div class="d-flex justify-content-between align-items-start">
-                                        <div>
-                                            <h6 class="mb-0 fw-bold">{{ $item['product_name'] }}</h6>
-                                            <small class="text-muted d-block">
+                                        <div style="max-width: 65%;">
+                                            <h6 class="mb-0 fw-bold text-dark" style="font-size: 0.9rem;">{{ $item['product_name'] }}</h6>
+                                            <small class="text-muted d-block" style="font-size: 0.78rem;">
                                                 @if($item['variant_name'])
                                                     Varian: {{ $item['variant_name'] }} <br>
                                                 @endif
@@ -128,38 +204,65 @@
                                                     Topping: {{ implode(', ', array_column($item['toppings'], 'name')) }} <br>
                                                 @endif
                                             </small>
-                                            <div class="mt-2">
-                                                <span class="badge bg-light text-dark border">{{ $item['quantity'] }} x Rp {{ number_format($item['price'], 0, ',', '.') }}</span>
+                                            <div class="mt-1">
+                                                <span class="badge bg-light text-dark border" style="font-size: 0.75rem;">
+                                                    {{ $item['quantity'] }} x Rp {{ number_format($item['price'], 0, ',', '.') }}
+                                                </span>
                                             </div>
                                         </div>
                                         <div class="text-end">
-                                            <div class="fw-bold mb-2">Rp {{ number_format($item['subtotal'], 0, ',', '.') }}</div>
-                                            <button class="btn btn-sm btn-outline-danger" wire:click="removeFromCart('{{ $item['id'] }}')">
-                                                <i class="bi bi-trash"></i>
+                                            <div class="fw-bold mb-1 text-success" style="font-size: 0.9rem;">
+                                                Rp {{ number_format($item['subtotal'], 0, ',', '.') }}
+                                            </div>
+                                            <button class="btn btn-sm btn-outline-danger p-1 px-2 rounded-2" 
+                                                    wire:click="removeFromCart('{{ $item['id'] }}')" 
+                                                    title="Hapus">
+                                                <i class="bi bi-trash" style="font-size: 0.85rem;"></i>
                                             </button>
                                         </div>
                                     </div>
                                 </li>
                             @empty
                                 <li class="list-group-item text-center text-muted py-5 border-0">
-                                    <i class="bi bi-cart-x fs-1 d-block mb-3 text-light"></i>
-                                    Belum ada pesanan
+                                    <i class="bi bi-cart-x fs-1 d-block mb-3 text-secondary opacity-50"></i>
+                                    <div class="fw-bold">Belum ada pesanan</div>
+                                    <small class="text-muted">Pilih menu di samping untuk menambahkan</small>
                                 </li>
                             @endforelse
                         </ul>
                     </div>
-                    <div class="card-footer bg-white border-top p-4 mt-auto">
+                    <div class="card-footer bg-white border-top p-3 p-md-4 mt-auto" style="border-bottom-left-radius: 16px; border-bottom-right-radius: 16px;">
                         <div class="d-flex justify-content-between mb-3 fs-5">
                             <span class="fw-bold">Total:</span>
                             <span class="fw-bold text-success">Rp {{ number_format($this->total, 0, ',', '.') }}</span>
                         </div>
-                        <button class="btn btn-success w-100 py-3 fw-bold fs-6 rounded-3" wire:click="openPaymentModal" @if(empty($cart)) disabled @endif>
-                            Proses Pembayaran
+                        <button class="btn btn-success w-100 py-3 fw-bold fs-6 rounded-3 shadow-sm" wire:click="openPaymentModal" @if(empty($cart)) disabled @endif>
+                            <i class="bi bi-credit-card me-1"></i>Proses Pembayaran
                         </button>
                     </div>
                 </div>
             </div>
         </div>
+
+        @if(count($cart) > 0)
+        <!-- Sticky Bottom Cart Bar for Mobile Web View -->
+        <div class="d-md-none position-fixed bottom-0 start-0 end-0 p-3 bg-white border-top shadow-lg" style="z-index: 1030;">
+            <div class="d-flex justify-content-between align-items-center gap-2">
+                <div>
+                    <div class="small text-muted">{{ count($cart) }} menu dipilih</div>
+                    <div class="fw-bold text-success fs-6">Rp {{ number_format($this->total, 0, ',', '.') }}</div>
+                </div>
+                <div class="d-flex gap-2">
+                    <a href="#cart-section" class="btn btn-outline-secondary btn-sm px-3 rounded-pill">
+                        <i class="bi bi-cart-fill me-1"></i>Pesanan
+                    </a>
+                    <button class="btn btn-success btn-sm px-4 rounded-pill fw-bold" wire:click="openPaymentModal">
+                        Bayar <i class="bi bi-arrow-right ms-1"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+        @endif
     </div>
 
     <!-- Custom Modal Overlay Product -->
