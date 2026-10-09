@@ -123,8 +123,9 @@ return [
         'store' => env('APP_MAINTENANCE_STORE', 'database'),
     ],
 
-    'mobile_version' => '1.5.4',
-    'mobile_build_number' => 13,
-    'mobile_changelog' => "Pembaruan Versi 1.5.4:
-• Logo dan ikon aplikasi diperbarui menjadi lebih tajam dan bersih.",
+    'mobile_version' => '1.5.5',
+    'mobile_build_number' => 14,
+    'mobile_changelog' => "Pembaruan Versi 1.5.5:
+• Perbaikan scrolling menu produk (bisa scroll naik-turun dengan lancar).
+• Penambahan fitur pencarian cepat nama menu.",
 ];

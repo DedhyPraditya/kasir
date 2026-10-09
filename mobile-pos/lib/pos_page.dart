@@ -188,6 +188,16 @@ class _PosHomePageState extends State<PosHomePage> {
 
   double get _subtotal => _cart.fold(0, (value, item) => value + item.subtotal);
 
+  String _searchQuery = '';
+  final TextEditingController _searchController = TextEditingController();
+
+  List<Product> get _filteredProducts {
+    if (_searchQuery.isEmpty) return _products;
+    return _products
+        .where((p) => p.name.toLowerCase().contains(_searchQuery))
+        .toList();
+  }
+
   String _currentAppVersion = '0.0.0';
 
   /// Header, footer, dan sisa kertas struk dari menu Printer di web.
@@ -216,6 +226,7 @@ class _PosHomePageState extends State<PosHomePage> {
 
   @override
   void dispose() {
+    _searchController.dispose();
     _connectivitySubscription?.cancel();
     super.dispose();
   }
@@ -1994,129 +2005,207 @@ class _PosHomePageState extends State<PosHomePage> {
                 builder: (context, constraints) {
                   final isWide = constraints.maxWidth >= 840;
                   final productColumns = isWide ? 3 : 2;
-                  final aspectRatio = isWide ? 1.35 : 1.15;
+                  final aspectRatio = isWide ? 1.30 : 1.05;
 
                   Widget buildProductCard() {
+                    final displayProducts = _filteredProducts;
                     return Card(
                       child: Padding(
                         padding: const EdgeInsets.all(10),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
-                          mainAxisSize: MainAxisSize
-                              .min, // <-- penting: card tinggi sesuai isi
                           children: [
-                            const Text(
-                              'Produk',
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
+                            Row(
+                              children: [
+                                const Text(
+                                  'Produk',
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                const Spacer(),
+                                Text(
+                                  '${displayProducts.length} item',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: Colors.grey.shade600,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 8),
+                            // Kolom pencarian menu
+                            SizedBox(
+                              height: 38,
+                              child: TextField(
+                                controller: _searchController,
+                                decoration: InputDecoration(
+                                  hintText: 'Cari menu...',
+                                  hintStyle: TextStyle(
+                                    fontSize: 13,
+                                    color: Colors.grey.shade400,
+                                  ),
+                                  prefixIcon: const Icon(
+                                    Icons.search,
+                                    size: 18,
+                                  ),
+                                  suffixIcon: _searchQuery.isNotEmpty
+                                      ? IconButton(
+                                          icon: const Icon(
+                                            Icons.clear,
+                                            size: 16,
+                                          ),
+                                          padding: EdgeInsets.zero,
+                                          constraints: const BoxConstraints(),
+                                          onPressed: () {
+                                            _searchController.clear();
+                                            setState(() {
+                                              _searchQuery = '';
+                                            });
+                                          },
+                                        )
+                                      : null,
+                                  contentPadding: const EdgeInsets.symmetric(
+                                    vertical: 0,
+                                    horizontal: 10,
+                                  ),
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(10),
+                                    borderSide: BorderSide(
+                                      color: Colors.grey.shade300,
+                                    ),
+                                  ),
+                                  enabledBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(10),
+                                    borderSide: BorderSide(
+                                      color: Colors.grey.shade300,
+                                    ),
+                                  ),
+                                  focusedBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(10),
+                                    borderSide: const BorderSide(
+                                      color: kBrandBlue,
+                                    ),
+                                  ),
+                                ),
+                                style: const TextStyle(fontSize: 13),
+                                onChanged: (val) {
+                                  setState(() {
+                                    _searchQuery = val.trim().toLowerCase();
+                                  });
+                                },
                               ),
                             ),
                             const SizedBox(height: 8),
-                            _loadingProducts
-                                ? const Padding(
-                                    padding: EdgeInsets.all(24),
-                                    child: Center(
+                            Expanded(
+                              child: _loadingProducts
+                                  ? const Center(
                                       child: CircularProgressIndicator(),
-                                    ),
-                                  )
-                                : _products.isEmpty
-                                ? const Padding(
-                                    padding: EdgeInsets.all(24),
-                                    child: Center(
-                                      child: Text('Tidak ada produk tersedia'),
-                                    ),
-                                  )
-                                : GridView.builder(
-                                    padding: EdgeInsets.zero,
-                                    shrinkWrap:
-                                        true, // <-- grid tinggi sesuai isi, bukan maksa penuh
-                                    physics:
-                                        const NeverScrollableScrollPhysics(), // grid ini gak perlu scroll sendiri
-                                    gridDelegate:
-                                        SliverGridDelegateWithFixedCrossAxisCount(
-                                          crossAxisCount: productColumns,
-                                          mainAxisSpacing: 12,
-                                          crossAxisSpacing: 12,
-                                          childAspectRatio: aspectRatio,
+                                    )
+                                  : displayProducts.isEmpty
+                                  ? Center(
+                                      child: Text(
+                                        _searchQuery.isNotEmpty
+                                            ? 'Menu "$_searchQuery" tidak ditemukan'
+                                            : 'Tidak ada produk tersedia',
+                                        style: TextStyle(
+                                          color: Colors.grey.shade600,
                                         ),
-                                    itemCount: _products.length,
-                                    itemBuilder: (context, index) {
-                                      final product = _products[index];
-                                      return Card(
-                                        elevation: 2,
-                                        clipBehavior: Clip.antiAlias,
-                                        shape: RoundedRectangleBorder(
-                                          borderRadius: BorderRadius.circular(
-                                            16,
+                                      ),
+                                    )
+                                  : GridView.builder(
+                                      padding: const EdgeInsets.only(bottom: 8),
+                                      physics:
+                                          const AlwaysScrollableScrollPhysics(
+                                            parent: BouncingScrollPhysics(),
                                           ),
-                                        ),
-                                        child: InkWell(
-                                          borderRadius: BorderRadius.circular(
-                                            16,
+                                      gridDelegate:
+                                          SliverGridDelegateWithFixedCrossAxisCount(
+                                            crossAxisCount: productColumns,
+                                            mainAxisSpacing: 10,
+                                            crossAxisSpacing: 10,
+                                            childAspectRatio: aspectRatio,
                                           ),
-                                          onTap: () =>
-                                              _addProductToCart(product),
-                                          child: Column(
-                                            crossAxisAlignment:
-                                                CrossAxisAlignment.start,
-                                            children: [
-                                              Expanded(
-                                                child: Container(
-                                                  width: double.infinity,
-                                                  padding: const EdgeInsets.all(6),
-                                                  color: kBrandBlue.withOpacity(0.08),
-                                                  child: product.imageUrl != null &&
-                                                          product.imageUrl!.isNotEmpty
-                                                      ? Image.network(
-                                                          product.imageUrl!,
-                                                          fit: BoxFit.contain,
-                                                          errorBuilder: (context, error, stackTrace) =>
-                                                              const Icon(
-                                                                Icons.fastfood,
-                                                                color: kBrandBlue,
-                                                                size: 32,
-                                                              ),
-                                                        )
-                                                      : const Icon(
-                                                          Icons.fastfood,
-                                                          color: kBrandBlue,
-                                                          size: 32,
+                                      itemCount: displayProducts.length,
+                                      itemBuilder: (context, index) {
+                                        final product = displayProducts[index];
+                                        return Card(
+                                          elevation: 2,
+                                          clipBehavior: Clip.antiAlias,
+                                          shape: RoundedRectangleBorder(
+                                            borderRadius: BorderRadius.circular(
+                                              16,
+                                            ),
+                                          ),
+                                          child: InkWell(
+                                            borderRadius: BorderRadius.circular(
+                                              16,
+                                            ),
+                                            onTap: () =>
+                                                _addProductToCart(product),
+                                            child: Column(
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.start,
+                                              children: [
+                                                Expanded(
+                                                  child: Container(
+                                                    width: double.infinity,
+                                                    padding: const EdgeInsets.all(6),
+                                                    color: kBrandBlue.withOpacity(0.08),
+                                                    child: product.imageUrl != null &&
+                                                            product.imageUrl!.isNotEmpty
+                                                        ? Image.network(
+                                                            product.imageUrl!,
+                                                            fit: BoxFit.contain,
+                                                            errorBuilder: (context, error, stackTrace) =>
+                                                                const Icon(
+                                                                  Icons.fastfood,
+                                                                  color: kBrandBlue,
+                                                                  size: 32,
+                                                                ),
+                                                          )
+                                                        : const Icon(
+                                                            Icons.fastfood,
+                                                            color: kBrandBlue,
+                                                            size: 32,
+                                                          ),
+                                                  ),
+                                                ),
+                                                Padding(
+                                                  padding: const EdgeInsets.all(8),
+                                                  child: Column(
+                                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                                    children: [
+                                                      Text(
+                                                        product.name,
+                                                        maxLines: 1,
+                                                        overflow: TextOverflow.ellipsis,
+                                                        style: const TextStyle(
+                                                          fontWeight: FontWeight.bold,
+                                                          fontSize: 13,
                                                         ),
-                                                ),
-                                              ),
-                                              Padding(
-                                                padding: const EdgeInsets.all(10),
-                                                child: Column(
-                                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                                  children: [
-                                                    Text(
-                                                      product.name,
-                                                      maxLines: 1,
-                                                      overflow: TextOverflow.ellipsis,
-                                                      style: const TextStyle(
-                                                        fontWeight: FontWeight.bold,
-                                                        fontSize: 14,
                                                       ),
-                                                    ),
-                                                    const SizedBox(height: 4),
-                                                    Text(
-                                                      '${_formatRp(product.price)}',
-                                                      style: const TextStyle(
-                                                        color: kBrandBlue,
-                                                        fontWeight: FontWeight.bold,
-                                                        fontSize: 13,
+                                                      const SizedBox(height: 2),
+                                                      Text(
+                                                        '${_formatRp(product.price)}',
+                                                        style: const TextStyle(
+                                                          color: kBrandBlue,
+                                                          fontWeight: FontWeight.bold,
+                                                          fontSize: 12,
+                                                        ),
                                                       ),
-                                                    ),
-                                                  ],
+                                                    ],
+                                                  ),
                                                 ),
-                                              ),
-                                            ],
+                                              ],
+                                            ),
                                           ),
-                                        ),
-                                      );
-                                    },
-                                  ),
+                                        );
+                                      },
+                                    ),
+                            ),
                           ],
                         ),
                       ),
@@ -2299,11 +2388,15 @@ class _PosHomePageState extends State<PosHomePage> {
 
                   return Column(
                     children: [
-                      buildProductCard(), // tanpa Expanded, tinggi menyesuaikan isi
-                      const SizedBox(height: 12),
                       Expanded(
+                        flex: _cart.isEmpty ? 5 : 4,
+                        child: buildProductCard(),
+                      ),
+                      const SizedBox(height: 10),
+                      Expanded(
+                        flex: _cart.isEmpty ? 2 : 3,
                         child: buildCartCard(),
-                      ), // ini yang ambil sisa ruang
+                      ),
                     ],
                   );
                 },
