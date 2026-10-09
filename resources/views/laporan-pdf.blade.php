@@ -21,12 +21,17 @@
     </style>
 </head>
 <body>
-    <h2>NYEMIL BEBS</h2>
-    <div class="subtitle">Purnama Town House Blok H/1 &nbsp;|&nbsp; Telp: +62 823-9943-0312</div>
-    <div class="subtitle"><strong>LAPORAN TRANSAKSI</strong></div>
+    <h2>{{ strtoupper($storeName ?? 'KASIR POS') }}</h2>
+    @if(!empty($storeAddress))
+        <div class="subtitle">{!! $storeAddress !!}</div>
+    @endif
+    <div class="subtitle" style="margin-top: 4px; margin-bottom: 12px;"><strong>LAPORAN TRANSAKSI</strong></div>
     <div class="period">
         Periode: {{ \Carbon\Carbon::parse($dateFrom)->format('d/m/Y') }} s/d {{ \Carbon\Carbon::parse($dateTo)->format('d/m/Y') }}
         &nbsp;&nbsp;|&nbsp;&nbsp; Dicetak: {{ now()->format('d/m/Y H:i') }}
+        @if(auth()->check())
+            &nbsp;&nbsp;|&nbsp;&nbsp; Kasir/User: {{ auth()->user()->username ?? 'Kasir' }}
+        @endif
     </div>
 
     <table>
