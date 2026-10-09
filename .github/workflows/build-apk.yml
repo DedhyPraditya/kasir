@@ -1,0 +1,75 @@
+﻿name: "Build dan Deploy APK Mobile"
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "mobile-pos/pubspec.yaml"
+      - "mobile-pos/lib/**"
+      - "mobile-pos/assets/**"
+      - "mobile-pos/android/**"
+
+jobs:
+  build-apk:
+    name: Build Flutter APK dan Upload ke VPS
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout kode
+        uses: actions/checkout@v4
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: "3.44.8"
+          channel: stable
+          cache: true
+
+      - name: Install dependencies
+        working-directory: mobile-pos
+        run: flutter pub get
+
+      - name: Build APK Release
+        working-directory: mobile-pos
+        run: flutter build apk --release
+
+      - name: Upload APK ke VPS via SCP
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: ${{ secrets.SSH_PORT }}
+          source: "mobile-pos/build/app/outputs/flutter-apk/app-release.apk"
+          target: "${{ secrets.DEPLOY_PATH }}/storage/app/public/"
+          strip_components: 6
+
+      - name: Rename APK dan Reload Laravel
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: ${{ secrets.SSH_PORT }}
+          script: |
+            set -e
+            cd ${{ secrets.DEPLOY_PATH }}/storage/app/public
+            mv -f app-release.apk mobile-pos-latest.apk
+            cd ${{ secrets.DEPLOY_PATH }}
+            git pull origin main
+            php artisan optimize:clear
+            php artisan config:cache
+            echo "APK berhasil di-deploy - $(date)"
+
+      - name: Simpan APK sebagai artifact GitHub
+        uses: actions/upload-artifact@v4
+        with:
+          name: deoku-pos-v${{ github.run_number }}
+          path: mobile-pos/build/app/outputs/flutter-apk/app-release.apk
+          retention-days: 30
