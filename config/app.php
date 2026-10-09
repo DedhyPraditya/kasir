@@ -123,9 +123,8 @@ return [
         'store' => env('APP_MAINTENANCE_STORE', 'database'),
     ],
 
-    'mobile_version' => '1.5.3',
-    'mobile_build_number' => 12,
-    'mobile_changelog' => "Pembaruan Versi 1.5.3:
-• Tampilan baru: logo, ikon, dan nama aplikasi menjadi deo'ku.
-• Warna tema aplikasi disamakan dengan versi web (biru).",
+    'mobile_version' => '1.5.4',
+    'mobile_build_number' => 13,
+    'mobile_changelog' => "Pembaruan Versi 1.5.4:
+• Logo dan ikon aplikasi diperbarui menjadi lebih tajam dan bersih.",
 ];
