@@ -24,7 +24,7 @@ class AppVersionController extends Controller
         if (file_exists($path)) {
             return response()->download(
                 $path,
-                'nyemilbebs-pos-latest.apk',
+                'deoku-pos-latest.apk',
                 ['Content-Type' => 'application/vnd.android.package-archive']
             );
         }
