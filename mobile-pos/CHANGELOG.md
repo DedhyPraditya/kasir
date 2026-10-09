@@ -2,6 +2,14 @@
 
 Semua perubahan pada aplikasi Mobile POS dicatat di file ini.
 
+## [1.5.6] - 2026-10-09
+
+### 🏷️ Filter Kategori Produk & Pencarian Terfokus
+- **Pills Filter Kategori**: Ditambahkan filter kategori secara horizontal di atas daftar menu produk (seperti pada tampilan web POS), lengkap dengan tombol "Semua" dan tiap kategori beserta jumlah produknya.
+- **Pencarian Terfokus (Per-Kategori)**: Jika salah satu kategori dipilih (mis. Makanan atau Minuman), kolom pencarian akan otomatis memfilter produk khusus di dalam kategori tersebut untuk memperkecil dan mempercepat pencarian.
+- **Dukungan Online & Offline**: Kategori produk otomatis tersimpan dalam cache lokal sehingga filter kategori tetap berfungsi penuh saat aplikasi dalam mode offline.
+- **Empty State Interaktif**: Dilengkapi tombol "Reset Filter" jika menu yang dicari tidak ditemukan di kategori terpilih.
+
 ## [1.5.3] - 2026-09-30
 
 ### 🎨 Branding deo'ku

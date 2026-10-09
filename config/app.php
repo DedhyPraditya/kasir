@@ -123,9 +123,9 @@ return [
         'store' => env('APP_MAINTENANCE_STORE', 'database'),
     ],
 
-    'mobile_version' => '1.5.5',
-    'mobile_build_number' => 14,
-    'mobile_changelog' => "Pembaruan Versi 1.5.5:
-• Perbaikan scrolling menu produk (bisa scroll naik-turun dengan lancar).
-• Penambahan fitur pencarian cepat nama menu.",
+    'mobile_version' => '1.5.6',
+    'mobile_build_number' => 15,
+    'mobile_changelog' => "Pembaruan Versi 1.5.6:
+• Penambahan filter produk berdasarkan kategori (Makanan, Minuman, dll).
+• Pencarian menu otomatis terfokus ke kategori yang dipilih.",
 ];

@@ -46,6 +46,8 @@ class Product {
   final String? imageUrl;
   final List<Variant> variants;
   final bool allowTopping;
+  final String? categoryId;
+  final String? categoryName;
 
   const Product({
     required this.id,
@@ -55,6 +57,8 @@ class Product {
     this.imageUrl,
     required this.variants,
     this.allowTopping = true,
+    this.categoryId,
+    this.categoryName,
   });
 
   factory Product.fromJson(Map<String, dynamic> json) {
@@ -66,6 +70,8 @@ class Product {
       price: (price is int) ? price.toDouble() : (price as num).toDouble(),
       imageUrl: json['image_url'] as String?,
       allowTopping: json['allow_topping'] as bool? ?? true,
+      categoryId: json['category_id'] as String?,
+      categoryName: json['category_name'] as String?,
       variants:
           (json['variants'] as List<dynamic>?)
               ?.map(
@@ -190,12 +196,29 @@ class _PosHomePageState extends State<PosHomePage> {
 
   String _searchQuery = '';
   final TextEditingController _searchController = TextEditingController();
+  String? _selectedCategory;
+
+  List<String> get _categories {
+    final set = <String>{};
+    for (final p in _products) {
+      if (p.categoryName != null && p.categoryName!.trim().isNotEmpty) {
+        set.add(p.categoryName!.trim());
+      }
+    }
+    return set.toList()..sort((a, b) => a.toLowerCase().compareTo(b.toLowerCase()));
+  }
 
   List<Product> get _filteredProducts {
-    if (_searchQuery.isEmpty) return _products;
-    return _products
-        .where((p) => p.name.toLowerCase().contains(_searchQuery))
-        .toList();
+    return _products.where((p) {
+      final matchesCategory = _selectedCategory == null ||
+          _selectedCategory!.isEmpty ||
+          (p.categoryName != null &&
+              p.categoryName!.trim().toLowerCase() ==
+                  _selectedCategory!.trim().toLowerCase());
+      final matchesSearch = _searchQuery.isEmpty ||
+          p.name.toLowerCase().contains(_searchQuery);
+      return matchesCategory && matchesSearch;
+    }).toList();
   }
 
   String _currentAppVersion = '0.0.0';
@@ -1878,6 +1901,47 @@ class _PosHomePageState extends State<PosHomePage> {
         ),
       ),
     );
+  Widget _buildCategoryChip({
+    required String label,
+    required bool isSelected,
+    required VoidCallback onTap,
+  }) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(20),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 180),
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+          decoration: BoxDecoration(
+            color: isSelected ? kBrandBlue : Colors.grey.shade100,
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(
+              color: isSelected ? kBrandBlue : Colors.grey.shade300,
+              width: 1.2,
+            ),
+            boxShadow: isSelected
+                ? [
+                    BoxShadow(
+                      color: kBrandBlue.withOpacity(0.28),
+                      blurRadius: 6,
+                      offset: const Offset(0, 2),
+                    ),
+                  ]
+                : null,
+          ),
+          child: Text(
+            label,
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+              color: isSelected ? Colors.white : Colors.grey.shade800,
+            ),
+          ),
+        ),
+      ),
+    );
   }
 
   @override
@@ -2009,6 +2073,8 @@ class _PosHomePageState extends State<PosHomePage> {
 
                   Widget buildProductCard() {
                     final displayProducts = _filteredProducts;
+                    final categoryList = _categories;
+
                     return Card(
                       child: Padding(
                         padding: const EdgeInsets.all(10),
@@ -2042,7 +2108,9 @@ class _PosHomePageState extends State<PosHomePage> {
                               child: TextField(
                                 controller: _searchController,
                                 decoration: InputDecoration(
-                                  hintText: 'Cari menu...',
+                                  hintText: _selectedCategory != null && _selectedCategory!.isNotEmpty
+                                      ? 'Cari di $_selectedCategory...'
+                                      : 'Cari menu...',
                                   hintStyle: TextStyle(
                                     fontSize: 13,
                                     color: Colors.grey.shade400,
@@ -2098,6 +2166,45 @@ class _PosHomePageState extends State<PosHomePage> {
                                 },
                               ),
                             ),
+                            // Category Filter Pills (Horizontal Scroll)
+                            if (categoryList.isNotEmpty) ...[
+                              const SizedBox(height: 8),
+                              SizedBox(
+                                height: 34,
+                                child: ListView(
+                                  scrollDirection: Axis.horizontal,
+                                  physics: const BouncingScrollPhysics(),
+                                  children: [
+                                    _buildCategoryChip(
+                                      label: 'Semua (${_products.length})',
+                                      isSelected: _selectedCategory == null || _selectedCategory!.isEmpty,
+                                      onTap: () {
+                                        setState(() {
+                                          _selectedCategory = null;
+                                        });
+                                      },
+                                    ),
+                                    const SizedBox(width: 6),
+                                    ...categoryList.map((cat) {
+                                      final count = _products.where((p) => p.categoryName != null && p.categoryName!.trim().toLowerCase() == cat.trim().toLowerCase()).length;
+                                      final isSelected = _selectedCategory != null && _selectedCategory!.trim().toLowerCase() == cat.trim().toLowerCase();
+                                      return Padding(
+                                        padding: const EdgeInsets.only(right: 6),
+                                        child: _buildCategoryChip(
+                                          label: '$cat ($count)',
+                                          isSelected: isSelected,
+                                          onTap: () {
+                                            setState(() {
+                                              _selectedCategory = isSelected ? null : cat;
+                                            });
+                                          },
+                                        ),
+                                      );
+                                    }),
+                                  ],
+                                ),
+                              ),
+                            ],
                             const SizedBox(height: 8),
                             Expanded(
                               child: _loadingProducts
@@ -2106,12 +2213,46 @@ class _PosHomePageState extends State<PosHomePage> {
                                     )
                                   : displayProducts.isEmpty
                                   ? Center(
-                                      child: Text(
-                                        _searchQuery.isNotEmpty
-                                            ? 'Menu "$_searchQuery" tidak ditemukan'
-                                            : 'Tidak ada produk tersedia',
-                                        style: TextStyle(
-                                          color: Colors.grey.shade600,
+                                      child: Padding(
+                                        padding: const EdgeInsets.all(16.0),
+                                        child: Column(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            Icon(
+                                              Icons.search_off_rounded,
+                                              size: 40,
+                                              color: Colors.grey.shade400,
+                                            ),
+                                            const SizedBox(height: 8),
+                                            Text(
+                                              _searchQuery.isNotEmpty && _selectedCategory != null
+                                                  ? 'Menu "$_searchQuery" tidak ditemukan di kategori $_selectedCategory'
+                                                  : _searchQuery.isNotEmpty
+                                                      ? 'Menu "$_searchQuery" tidak ditemukan'
+                                                      : _selectedCategory != null
+                                                          ? 'Tidak ada produk di kategori $_selectedCategory'
+                                                          : 'Tidak ada produk tersedia',
+                                              textAlign: TextAlign.center,
+                                              style: TextStyle(
+                                                color: Colors.grey.shade600,
+                                                fontSize: 13,
+                                              ),
+                                            ),
+                                            if (_selectedCategory != null || _searchQuery.isNotEmpty) ...[
+                                              const SizedBox(height: 10),
+                                              TextButton.icon(
+                                                icon: const Icon(Icons.refresh, size: 16),
+                                                label: const Text('Reset Filter', style: TextStyle(fontSize: 12)),
+                                                onPressed: () {
+                                                  setState(() {
+                                                    _selectedCategory = null;
+                                                    _searchQuery = '';
+                                                    _searchController.clear();
+                                                  });
+                                                },
+                                              ),
+                                            ],
+                                          ],
                                         ),
                                       ),
                                     )

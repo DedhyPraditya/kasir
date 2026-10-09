@@ -21,6 +21,8 @@ class ProductController extends Controller
                     'base_price' => (float) $product->base_price,
                     'image_url' => $product->image ? asset('storage/' . $product->image) : null,
                     'allow_topping' => $product->category->allow_topping ?? true,
+                    'category_id' => $product->category_id,
+                    'category_name' => $product->category?->name,
                     'variants' => $product->variants->map(function ($variant) {
                         return [
                             'id' => $variant->id,

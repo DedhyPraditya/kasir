@@ -16,6 +16,7 @@ Route::get('/download-apk', [AppVersionController::class, 'download']);
 
 Route::middleware(['api.token'])->group(function () {
     Route::get('/products', [ProductController::class, 'index']);
+    Route::get('/categories', [App\Http\Controllers\Api\CategoryController::class, 'index']);
     Route::get('/toppings', [ToppingController::class, 'index']);
     Route::get('/orders', [OrderSyncController::class, 'history']);
     Route::post('/orders/sync', [OrderSyncController::class, 'sync']);
