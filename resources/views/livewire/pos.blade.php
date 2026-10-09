@@ -58,6 +58,24 @@
             .pos-product-price {
                 font-size: 0.88rem;
             }
+            .pos-layout-row {
+                align-items: flex-start !important;
+            }
+            .pos-cart-column {
+                position: -webkit-sticky;
+                position: sticky;
+                top: 55px; /* Menempel tepat di bawah header desktop */
+                z-index: 100;
+            }
+            .pos-cart-card {
+                max-height: calc(100vh - 80px);
+                box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06) !important;
+            }
+            .pos-cart-items-body {
+                overflow-y: auto !important;
+                max-height: calc(100vh - 280px) !important;
+                scrollbar-width: thin;
+            }
         }
     </style>
 
@@ -74,7 +92,7 @@
             </div>
         @endif
 
-        <div class="row g-3">
+        <div class="row g-3 pos-layout-row align-items-start">
             <!-- Left Side: Products -->
             <div class="col-md-7 col-lg-8">
                 <div class="card shadow-sm mb-4 border-0" style="border-radius: 16px;">
@@ -174,9 +192,9 @@
                 </div>
             </div>
 
-            <!-- Right Side: Cart -->
-            <div class="col-md-5 col-lg-4" id="cart-section">
-                <div class="card shadow-sm border-0 h-100 d-flex flex-column" style="border-radius: 16px;">
+            <!-- Right Side: Cart (Sticky on desktop) -->
+            <div class="col-md-5 col-lg-4 pos-cart-column" id="cart-section">
+                <div class="card shadow-sm border-0 d-flex flex-column pos-cart-card" style="border-radius: 16px;">
                     <div class="card-header bg-white border-bottom-0 pt-3 pt-md-4 pb-0">
                         <div class="d-flex justify-content-between align-items-center">
                             <h5 class="mb-0 fw-bold">
@@ -189,7 +207,7 @@
                             @endif
                         </div>
                     </div>
-                    <div class="card-body p-0 flex-grow-1" style="overflow-y: auto; max-height: 60vh;">
+                    <div class="card-body p-0 flex-grow-1 pos-cart-items-body" style="overflow-y: auto; max-height: 60vh;">
                         <ul class="list-group list-group-flush">
                             @forelse($cart as $item)
                                 <li class="list-group-item py-2 py-md-3 px-3">

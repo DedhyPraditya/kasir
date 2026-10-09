@@ -28,6 +28,13 @@
                 z-index: 1000;
                 overflow-y: auto;
                 padding-bottom: calc(1rem + env(safe-area-inset-bottom, 0px)) !important;
+                transition: margin-left 0.25s ease-in-out, transform 0.3s ease-in-out;
+                flex-shrink: 0;
+            }
+            @media (min-width: 769px) {
+                .sidebar.collapsed {
+                    margin-left: -260px;
+                }
             }
             .nav-link.active {
                 background-color: #198754 !important; /* Bootstrap Success */
@@ -176,6 +183,46 @@
 
             <!-- Main Content -->
             <div class="flex-grow-1 d-flex flex-column main-content w-100" style="height: 100vh; height: 100dvh; overflow-y: auto;">
+                <!-- Desktop Header with Sidebar Toggle -->
+                <div class="d-none d-md-flex bg-white shadow-sm px-3 py-2 justify-content-between align-items-center sticky-top border-bottom" style="z-index: 1010;">
+                    <div class="d-flex align-items-center gap-2">
+                        <button class="btn btn-sm btn-light border text-secondary rounded-2 px-2 py-1 shadow-sm" 
+                                type="button" 
+                                id="desktopSidebarToggle" 
+                                onclick="toggleDesktopSidebar()" 
+                                title="Sembunyikan/Tampilkan Menu Samping">
+                            <i class="bi bi-layout-sidebar-inset fs-5"></i>
+                        </button>
+                        <span class="fw-semibold text-muted small ms-1">
+                            @if(request()->routeIs('pos'))
+                                <span class="badge bg-success-subtle text-success border border-success-subtle me-1">POS</span> Kasir
+                            @elseif(request()->routeIs('dashboard'))
+                                Dashboard
+                            @elseif(request()->routeIs('produk'))
+                                Kelola Produk
+                            @elseif(request()->routeIs('laporan'))
+                                Laporan Penjualan
+                            @else
+                                {{ config('app.name', 'Kasir') }}
+                            @endif
+                        </span>
+                    </div>
+                    <div class="d-flex align-items-center gap-3">
+                        @php $currentStore = auth()->user()->tenantId() ? \App\Models\Store::find(auth()->user()->tenantId()) : null; @endphp
+                        @if($currentStore)
+                            <div class="d-flex align-items-center text-secondary small">
+                                <i class="bi bi-shop me-1 text-success"></i>
+                                <span class="fw-semibold">{{ $currentStore->name }}</span>
+                            </div>
+                            <div class="vr my-1 text-muted"></div>
+                        @endif
+                        <div class="d-flex align-items-center text-secondary small">
+                            <i class="bi bi-person-circle me-1 text-success"></i>
+                            <span class="fw-semibold">{{ auth()->user()->username ?? 'Kasir' }}</span>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Mobile Header (Visible only on small screens) -->
                 <div class="d-md-none bg-white shadow-sm p-3 d-flex justify-content-between align-items-center mobile-header sticky-top">
                     <img src="{{ asset('logo-apps.png') }}" alt="Logo Aplikasi" style="height: 40px;">
@@ -201,6 +248,31 @@
         </div>
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
         <script>
+            // Buka/tutup sidebar di desktop (layar lebar) & simpan preferensi ke localStorage
+            function toggleDesktopSidebar() {
+                const sidebar = document.querySelector('.sidebar');
+                const isCollapsed = sidebar.classList.toggle('collapsed');
+                localStorage.setItem('sidebar-collapsed', isCollapsed ? 'true' : 'false');
+                const btnIcon = document.querySelector('#desktopSidebarToggle i');
+                if (btnIcon) {
+                    btnIcon.className = isCollapsed ? 'bi bi-layout-sidebar fs-5' : 'bi bi-layout-sidebar-inset fs-5';
+                }
+            }
+
+            // Pulihkan status sidebar desktop yang tersimpan
+            document.addEventListener('DOMContentLoaded', function () {
+                if (window.innerWidth > 768 && localStorage.getItem('sidebar-collapsed') === 'true') {
+                    const sidebar = document.querySelector('.sidebar');
+                    if (sidebar) {
+                        sidebar.classList.add('collapsed');
+                        const btnIcon = document.querySelector('#desktopSidebarToggle i');
+                        if (btnIcon) {
+                            btnIcon.className = 'bi bi-layout-sidebar fs-5';
+                        }
+                    }
+                }
+            });
+
             // Buka/tutup sidebar di HP; ketuk area gelap untuk menutup.
             function toggleSidebar(force) {
                 const sidebar = document.querySelector('.sidebar');
