@@ -21,8 +21,8 @@ class ApiTokenMiddleware
             return response()->json(['message' => 'Unauthorized'], 401);
         }
 
-        // Perpanjang masa berlaku bila dipakai, maksimal sekali per jam agar tidak menulis DB di setiap request.
-        if (! $token->last_used_at || $token->last_used_at->lt(now()->subHour())) {
+        // Perpanjang masa berlaku bila dipakai, maksimal sekali per 5 menit agar status keaktifan APK akurat.
+        if (! $token->last_used_at || $token->last_used_at->lt(now()->subMinutes(5))) {
             $token->forceFill([
                 'last_used_at' => now(),
                 'expires_at' => now()->addDays(ApiToken::LIFETIME_DAYS),

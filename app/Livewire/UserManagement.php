@@ -192,9 +192,20 @@ class UserManagement extends Component
         $this->resetErrorBag();
     }
 
+    public function revokeApk(string $userId): void
+    {
+        $user = User::findOrFail($userId);
+        $user->apiTokens()->delete();
+        session()->flash('message', 'Sesi aplikasi mobile untuk pengguna ' . $user->username . ' berhasil diputus.');
+    }
+
     public function render()
     {
-        $users = User::with(['roles', 'store'])
+        $users = User::with([
+                'roles',
+                'store',
+                'apiTokens' => fn ($q) => $q->orderByDesc('last_used_at')->orderByDesc('created_at'),
+            ])
             ->when($this->search, fn ($q) => $q->where('username', 'like', '%'.$this->search.'%'))
             ->orderBy('username')
             ->get();

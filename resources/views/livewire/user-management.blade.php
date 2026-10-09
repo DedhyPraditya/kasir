@@ -49,6 +49,7 @@
                                 <th class="ps-4">Username</th>
                                 <th>Peran</th>
                                 <th>Toko</th>
+                                <th>Status APK Mobile</th>
                                 <th>Dibuat</th>
                                 <th class="text-end pe-4">Aksi</th>
                             </tr>
@@ -79,6 +80,44 @@
                                         {{ $user->store?->name ?? '—' }}
                                     @endif
                                 </td>
+                                <td>
+                                    @php
+                                        $latestToken = $user->apiTokens->first();
+                                    @endphp
+                                    @if($latestToken)
+                                        @php
+                                            $isOnline = $latestToken->last_used_at && $latestToken->last_used_at->isAfter(now()->subMinutes(30));
+                                            $isRecent = $latestToken->last_used_at && $latestToken->last_used_at->isAfter(now()->subDays(2));
+                                        @endphp
+                                        <div class="d-inline-flex align-items-center gap-1">
+                                            @if($isOnline)
+                                                <span class="badge bg-success-subtle text-success border border-success-subtle py-1 px-2" title="Terakhir aktif: {{ $latestToken->last_used_at->format('d/m/Y H:i') }}">
+                                                    <i class="bi bi-phone-fill me-1"></i> Aktif ({{ $latestToken->last_used_at->diffForHumans() }})
+                                                </span>
+                                            @elseif($isRecent)
+                                                <span class="badge bg-info-subtle text-info-emphasis border border-info-subtle py-1 px-2" title="Terakhir aktif: {{ $latestToken->last_used_at->format('d/m/Y H:i') }}">
+                                                    <i class="bi bi-phone me-1"></i> Terpasang ({{ $latestToken->last_used_at->diffForHumans() }})
+                                                </span>
+                                            @else
+                                                <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle py-1 px-2" title="Terakhir aktif: {{ $latestToken->last_used_at ? $latestToken->last_used_at->format('d/m/Y H:i') : ($latestToken->created_at ? $latestToken->created_at->format('d/m/Y H:i') : '-') }}">
+                                                    <i class="bi bi-phone me-1"></i> Terpasang ({{ $latestToken->last_used_at ? $latestToken->last_used_at->diffForHumans() : 'Belum aktif' }})
+                                                </span>
+                                            @endif
+
+                                            <button type="button"
+                                                    class="btn btn-sm btn-outline-danger border-0 p-1 ms-1"
+                                                    wire:click="revokeApk('{{ $user->id }}')"
+                                                    wire:confirm="Putuskan sesi APK untuk akun {{ $user->username }}? Aplikasi mobile kasir akan otomatis keluar/logout."
+                                                    title="Putus Sesi APK (Logout dari HP)">
+                                                <i class="bi bi-box-arrow-right"></i>
+                                            </button>
+                                        </div>
+                                    @else
+                                        <span class="badge bg-light text-muted border py-1 px-2">
+                                            <i class="bi bi-phone me-1 opacity-50"></i> Belum Terpasang
+                                        </span>
+                                    @endif
+                                </td>
                                 <td class="text-muted small text-nowrap">{{ $user->created_at?->format('d/m/Y') }}</td>
                                 <td class="text-end pe-4 text-nowrap">
                                     <button type="button" class="btn btn-outline-primary btn-sm" wire:click="edit('{{ $user->id }}')">
@@ -93,7 +132,7 @@
                             </tr>
                             @empty
                             <tr>
-                                <td colspan="5" class="text-center py-5 text-muted">Tidak ada akun yang cocok.</td>
+                                <td colspan="6" class="text-center py-5 text-muted">Tidak ada akun yang cocok.</td>
                             </tr>
                             @endforelse
                         </tbody>
