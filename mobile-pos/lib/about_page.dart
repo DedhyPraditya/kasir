@@ -16,11 +16,19 @@ class _ChangelogEntry {
 
 const List<_ChangelogEntry> _changelog = [
   _ChangelogEntry(
+    version: '1.6.1',
+    date: '25 Oktober 2026',
+    points: [
+      'Rekonsiliasi Kasir (Tutup Kas): Menu baru di bilah navigasi bawah untuk menghitung uang laci vs sistem, deteksi selisih otomatis, dan cetak struk tutup kas.',
+      'Peningkatan Navigasi Bawah: Tombol Tutup Kas mudah diakses di samping menu Pengeluaran dan Riwayat.',
+      'Pembaruan Struk Thermal: Cetak laporan serah terima tutup kasir lengkap dengan kolom tanda tangan kasir dan supervisor.',
+    ],
+  ),
+  _ChangelogEntry(
     version: '1.6.0',
     date: '24 Oktober 2026',
     points: [
       'Fitur Catat Pengeluaran Toko: Menu baru di navigasi bawah untuk mencatat pengeluaran operasional langsung dari aplikasi kasir.',
-      'Rekonsiliasi Kasir (Tutup Kas): Hitung kas laci vs transaksi sistem, deteksi selisih otomatis, dan cetak struk tutup kas.',
       'Dukungan Offline Pengeluaran: Catatan pengeluaran otomatis tersimpan di HP saat tanpa internet dan tersinkron ke server begitu online.',
       'Rekap Pengeluaran & Filter Kategori: Pantau total pengeluaran harian dan filter kategori (Operasional, Bahan Baku, Utilitas, dll).',
     ],

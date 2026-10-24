@@ -2084,6 +2084,12 @@ class _PosHomePageState extends State<PosHomePage> {
               onTap: _showExpensePage,
             ),
             _buildBottomNavItem(
+              icon: Icons.point_of_sale_rounded,
+              label: 'Tutup Kas',
+              color: Colors.blueGrey,
+              onTap: _showReconciliationPage,
+            ),
+            _buildBottomNavItem(
               icon: Icons.history,
               label: 'Riwayat',
               color: Colors.blueGrey,
