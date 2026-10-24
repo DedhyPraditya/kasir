@@ -101,6 +101,47 @@ class OfflineStore {
     return prefs.getString(_keyDefaultQrisImage);
   }
 
+  static const _keyPendingExpenses = 'pending_expenses';
+  static const _keyExpensesCache = 'expenses_cache';
+
+  // --- Antrian pengeluaran offline ---
+
+  static Future<List<Map<String, dynamic>>> getPendingExpenses() async {
+    final prefs = await SharedPreferences.getInstance();
+    final raw = prefs.getString(_keyPendingExpenses);
+    if (raw == null) return [];
+    final list = jsonDecode(raw) as List<dynamic>;
+    return list.cast<Map<String, dynamic>>();
+  }
+
+  static Future<void> addPendingExpense(Map<String, dynamic> expense) async {
+    final list = await getPendingExpenses();
+    list.add(expense);
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_keyPendingExpenses, jsonEncode(list));
+  }
+
+  static Future<void> removePendingExpense(String id) async {
+    final list = await getPendingExpenses();
+    list.removeWhere((e) => e['id'] == id);
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_keyPendingExpenses, jsonEncode(list));
+  }
+
+  // --- Cache pengeluaran hari ini ---
+
+  static Future<void> cacheTodayExpenses(List<dynamic> expenses) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_keyExpensesCache, jsonEncode(expenses));
+  }
+
+  static Future<List<dynamic>> getCachedTodayExpenses() async {
+    final prefs = await SharedPreferences.getInstance();
+    final raw = prefs.getString(_keyExpensesCache);
+    if (raw == null) return [];
+    return jsonDecode(raw) as List<dynamic>;
+  }
+
   static Future<void> clearDefaultQrisImage() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove(_keyDefaultQrisImage);

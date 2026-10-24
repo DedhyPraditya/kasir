@@ -16,6 +16,49 @@ class _ChangelogEntry {
 
 const List<_ChangelogEntry> _changelog = [
   _ChangelogEntry(
+    version: '1.6.0',
+    date: '24 Oktober 2026',
+    points: [
+      'Fitur Catat Pengeluaran Toko: Menu baru di navigasi bawah untuk mencatat pengeluaran operasional langsung dari aplikasi kasir.',
+      'Dukungan Offline Pengeluaran: Catatan pengeluaran otomatis tersimpan di HP saat tanpa internet dan tersinkron ke server begitu online.',
+      'Rekap Pengeluaran & Filter Kategori: Pantau total pengeluaran harian dan filter kategori (Operasional, Bahan Baku, Utilitas, dll).',
+    ],
+  ),
+  _ChangelogEntry(
+    version: '1.5.6',
+    date: '9 Oktober 2026',
+    points: [
+      'Pills Filter Kategori: Tab kategori horizontal di atas daftar menu (Semua, Makanan, Minuman, dll.) beserta jumlah item.',
+      'Pencarian Terfokus: Kolom pencarian otomatis memfilter menu khusus dalam kategori yang sedang aktif.',
+      'Offline Support: Kategori menu tersimpan di cache lokal sehingga tetap bisa difilter saat offline.',
+      'Tampilan Empty State: Tombol "Reset Filter" jika menu yang dicari tidak ditemukan di kategori terpilih.',
+      'Peningkatan stabilitas layout kasir dan navigasi bawah.',
+    ],
+  ),
+  _ChangelogEntry(
+    version: '1.5.5',
+    date: '9 Oktober 2026',
+    points: [
+      'Pencarian Menu Produk: Fitur pencarian cepat nama menu langsung pada layar kasir.',
+      'Scrolling Produk: Perbaikan scrolling pada daftar produk menu agar lebih lancar dan responsif.',
+    ],
+  ),
+  _ChangelogEntry(
+    version: '1.5.4',
+    date: '9 Oktober 2026',
+    points: [
+      'Pembaruan logo dan ikon resmi aplikasi deo\'ku.',
+    ],
+  ),
+  _ChangelogEntry(
+    version: '1.5.3',
+    date: '30 September 2026',
+    points: [
+      'Branding baru aplikasi menjadi deo\'ku (nama dan identitas aplikasi).',
+      'Penyelarasan warna tema utama menjadi biru elegan senada dengan versi web.',
+    ],
+  ),
+  _ChangelogEntry(
     version: '1.5.2',
     date: '27 September 2026',
     points: [

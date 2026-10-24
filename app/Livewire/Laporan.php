@@ -160,19 +160,31 @@ class Laporan extends Component
         $totalCash       = (clone $base)->where('payment_method', 'cash')->sum('total');
         $totalQris       = (clone $base)->where('payment_method', 'qris')->sum('total');
 
+        $expenseQuery = \App\Models\Expense::query();
+        if ($this->dateFrom) {
+            $expenseQuery->whereDate('expense_date', '>=', $this->dateFrom);
+        }
+        if ($this->dateTo) {
+            $expenseQuery->whereDate('expense_date', '<=', $this->dateTo);
+        }
+        $totalPengeluaran = (float) $expenseQuery->sum('amount');
+        $labaBersih      = (float) ($totalPendapatan - $totalPengeluaran);
+
         $orders = (clone $base)->with('items')->latest()->paginate(self::PER_PAGE);
         $pageIds = $orders->pluck('id')->all();
 
         return view('livewire.laporan', [
-            'orders'          => $orders,
-            'totalPendapatan' => $totalPendapatan,
-            'totalTransaksi'  => $totalTransaksi,
-            'totalCash'       => $totalCash,
-            'totalQris'       => $totalQris,
-            'detailOrder'     => $detailOrder,
-            'pageAllSelected' => $pageIds !== [] && array_diff($pageIds, $this->selected) === [],
-            'isAdmin'         => auth()->user()?->hasRole('admin') ?? false,
-            'isDeveloper'     => auth()->user()?->hasRole('developer') ?? false,
+            'orders'           => $orders,
+            'totalPendapatan'  => $totalPendapatan,
+            'totalTransaksi'   => $totalTransaksi,
+            'totalCash'        => $totalCash,
+            'totalQris'        => $totalQris,
+            'totalPengeluaran' => $totalPengeluaran,
+            'labaBersih'       => $labaBersih,
+            'detailOrder'      => $detailOrder,
+            'pageAllSelected'  => $pageIds !== [] && array_diff($pageIds, $this->selected) === [],
+            'isAdmin'          => auth()->user()?->hasRole('admin') ?? false,
+            'isDeveloper'      => auth()->user()?->hasRole('developer') ?? false,
         ])->layout('layouts.app');
     }
 }

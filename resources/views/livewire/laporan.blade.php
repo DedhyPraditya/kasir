@@ -62,7 +62,7 @@
         {{-- Summary Cards (hanya Admin) --}}
         @if($isAdmin)
         <div class="row g-3 mb-4">
-            <div class="col-6 col-md-3">
+            <div class="col-6 col-md-2">
                 <div class="card border-0 shadow-sm h-100">
                     <div class="card-body p-3">
                         <p class="text-muted small mb-1">Total Pendapatan</p>
@@ -70,15 +70,23 @@
                     </div>
                 </div>
             </div>
-            <div class="col-6 col-md-3">
+            <div class="col-6 col-md-2">
                 <div class="card border-0 shadow-sm h-100">
                     <div class="card-body p-3">
-                        <p class="text-muted small mb-1">Total Transaksi</p>
-                        <h5 class="fw-bold text-primary mb-0">{{ $totalTransaksi }} Transaksi</h5>
+                        <p class="text-muted small mb-1">Pengeluaran</p>
+                        <h5 class="fw-bold text-danger mb-0">Rp {{ number_format($totalPengeluaran, 0, ',', '.') }}</h5>
                     </div>
                 </div>
             </div>
-            <div class="col-6 col-md-3">
+            <div class="col-6 col-md-2">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-body p-3">
+                        <p class="text-muted small mb-1">Laba Bersih</p>
+                        <h5 class="fw-bold {{ $labaBersih >= 0 ? 'text-primary' : 'text-danger' }} mb-0">Rp {{ number_format($labaBersih, 0, ',', '.') }}</h5>
+                    </div>
+                </div>
+            </div>
+            <div class="col-6 col-md-2">
                 <div class="card border-0 shadow-sm h-100">
                     <div class="card-body p-3">
                         <p class="text-muted small mb-1">Tunai (Cash)</p>
@@ -86,11 +94,19 @@
                     </div>
                 </div>
             </div>
-            <div class="col-6 col-md-3">
+            <div class="col-6 col-md-2">
                 <div class="card border-0 shadow-sm h-100">
                     <div class="card-body p-3">
                         <p class="text-muted small mb-1">QRIS</p>
                         <h5 class="fw-bold text-primary mb-0">Rp {{ number_format($totalQris, 0, ',', '.') }}</h5>
+                    </div>
+                </div>
+            </div>
+            <div class="col-6 col-md-2">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-body p-3">
+                        <p class="text-muted small mb-1">Total Transaksi</p>
+                        <h5 class="fw-bold text-dark mb-0">{{ $totalTransaksi }}</h5>
                     </div>
                 </div>
             </div>

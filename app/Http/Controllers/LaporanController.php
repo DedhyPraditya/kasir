@@ -29,9 +29,15 @@ class LaporanController extends Controller
         }
 
         $orders          = $query->latest()->get();
-        $totalPendapatan = $orders->sum('total');
-        $totalCash       = $orders->where('payment_method', 'cash')->sum('total');
-        $totalQris       = $orders->where('payment_method', 'qris')->sum('total');
+        $totalPendapatan = (float) $orders->sum('total');
+        $totalCash       = (float) $orders->where('payment_method', 'cash')->sum('total');
+        $totalQris       = (float) $orders->where('payment_method', 'qris')->sum('total');
+
+        $expenseQuery = \App\Models\Expense::query()
+            ->whereDate('expense_date', '>=', $dateFrom)
+            ->whereDate('expense_date', '<=', $dateTo);
+        $totalPengeluaran = (float) $expenseQuery->sum('amount');
+        $labaBersih       = (float) ($totalPendapatan - $totalPengeluaran);
 
         // Mengambil data toko dan pengaturan struk akun yang sedang aktif/login
         $user = auth()->user();
@@ -53,6 +59,7 @@ class LaporanController extends Controller
         $pdf = Pdf::loadView('laporan-pdf', compact(
             'orders', 'dateFrom', 'dateTo',
             'totalPendapatan', 'totalCash', 'totalQris',
+            'totalPengeluaran', 'labaBersih',
             'storeName', 'storeAddress'
         ))->setPaper('a4', 'landscape');
 

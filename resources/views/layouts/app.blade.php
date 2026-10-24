@@ -101,11 +101,17 @@
                         </a>
                     </li>
                     @role('admin')
+                    <li>
                         <a href="{{ route('produk') }}" class="nav-link py-3 px-3 {{ request()->routeIs('produk') ? 'active shadow-sm' : '' }}">
                             <i class="bi bi-box-seam-fill me-2 fs-5"></i> Produk
                         </a>
                     </li>
                     @endrole
+                    <li>
+                        <a href="{{ route('pengeluaran') }}" class="nav-link py-3 px-3 {{ request()->routeIs('pengeluaran') ? 'active shadow-sm' : '' }}">
+                            <i class="bi bi-wallet2 me-2 fs-5"></i> Pengeluaran
+                        </a>
+                    </li>
                     <li>
                         <a href="{{ route('laporan') }}" class="nav-link py-3 px-3 {{ request()->routeIs('laporan') ? 'active shadow-sm' : '' }}">
                             <i class="bi bi-receipt me-2 fs-5"></i> Laporan

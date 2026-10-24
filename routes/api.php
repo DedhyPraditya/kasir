@@ -23,4 +23,7 @@ Route::middleware(['api.token'])->group(function () {
     Route::get('/qris/dynamic', [QrisController::class, 'dynamic'])->middleware('throttle:30,1');
     Route::get('/qris/static', [QrisController::class, 'staticImage'])->middleware('throttle:30,1');
     Route::get('/receipt-settings', [ReceiptSettingController::class, 'show']);
+    Route::get('/expenses', [App\Http\Controllers\Api\ExpenseController::class, 'index']);
+    Route::post('/expenses', [App\Http\Controllers\Api\ExpenseController::class, 'store']);
+    Route::delete('/expenses/{id}', [App\Http\Controllers\Api\ExpenseController::class, 'destroy']);
 });

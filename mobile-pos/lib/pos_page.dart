@@ -14,6 +14,7 @@ import 'package:url_launcher/url_launcher.dart';
 import 'about_page.dart';
 import 'login_page.dart';
 import 'history_page.dart';
+import 'expense_page.dart';
 import 'offline_store.dart';
 import 'receipt_settings.dart';
 
@@ -1026,6 +1027,17 @@ class _PosHomePageState extends State<PosHomePage> {
           printer: _printer,
           kasirName: widget.kasirName,
           receiptSettings: _receiptSettings,
+        ),
+      ),
+    );
+  }
+
+  Future<void> _showExpensePage() async {
+    await Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => ExpensePage(
+          apiHeaders: _apiHeaders,
+          kasirName: widget.kasirName,
         ),
       ),
     );
@@ -2045,6 +2057,12 @@ class _PosHomePageState extends State<PosHomePage> {
               label: 'Home',
               color: kBrandBlue,
               onTap: () {},
+            ),
+            _buildBottomNavItem(
+              icon: Icons.account_balance_wallet_outlined,
+              label: 'Pengeluaran',
+              color: Colors.blueGrey,
+              onTap: _showExpensePage,
             ),
             _buildBottomNavItem(
               icon: Icons.history,

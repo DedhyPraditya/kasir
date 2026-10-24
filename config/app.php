@@ -123,9 +123,10 @@ return [
         'store' => env('APP_MAINTENANCE_STORE', 'database'),
     ],
 
-    'mobile_version' => '1.5.6',
-    'mobile_build_number' => 15,
-    'mobile_changelog' => "Pembaruan Versi 1.5.6:
-• Penambahan filter produk berdasarkan kategori (Makanan, Minuman, dll).
-• Pencarian menu otomatis terfokus ke kategori yang dipilih.",
+    'mobile_version' => '1.6.0',
+    'mobile_build_number' => 16,
+    'mobile_changelog' => "Pembaruan Versi 1.6.0:
+• Penambahan fitur pencatatan pengeluaran operasional toko.
+• Dukungan pencatatan offline & sinkronisasi otomatis ke server.
+• Rekap pengeluaran harian dan filter kategori.",
 ];

@@ -2,6 +2,13 @@
 
 Semua perubahan pada aplikasi Mobile POS dicatat di file ini.
 
+## [1.6.0] - 2026-10-24
+
+### 💸 Pencatatan Pengeluaran Operasional Toko
+- **Menu Pengeluaran**: Menu navigasi bawah baru di aplikasi mobile untuk mencatat transaksi pengeluaran operasional (Bahan Baku, Utilitas, Operasional, Gaji/Uang Makan, Lainnya).
+- **Offline & Auto-Sync**: Pengeluaran tersimpan lokal di HP saat tanpa koneksi internet dan otomatis tersinkron ke server saat online.
+- **Rekap Harian & Rekonsiliasi Kas**: Total pengeluaran otomatis dihitung dan ditampilkan di aplikasi kasir untuk memudahkan rekonsiliasi kas fisik.
+
 ## [1.5.6] - 2026-10-09
 
 ### 🏷️ Filter Kategori Produk & Pencarian Terfokus
@@ -9,6 +16,17 @@ Semua perubahan pada aplikasi Mobile POS dicatat di file ini.
 - **Pencarian Terfokus (Per-Kategori)**: Jika salah satu kategori dipilih (mis. Makanan atau Minuman), kolom pencarian akan otomatis memfilter produk khusus di dalam kategori tersebut untuk memperkecil dan mempercepat pencarian.
 - **Dukungan Online & Offline**: Kategori produk otomatis tersimpan dalam cache lokal sehingga filter kategori tetap berfungsi penuh saat aplikasi dalam mode offline.
 - **Empty State Interaktif**: Dilengkapi tombol "Reset Filter" jika menu yang dicari tidak ditemukan di kategori terpilih.
+
+## [1.5.5] - 2026-10-09
+
+### 🔍 Pencarian Menu & Performa Scroll
+- **Pencarian Menu Produk**: Fitur pencarian cepat nama menu langsung pada layar kasir.
+- **Scrolling Produk**: Optimasi scrolling pada daftar produk menu agar lebih lancar dan responsif.
+
+## [1.5.4] - 2026-10-09
+
+### 🎨 Pembaruan Aset Visual
+- **Logo & Ikon**: Pembaruan aset visual dan ikon resmi untuk aplikasi deo'ku.
 
 ## [1.5.3] - 2026-09-30
 

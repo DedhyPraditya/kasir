@@ -29,6 +29,9 @@ Route::middleware('auth')->group(function () {
         ->middleware(['redirect.kasir', 'role:admin'])
         ->name('laporan.export');
 
+    // Pengeluaran - semua akun (Admin & Kasir)
+    Route::get('/pengeluaran', \App\Livewire\Pengeluaran::class)->name('pengeluaran');
+
     // Produk - hanya Admin
     Route::get('/produk', \App\Livewire\Produk::class)
         ->middleware(['redirect.kasir', 'role:admin'])

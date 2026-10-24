@@ -36,19 +36,31 @@
 
     <table>
         <tr>
-            <td style="width:33%; border:none;">
+            <td style="width:20%; border:none;">
                 <div class="summary-item">
                     <p>Total Pendapatan</p>
                     <h4>Rp {{ number_format($totalPendapatan, 0, ',', '.') }}</h4>
                 </div>
             </td>
-            <td style="width:33%; border:none;">
+            <td style="width:20%; border:none;">
+                <div class="summary-item" style="border-color:#dc3545">
+                    <p>Pengeluaran</p>
+                    <h4 style="color:#dc3545">Rp {{ number_format($totalPengeluaran, 0, ',', '.') }}</h4>
+                </div>
+            </td>
+            <td style="width:20%; border:none;">
+                <div class="summary-item" style="border-color:{{ $labaBersih >= 0 ? '#0d6efd' : '#dc3545' }}">
+                    <p>Laba Bersih</p>
+                    <h4 style="color:{{ $labaBersih >= 0 ? '#0d6efd' : '#dc3545' }}">Rp {{ number_format($labaBersih, 0, ',', '.') }}</h4>
+                </div>
+            </td>
+            <td style="width:20%; border:none;">
                 <div class="summary-item" style="border-color:#198754">
                     <p>Tunai (Cash)</p>
                     <h4>Rp {{ number_format($totalCash, 0, ',', '.') }}</h4>
                 </div>
             </td>
-            <td style="width:33%; border:none;">
+            <td style="width:20%; border:none;">
                 <div class="summary-item" style="border-color:#0d6efd">
                     <p>QRIS</p>
                     <h4 style="color:#0d6efd">Rp {{ number_format($totalQris, 0, ',', '.') }}</h4>
