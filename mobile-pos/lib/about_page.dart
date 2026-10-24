@@ -20,6 +20,7 @@ const List<_ChangelogEntry> _changelog = [
     date: '24 Oktober 2026',
     points: [
       'Fitur Catat Pengeluaran Toko: Menu baru di navigasi bawah untuk mencatat pengeluaran operasional langsung dari aplikasi kasir.',
+      'Rekonsiliasi Kasir (Tutup Kas): Hitung kas laci vs transaksi sistem, deteksi selisih otomatis, dan cetak struk tutup kas.',
       'Dukungan Offline Pengeluaran: Catatan pengeluaran otomatis tersimpan di HP saat tanpa internet dan tersinkron ke server begitu online.',
       'Rekap Pengeluaran & Filter Kategori: Pantau total pengeluaran harian dan filter kategori (Operasional, Bahan Baku, Utilitas, dll).',
     ],

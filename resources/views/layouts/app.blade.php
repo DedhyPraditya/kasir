@@ -117,6 +117,11 @@
                             <i class="bi bi-receipt me-2 fs-5"></i> Laporan
                         </a>
                     </li>
+                    <li>
+                        <a href="{{ route('rekonsiliasi') }}" class="nav-link py-3 px-3 {{ request()->routeIs('rekonsiliasi') ? 'active shadow-sm' : '' }}">
+                            <i class="bi bi-safe2 me-2 fs-5"></i> Tutup Kasir
+                        </a>
+                    </li>
                     @role('admin')
                     <li>
                         <a href="{{ route('qris.settings') }}" class="nav-link py-3 px-3 {{ request()->routeIs('qris.settings') ? 'active shadow-sm' : '' }}">

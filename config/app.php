@@ -127,6 +127,6 @@ return [
     'mobile_build_number' => 16,
     'mobile_changelog' => "Pembaruan Versi 1.6.0:
 • Penambahan fitur pencatatan pengeluaran operasional toko.
-• Dukungan pencatatan offline & sinkronisasi otomatis ke server.
-• Rekap pengeluaran harian dan filter kategori.",
+• Fitur Rekonsiliasi Kasir (Tutup Kas) & cetak struk tutup kas.
+• Dukungan pencatatan offline & sinkronisasi otomatis ke server.",
 ];

@@ -26,4 +26,7 @@ Route::middleware(['api.token'])->group(function () {
     Route::get('/expenses', [App\Http\Controllers\Api\ExpenseController::class, 'index']);
     Route::post('/expenses', [App\Http\Controllers\Api\ExpenseController::class, 'store']);
     Route::delete('/expenses/{id}', [App\Http\Controllers\Api\ExpenseController::class, 'destroy']);
+    Route::get('/reconciliation/summary', [App\Http\Controllers\Api\ReconciliationController::class, 'summary']);
+    Route::post('/reconciliation', [App\Http\Controllers\Api\ReconciliationController::class, 'store']);
+    Route::get('/reconciliation/history', [App\Http\Controllers\Api\ReconciliationController::class, 'history']);
 });

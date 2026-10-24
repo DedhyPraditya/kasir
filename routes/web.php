@@ -32,6 +32,9 @@ Route::middleware('auth')->group(function () {
     // Pengeluaran - semua akun (Admin & Kasir)
     Route::get('/pengeluaran', \App\Livewire\Pengeluaran::class)->name('pengeluaran');
 
+    // Rekonsiliasi Kasir (Tutup Kas) - semua akun
+    Route::get('/rekonsiliasi', \App\Livewire\Rekonsiliasi::class)->name('rekonsiliasi');
+
     // Produk - hanya Admin
     Route::get('/produk', \App\Livewire\Produk::class)
         ->middleware(['redirect.kasir', 'role:admin'])

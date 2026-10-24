@@ -7,7 +7,12 @@ Semua perubahan pada aplikasi Mobile POS dicatat di file ini.
 ### 💸 Pencatatan Pengeluaran Operasional Toko
 - **Menu Pengeluaran**: Menu navigasi bawah baru di aplikasi mobile untuk mencatat transaksi pengeluaran operasional (Bahan Baku, Utilitas, Operasional, Gaji/Uang Makan, Lainnya).
 - **Offline & Auto-Sync**: Pengeluaran tersimpan lokal di HP saat tanpa koneksi internet dan otomatis tersinkron ke server saat online.
-- **Rekap Harian & Rekonsiliasi Kas**: Total pengeluaran otomatis dihitung dan ditampilkan di aplikasi kasir untuk memudahkan rekonsiliasi kas fisik.
+- **Rekap Harian**: Total pengeluaran harian otomatis dihitung dan ditampilkan di aplikasi kasir.
+
+### 🔒 Rekonsiliasi Kasir (Tutup Kas)
+- **Kalkulator Tutup Kas**: Menghitung otomatis kas laci yang seharusnya ada (`Modal Awal + Penjualan Tunai - Pengeluaran`).
+- **Deteksi Selisih**: Membandingkan uang fisik di laci dengan sistem untuk mendeteksi selisih (Pas, Lebih, atau Kurang/Tekor).
+- **Cetak Struk Tutup Kas**: Cetak bukti serah terima kasir ke printer thermal Bluetooth lengkap dengan tanda tangan.
 
 ## [1.5.6] - 2026-10-09
 

@@ -15,6 +15,7 @@ import 'about_page.dart';
 import 'login_page.dart';
 import 'history_page.dart';
 import 'expense_page.dart';
+import 'reconciliation_page.dart';
 import 'offline_store.dart';
 import 'receipt_settings.dart';
 
@@ -1043,6 +1044,19 @@ class _PosHomePageState extends State<PosHomePage> {
     );
   }
 
+  Future<void> _showReconciliationPage() async {
+    await Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => ReconciliationPage(
+          apiHeaders: _apiHeaders,
+          printer: _printer,
+          kasirName: widget.kasirName,
+          receiptSettings: _receiptSettings,
+        ),
+      ),
+    );
+  }
+
   bool _areToppingsEqual(List<Topping> a, List<Topping> b) {
     if (a.length != b.length) return false;
     final aIds = a.map((t) => t.id).toSet();
@@ -2029,6 +2043,11 @@ class _PosHomePageState extends State<PosHomePage> {
                 ),
               ),
             ),
+          ),
+          IconButton(
+            icon: const Icon(Icons.point_of_sale),
+            tooltip: 'Tutup Kasir (Rekonsiliasi)',
+            onPressed: _showReconciliationPage,
           ),
           IconButton(
             icon: const Icon(Icons.info_outline),
