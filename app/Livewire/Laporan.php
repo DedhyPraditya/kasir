@@ -24,8 +24,17 @@ class Laporan extends Component
 
     public function mount(): void
     {
-        $this->dateFrom = Carbon::today()->format('Y-m-d');
-        $this->dateTo   = Carbon::today()->format('Y-m-d');
+        $this->dateFrom = Carbon::now()->startOfMonth()->format('Y-m-d');
+        $this->dateTo   = Carbon::now()->endOfMonth()->format('Y-m-d');
+    }
+
+    public function resetFilter(): void
+    {
+        $this->dateFrom = Carbon::now()->startOfMonth()->format('Y-m-d');
+        $this->dateTo   = Carbon::now()->endOfMonth()->format('Y-m-d');
+        $this->search   = '';
+        $this->resetPage();
+        $this->selected = [];
     }
 
     /** ID transaksi yang sedang dibuka di modal detail */

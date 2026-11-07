@@ -13,8 +13,8 @@ class LaporanController extends Controller
 {
     public function export(Request $request)
     {
-        $dateFrom = $request->get('dateFrom', Carbon::today()->format('Y-m-d'));
-        $dateTo   = $request->get('dateTo',   Carbon::today()->format('Y-m-d'));
+        $dateFrom = $request->get('dateFrom', Carbon::now()->startOfMonth()->format('Y-m-d'));
+        $dateTo   = $request->get('dateTo',   Carbon::now()->endOfMonth()->format('Y-m-d'));
         $search   = $request->get('search', '');
 
         $query = Order::query()

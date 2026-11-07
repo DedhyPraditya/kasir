@@ -28,16 +28,22 @@ class Dashboard extends Component
 
         $recentOrders = Order::with('items')->latest()->paginate(10);
 
-        // Best Seller Produk: top 5 berdasarkan total qty terjual
-        $bestSellers = OrderItem::whereHas('order')
+        // Best Seller Produk: top 5 bulan ini berdasarkan total qty terjual
+        $bestSellers = OrderItem::whereHas('order', function ($q) use ($today) {
+                $q->whereMonth('created_at', $today->month)
+                  ->whereYear('created_at', $today->year);
+            })
             ->select('product_name', DB::raw('SUM(quantity) as total_qty'))
             ->groupBy('product_name')
             ->orderByDesc('total_qty')
             ->limit(5)
             ->get();
 
-        // Best Seller Topping: top 5 berdasarkan jumlah pemakaian
-        $bestToppings = OrderItemTopping::whereHas('orderItem.order')
+        // Best Seller Topping: top 5 bulan ini berdasarkan jumlah pemakaian
+        $bestToppings = OrderItemTopping::whereHas('orderItem.order', function ($q) use ($today) {
+                $q->whereMonth('created_at', $today->month)
+                  ->whereYear('created_at', $today->year);
+            })
             ->select('topping_name', DB::raw('COUNT(*) as total_used'))
             ->groupBy('topping_name')
             ->orderByDesc('total_used')

@@ -70,7 +70,7 @@
                     <div class="card-header bg-white border-bottom-0 pt-4 pb-0">
                         <h5 class="fw-bold mb-0">
                             <i class="bi bi-trophy text-warning me-2"></i>
-                            Best Seller Produk
+                            Best Seller Produk (Bulan Ini)
                         </h5>
                     </div>
                     <div class="card-body d-flex flex-column align-items-center justify-content-center">
@@ -103,7 +103,7 @@
                     <div class="card-header bg-white border-bottom-0 pt-4 pb-0">
                         <h5 class="fw-bold mb-0">
                             <i class="bi bi-stars text-danger me-2"></i>
-                            Best Seller Topping
+                            Best Seller Topping (Bulan Ini)
                         </h5>
                     </div>
                     <div class="card-body d-flex flex-column align-items-center justify-content-center">

@@ -51,7 +51,7 @@
                         </div>
                     </div>
                     <div class="col-md-2">
-                        <button class="btn btn-outline-secondary w-100" wire:click="$set('search','')">
+                        <button class="btn btn-outline-secondary w-100" wire:click="resetFilter">
                             <i class="bi bi-arrow-counterclockwise me-1"></i> Reset
                         </button>
                     </div>
