@@ -41,6 +41,30 @@ class FixOrderTimestamps extends Command
 
         $fixedCount = 0;
 
+        // 1. Koreksi transaksi yang berada di masa depan (> now()) akibat selisih timezone
+        $futureOrders = Order::withoutGlobalScopes()
+            ->where('created_at', '>', now())
+            ->get();
+
+        foreach ($futureOrders as $order) {
+            $corrected = $order->created_at->copy()->subDay();
+            $this->warn(sprintf(
+                '[MASA DEPAN -> DIKEMBALIKAN] %s: %s -> %s',
+                $order->invoice_number,
+                $order->created_at->toDateTimeString(),
+                $corrected->toDateTimeString()
+            ));
+
+            if (! $isDryRun) {
+                $order->created_at = $corrected;
+                $order->updated_at = $corrected;
+                $order->saveQuietly();
+            }
+
+            $fixedCount++;
+        }
+
+        // 2. Koreksi order yang created_at tidak sesuai tanggal nomor invoice (offline sync lag)
         foreach ($orders as $order) {
             if (! preg_match('/^INV-(\d{4})(\d{2})(\d{2})-/i', $order->invoice_number, $matches)) {
                 continue;
@@ -52,6 +76,11 @@ class FixOrderTimestamps extends Command
             if ($invoiceDate !== $currentDate) {
                 $timePart = $order->created_at ? $order->created_at->format('H:i:s') : '12:00:00';
                 $newTimestamp = Carbon::parse("{$invoiceDate} {$timePart}");
+
+                // Jangan ubah jika menjadi waktu masa depan
+                if ($newTimestamp->isFuture()) {
+                    continue;
+                }
 
                 $this->line(sprintf(
                     '[%s] %s: %s -> %s',
