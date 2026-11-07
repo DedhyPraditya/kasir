@@ -162,9 +162,15 @@ class Pos extends Component
             'amountPaid.min' => 'Nominal uang tidak cukup! Minimal Rp ' . number_format($total, 0, ',', '.'),
         ]);
 
+        // Generate Invoice: INV-YYYYMMDD-HHmmss
+        $invoiceNumber = 'INV-' . date('Ymd-His');
+        if (Order::withoutGlobalScopes()->where('invoice_number', $invoiceNumber)->exists()) {
+            $invoiceNumber = 'INV-' . date('Ymd-His') . '-' . rand(1, 9);
+        }
+
         // Save Order
         $order = Order::create([
-            'invoice_number' => 'INV-' . date('Ymd') . '-' . strtoupper(Str::random(4)),
+            'invoice_number' => $invoiceNumber,
             'customer_name' => $this->customerName,
             'subtotal' => $total,
             'total' => $total,

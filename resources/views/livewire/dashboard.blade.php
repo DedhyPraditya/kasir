@@ -3,44 +3,76 @@
         <h3 class="fw-bold mb-4">Dashboard Ringkasan Transaksi</h3>
 
         {{-- Stat Cards --}}
-        <div class="row g-4 mb-4">
-            <div class="col-md-4">
-                <div class="card border-0 shadow-sm bg-success text-white">
-                    <div class="card-body p-4">
-                        <div class="d-flex justify-content-between align-items-center">
+        <div class="row g-3 mb-4">
+            {{-- Pendapatan Hari Ini --}}
+            <div class="col-sm-6 col-xl-3">
+                <div class="card border-0 shadow-sm bg-success text-white h-100">
+                    <div class="card-body p-3 p-md-4">
+                        <div class="d-flex justify-content-between align-items-start">
                             <div>
-                                <h6 class="mb-1">Pendapatan Hari Ini</h6>
-                                <h3 class="fw-bold mb-0">Rp {{ number_format($totalIncomeToday, 0, ',', '.') }}</h3>
+                                <p class="text-white text-opacity-75 small mb-1">Pendapatan Hari Ini</p>
+                                <h4 class="fw-bold mb-2">Rp {{ number_format($totalIncomeToday, 0, ',', '.') }}</h4>
+                                <span class="badge bg-white bg-opacity-25 text-white fw-normal">
+                                    <i class="bi bi-cart-check me-1"></i> {{ $totalOrdersToday }} pesanan
+                                </span>
                             </div>
-                            <i class="bi bi-wallet2 fs-1 opacity-50"></i>
+                            <i class="bi bi-wallet2 fs-2 text-white text-opacity-50"></i>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <div class="col-md-4">
-                <div class="card border-0 shadow-sm bg-primary text-white">
-                    <div class="card-body p-4">
-                        <div class="d-flex justify-content-between align-items-center">
+            {{-- Pendapatan Bulan Ini --}}
+            <div class="col-sm-6 col-xl-3">
+                <div class="card border-0 shadow-sm bg-primary text-white h-100">
+                    <div class="card-body p-3 p-md-4">
+                        <div class="d-flex justify-content-between align-items-start">
                             <div>
-                                <h6 class="mb-1">Pendapatan Bulan Ini</h6>
-                                <h3 class="fw-bold mb-0">Rp {{ number_format($totalIncomeMonth, 0, ',', '.') }}</h3>
+                                <p class="text-white text-opacity-75 small mb-1">Pendapatan Bulan Ini</p>
+                                <h4 class="fw-bold mb-2">Rp {{ number_format($totalIncomeMonth, 0, ',', '.') }}</h4>
+                                <span class="badge bg-white bg-opacity-25 text-white fw-normal">
+                                    Omzet kotor
+                                </span>
                             </div>
-                            <i class="bi bi-graph-up fs-1 opacity-50"></i>
+                            <i class="bi bi-graph-up-arrow fs-2 text-white text-opacity-50"></i>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <div class="col-md-4">
-                <div class="card border-0 shadow-sm bg-info text-white">
-                    <div class="card-body p-4">
-                        <div class="d-flex justify-content-between align-items-center">
+            {{-- Pengeluaran Bulan Ini --}}
+            <div class="col-sm-6 col-xl-3">
+                <div class="card border-0 shadow-sm bg-danger bg-opacity-10 border border-danger border-opacity-25 h-100">
+                    <div class="card-body p-3 p-md-4">
+                        <div class="d-flex justify-content-between align-items-start">
                             <div>
-                                <h6 class="mb-1">Total Pesanan Hari Ini</h6>
-                                <h3 class="fw-bold mb-0">{{ $totalOrdersToday }} Pesanan</h3>
+                                <p class="text-danger small mb-1">Pengeluaran Bulan Ini</p>
+                                <h4 class="fw-bold text-danger mb-2">Rp {{ number_format($totalExpenseMonth, 0, ',', '.') }}</h4>
+                                <span class="badge bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25 fw-normal">
+                                    Biaya operasional
+                                </span>
                             </div>
-                            <i class="bi bi-cart-check fs-1 opacity-50"></i>
+                            <i class="bi bi-cash-stack fs-2 text-danger text-opacity-50"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {{-- Laba Bersih Bulan Ini --}}
+            <div class="col-sm-6 col-xl-3">
+                <div class="card border-0 shadow-sm {{ $netProfitMonth >= 0 ? 'bg-info bg-opacity-10 border border-info border-opacity-25' : 'bg-danger bg-opacity-10 border border-danger border-opacity-25' }} h-100">
+                    <div class="card-body p-3 p-md-4">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <p class="{{ $netProfitMonth >= 0 ? 'text-primary' : 'text-danger' }} small mb-1">Laba Bersih Bulan Ini</p>
+                                <h4 class="fw-bold {{ $netProfitMonth >= 0 ? 'text-primary' : 'text-danger' }} mb-2">
+                                    Rp {{ number_format($netProfitMonth, 0, ',', '.') }}
+                                </h4>
+                                <span class="badge {{ $netProfitMonth >= 0 ? 'bg-success bg-opacity-15 text-success' : 'bg-danger bg-opacity-15 text-danger' }} fw-normal">
+                                    {{ $netProfitMonth >= 0 ? 'Surplus / Profit' : 'Defisit' }}
+                                </span>
+                            </div>
+                            <i class="bi bi-pie-chart fs-2 {{ $netProfitMonth >= 0 ? 'text-primary' : 'text-danger' }} text-opacity-50"></i>
                         </div>
                     </div>
                 </div>
@@ -57,16 +89,21 @@
                             <div>
                                 <h5 class="fw-bold mb-1">
                                     <i class="bi bi-graph-up text-success me-2"></i>
-                                    Tren Pendapatan 14 Hari Terakhir
+                                    Tren Pendapatan Harian
                                 </h5>
                                 <p class="text-muted small mb-0">Arus pendapatan harian dari transaksi penjualan</p>
                             </div>
-                            <div class="d-flex align-items-center gap-2">
+                            <div class="d-flex flex-wrap align-items-center gap-2">
+                                <div class="btn-group btn-group-sm me-md-2" role="group">
+                                    <button type="button" class="btn btn-outline-secondary period-btn" data-days="7" onclick="switchPeriod(7)">7 Hari</button>
+                                    <button type="button" class="btn btn-success text-white period-btn active" data-days="14" onclick="switchPeriod(14)">14 Hari</button>
+                                    <button type="button" class="btn btn-outline-secondary period-btn" data-days="30" onclick="switchPeriod(30)">30 Hari</button>
+                                </div>
                                 <span class="badge bg-light text-dark border py-2 px-3">
-                                    <span class="text-muted fw-normal">Rata-rata:</span> <strong>Rp {{ number_format($avgDailyIncome, 0, ',', '.') }}/hari</strong>
+                                    <span class="text-muted fw-normal">Rata-rata:</span> <strong id="chartAvgBadge">Rp {{ number_format($avgDailyIncome, 0, ',', '.') }}/hari</strong>
                                 </span>
                                 <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 py-2 px-3">
-                                    <span class="opacity-75 fw-normal">Puncak:</span> <strong>Rp {{ number_format($maxDailyIncome, 0, ',', '.') }}</strong>
+                                    <span class="opacity-75 fw-normal">Puncak:</span> <strong id="chartMaxBadge">Rp {{ number_format($maxDailyIncome, 0, ',', '.') }}</strong>
                                 </span>
                             </div>
                         </div>
@@ -201,8 +238,42 @@
         document.addEventListener('DOMContentLoaded', function () {
 
             // ── Grafik Pendapatan Harian (Smooth Area Modern) ───────────
-            const dailyLabels  = @json($dailyIncome->pluck('date'));
-            const dailyData    = @json($dailyIncome->pluck('income'));
+            const allLabels  = @json($dailyIncome->pluck('date'));
+            const allData    = @json($dailyIncome->pluck('income'));
+
+            let dailyChart = null;
+
+            const formatRupiah = (num) => 'Rp ' + Math.round(num).toLocaleString('id-ID');
+
+            window.switchPeriod = function (days) {
+                if (!dailyChart) return;
+
+                const slicedLabels = allLabels.slice(-days);
+                const slicedData   = allData.slice(-days);
+
+                dailyChart.data.labels = slicedLabels;
+                dailyChart.data.datasets[0].data = slicedData;
+                dailyChart.update();
+
+                // Update badge info
+                const sum = slicedData.reduce((a, b) => a + b, 0);
+                const avg = slicedData.length > 0 ? (sum / slicedData.length) : 0;
+                const max = slicedData.length > 0 ? Math.max(...slicedData) : 0;
+
+                const avgEl = document.getElementById('chartAvgBadge');
+                const maxEl = document.getElementById('chartMaxBadge');
+                if (avgEl) avgEl.innerText = formatRupiah(avg) + '/hari';
+                if (maxEl) maxEl.innerText = formatRupiah(max);
+
+                // Update active button styling
+                document.querySelectorAll('.period-btn').forEach(btn => {
+                    if (parseInt(btn.dataset.days, 10) === days) {
+                        btn.className = 'btn btn-success text-white period-btn active';
+                    } else {
+                        btn.className = 'btn btn-outline-secondary period-btn';
+                    }
+                });
+            };
 
             const canvasDaily = document.getElementById('dailyIncomeChart');
             if (canvasDaily) {
@@ -212,13 +283,17 @@
                 gradient.addColorStop(0.7, 'rgba(16, 185, 129, 0.05)');
                 gradient.addColorStop(1, 'rgba(16, 185, 129, 0.00)');
 
-                new Chart(ctx, {
+                // Awal 14 hari
+                const initialLabels = allLabels.slice(-14);
+                const initialData   = allData.slice(-14);
+
+                dailyChart = new Chart(ctx, {
                     type: 'line',
                     data: {
-                        labels: dailyLabels,
+                        labels: initialLabels,
                         datasets: [{
                             label: 'Pendapatan',
-                            data: dailyData,
+                            data: initialData,
                             borderColor: '#10b981',
                             borderWidth: 2.5,
                             backgroundColor: gradient,

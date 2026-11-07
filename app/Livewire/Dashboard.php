@@ -4,6 +4,7 @@ namespace App\Livewire;
 
 use Livewire\Component;
 use Livewire\WithPagination;
+use App\Models\Expense;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\OrderItemTopping;
@@ -20,11 +21,15 @@ class Dashboard extends Component
     {
         $today = Carbon::today();
 
-        $totalIncomeToday = Order::whereDate('created_at', $today)->sum('total');
-        $totalOrdersToday = Order::whereDate('created_at', $today)->count();
-        $totalIncomeMonth = Order::whereMonth('created_at', $today->month)
+        $totalIncomeToday  = Order::whereDate('created_at', $today)->sum('total');
+        $totalOrdersToday  = Order::whereDate('created_at', $today)->count();
+        $totalIncomeMonth  = Order::whereMonth('created_at', $today->month)
                                  ->whereYear('created_at', $today->year)
                                  ->sum('total');
+        $totalExpenseMonth = (float) Expense::whereMonth('expense_date', $today->month)
+                                 ->whereYear('expense_date', $today->year)
+                                 ->sum('amount');
+        $netProfitMonth    = (float) ($totalIncomeMonth - $totalExpenseMonth);
 
         $recentOrders = Order::with('items')
             ->whereMonth('created_at', $today->month)
@@ -54,8 +59,8 @@ class Dashboard extends Component
             ->limit(5)
             ->get();
 
-        // Pendapatan per hari: 14 hari terakhir
-        $dailyIncome = collect(range(13, 0))->map(function ($daysAgo) {
+        // Pendapatan per hari: 30 hari terakhir (bisa difilter 7, 14, 30 hari di frontend)
+        $dailyIncome = collect(range(29, 0))->map(function ($daysAgo) {
             $date = Carbon::today()->subDays($daysAgo);
             $income = Order::whereDate('created_at', $date)->sum('total');
             return [
@@ -64,19 +69,22 @@ class Dashboard extends Component
             ];
         });
 
-        $avgDailyIncome = (float) ($dailyIncome->avg('income') ?: 0);
-        $maxDailyIncome = (float) ($dailyIncome->max('income') ?: 0);
+        $recent14 = $dailyIncome->slice(-14);
+        $avgDailyIncome = (float) ($recent14->avg('income') ?: 0);
+        $maxDailyIncome = (float) ($recent14->max('income') ?: 0);
 
         return view('livewire.dashboard', [
-            'totalIncomeToday' => $totalIncomeToday,
-            'totalOrdersToday' => $totalOrdersToday,
-            'totalIncomeMonth' => $totalIncomeMonth,
-            'orders'           => $recentOrders,
-            'bestSellers'      => $bestSellers,
-            'bestToppings'     => $bestToppings,
-            'dailyIncome'      => $dailyIncome,
-            'avgDailyIncome'   => $avgDailyIncome,
-            'maxDailyIncome'   => $maxDailyIncome,
+            'totalIncomeToday'  => $totalIncomeToday,
+            'totalOrdersToday'  => $totalOrdersToday,
+            'totalIncomeMonth'  => $totalIncomeMonth,
+            'totalExpenseMonth' => $totalExpenseMonth,
+            'netProfitMonth'    => $netProfitMonth,
+            'orders'            => $recentOrders,
+            'bestSellers'       => $bestSellers,
+            'bestToppings'      => $bestToppings,
+            'dailyIncome'       => $dailyIncome,
+            'avgDailyIncome'    => $avgDailyIncome,
+            'maxDailyIncome'    => $maxDailyIncome,
         ])->layout('layouts.app');
     }
 }

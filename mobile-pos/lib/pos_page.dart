@@ -1653,15 +1653,10 @@ class _PosHomePageState extends State<PosHomePage> {
     final now = DateTime.now();
     final datePart =
         '${now.year}${now.month.toString().padLeft(2, '0')}${now.day.toString().padLeft(2, '0')}';
+    final timePart =
+        '${now.hour.toString().padLeft(2, '0')}${now.minute.toString().padLeft(2, '0')}${now.second.toString().padLeft(2, '0')}';
 
-    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-    final random = Random();
-    final randomPart = List.generate(
-      4,
-      (_) => chars[random.nextInt(chars.length)],
-    ).join();
-
-    return 'INV-$datePart-$randomPart';
+    return 'INV-$datePart-$timePart';
   }
 
   void _showMessage(String message, {SnackBarType type = SnackBarType.info}) {
