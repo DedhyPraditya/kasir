@@ -41,62 +41,84 @@ class FixOrderTimestamps extends Command
 
         $fixedCount = 0;
 
-        // 1. Koreksi transaksi yang berada di masa depan (> now()) akibat selisih timezone
-        $futureOrders = Order::withoutGlobalScopes()
-            ->where('created_at', '>', now())
-            ->get();
-
-        foreach ($futureOrders as $order) {
-            $corrected = $order->created_at->copy()->subDay();
-            $this->warn(sprintf(
-                '[MASA DEPAN -> DIKEMBALIKAN] %s: %s -> %s',
-                $order->invoice_number,
-                $order->created_at->toDateTimeString(),
-                $corrected->toDateTimeString()
-            ));
-
-            if (! $isDryRun) {
-                $order->created_at = $corrected;
-                $order->updated_at = $corrected;
-                $order->saveQuietly();
-            }
-
-            $fixedCount++;
-        }
-
-        // 2. Koreksi order yang created_at tidak sesuai tanggal nomor invoice (offline sync lag)
         foreach ($orders as $order) {
-            if (! preg_match('/^INV-(\d{4})(\d{2})(\d{2})-/i', $order->invoice_number, $matches)) {
+            // A. Format baru presisi waktu: INV-YYYYMMDD-HHmmss (misal: INV-20261108-013506)
+            if (preg_match('/^INV-(\d{4})(\d{2})(\d{2})-(\d{2})(\d{2})(\d{2})$/', $order->invoice_number, $matches)) {
+                $targetTimestamp = Carbon::create(
+                    (int) $matches[1],
+                    (int) $matches[2],
+                    (int) $matches[3],
+                    (int) $matches[4],
+                    (int) $matches[5],
+                    (int) $matches[6]
+                );
+
+                if (! $order->created_at || $order->created_at->toDateTimeString() !== $targetTimestamp->toDateTimeString()) {
+                    $this->info(sprintf(
+                        '[FORMAT PRESISI] %s: %s -> %s',
+                        $order->invoice_number,
+                        $order->created_at ? $order->created_at->toDateTimeString() : 'NULL',
+                        $targetTimestamp->toDateTimeString()
+                    ));
+
+                    if (! $isDryRun) {
+                        $order->created_at = $targetTimestamp;
+                        $order->updated_at = $targetTimestamp;
+                        $order->saveQuietly();
+                    }
+
+                    $fixedCount++;
+                }
                 continue;
             }
 
-            $invoiceDate = "{$matches[1]}-{$matches[2]}-{$matches[3]}";
-            $currentDate = $order->created_at ? $order->created_at->format('Y-m-d') : null;
+            // B. Khusus transaksi lama tengah malam beda timezone (PR9E & 85R2)
+            if (in_array($order->invoice_number, ['INV-20261108-PR9E', 'INV-20261108-85R2'])) {
+                if ($order->created_at && $order->created_at->format('Y-m-d') === '2026-11-08' && $order->created_at->hour === 23) {
+                    $corrected = $order->created_at->copy()->subDay();
+                    $this->warn(sprintf(
+                        '[KOREKSI 7 NOV] %s: %s -> %s',
+                        $order->invoice_number,
+                        $order->created_at->toDateTimeString(),
+                        $corrected->toDateTimeString()
+                    ));
 
-            if ($invoiceDate !== $currentDate) {
-                $timePart = $order->created_at ? $order->created_at->format('H:i:s') : '12:00:00';
-                $newTimestamp = Carbon::parse("{$invoiceDate} {$timePart}");
+                    if (! $isDryRun) {
+                        $order->created_at = $corrected;
+                        $order->updated_at = $corrected;
+                        $order->saveQuietly();
+                    }
 
-                // Jangan ubah jika menjadi waktu masa depan
-                if ($newTimestamp->isFuture()) {
-                    continue;
+                    $fixedCount++;
                 }
+                continue;
+            }
 
-                $this->line(sprintf(
-                    '[%s] %s: %s -> %s',
-                    $order->id,
-                    $order->invoice_number,
-                    $order->created_at ? $order->created_at->toDateTimeString() : 'NULL',
-                    $newTimestamp->toDateTimeString()
-                ));
+            // C. Format lama dengan 4 karakter acak: INV-YYYYMMDD-XXXX
+            if (preg_match('/^INV-(\d{4})(\d{2})(\d{2})-/i', $order->invoice_number, $matches)) {
+                $invoiceDate = "{$matches[1]}-{$matches[2]}-{$matches[3]}";
+                $currentDate = $order->created_at ? $order->created_at->format('Y-m-d') : null;
 
-                if (! $isDryRun) {
-                    $order->created_at = $newTimestamp;
-                    $order->updated_at = $newTimestamp;
-                    $order->saveQuietly();
+                if ($invoiceDate !== $currentDate) {
+                    $timePart = $order->created_at ? $order->created_at->format('H:i:s') : '12:00:00';
+                    $newTimestamp = Carbon::parse("{$invoiceDate} {$timePart}");
+
+                    $this->line(sprintf(
+                        '[%s] %s: %s -> %s',
+                        $order->id,
+                        $order->invoice_number,
+                        $order->created_at ? $order->created_at->toDateTimeString() : 'NULL',
+                        $newTimestamp->toDateTimeString()
+                    ));
+
+                    if (! $isDryRun) {
+                        $order->created_at = $newTimestamp;
+                        $order->updated_at = $newTimestamp;
+                        $order->saveQuietly();
+                    }
+
+                    $fixedCount++;
                 }
-
-                $fixedCount++;
             }
         }
 
