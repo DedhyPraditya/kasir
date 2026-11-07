@@ -2,6 +2,12 @@
 
 Semua perubahan pada aplikasi Mobile POS dicatat di file ini.
 
+## [1.6.2] - 2026-11-07
+
+### ⏱️ Akurasi Waktu Transaksi Offline & Sinkronisasi
+- **Timestamp Riil Kasir**: Menyertakan waktu pembuatan transaksi saat kasir dalam keadaan offline sehingga laporan pendapatan harian tidak menumpuk di jam sinkronisasi.
+- **Integritas Data Laporan**: Menjaga keakuratan rekonsiliasi dan laporan laba-rugi sesuai tanggal belanja pelanggan.
+
 ## [1.6.1] - 2026-10-25
 
 ### 🔒 Rekonsiliasi Kasir (Tutup Kas) & Navigasi Bawah

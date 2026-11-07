@@ -123,10 +123,9 @@ return [
         'store' => env('APP_MAINTENANCE_STORE', 'database'),
     ],
 
-    'mobile_version' => '1.6.1',
-    'mobile_build_number' => 17,
-    'mobile_changelog' => "Pembaruan Versi 1.6.1:
-• Menu Tutup Kasir (Rekonsiliasi) di navigasi bawah mobile & cetak struk thermal.
-• Penambahan fitur pencatatan pengeluaran operasional toko.
-• Dukungan pencatatan offline & sinkronisasi otomatis ke server.",
+    'mobile_version' => '1.6.2',
+    'mobile_build_number' => 18,
+    'mobile_changelog' => "Pembaruan Versi 1.6.2:
+• Perbaikan waktu transaksi offline agar akurat sesuai jam pembuatan struk saat kasir offline.
+• Peningkatan keandalan sinkronisasi antrean pesanan ke server.",
 ];

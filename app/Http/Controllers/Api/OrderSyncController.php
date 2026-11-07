@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Order;
 use App\Models\Product;
 use App\Models\Topping;
+use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -24,6 +25,7 @@ class OrderSyncController extends Controller
             'total' => ['nullable', 'numeric', 'min:0'],
             'payment_method' => ['nullable', 'string', Rule::in(['cash', 'qris'])],
             'status' => ['required', 'string', Rule::in(['completed'])],
+            'created_at' => ['nullable', 'date'],
             'items' => ['required', 'array', 'min:1', 'max:200'],
             'items.*.product_id' => ['required', 'string'],
             'items.*.variant_id' => ['nullable', 'string'],
@@ -105,6 +107,7 @@ class OrderSyncController extends Controller
                 'total' => $total,
                 'payment_method' => $data['payment_method'] ?? null,
                 'status' => $data['status'],
+                'created_at' => ! empty($data['created_at']) ? Carbon::parse($data['created_at']) : now(),
             ]);
 
             foreach ($lines as $line) {

@@ -16,6 +16,14 @@ class _ChangelogEntry {
 
 const List<_ChangelogEntry> _changelog = [
   _ChangelogEntry(
+    version: '1.6.2',
+    date: '7 November 2026',
+    points: [
+      'Akurasi Waktu Transaksi Offline: Memastikan tanggal & jam transaksi kasir offline tercatat sesuai waktu riil struk dibuat, bukan saat HP baru tersambung internet.',
+      'Peningkatan Sinkronisasi Data: Payload order offline menyertakan timestamp akurat untuk menjaga integritas laporan harian.',
+    ],
+  ),
+  _ChangelogEntry(
     version: '1.6.1',
     date: '25 Oktober 2026',
     points: [

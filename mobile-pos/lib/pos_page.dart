@@ -1072,6 +1072,7 @@ class _PosHomePageState extends State<PosHomePage> {
       'total': _subtotal,
       'payment_method': _paymentMethod,
       'status': 'completed',
+      'created_at': DateTime.now().toIso8601String(),
       'items': _cart.map((item) => item.toJson()).toList(),
     };
 
