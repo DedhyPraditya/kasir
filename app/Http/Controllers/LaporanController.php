@@ -28,7 +28,7 @@ class LaporanController extends Controller
             });
         }
 
-        $orders          = $query->latest()->get();
+        $orders          = $query->orderByDesc('created_at')->orderByDesc('invoice_number')->get();
         $totalPendapatan = (float) $orders->sum('total');
         $totalCash       = (float) $orders->where('payment_method', 'cash')->sum('total');
         $totalQris       = (float) $orders->where('payment_method', 'qris')->sum('total');

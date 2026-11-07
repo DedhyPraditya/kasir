@@ -34,7 +34,8 @@ class Dashboard extends Component
         $recentOrders = Order::with('items')
             ->whereMonth('created_at', $today->month)
             ->whereYear('created_at', $today->year)
-            ->latest()
+            ->orderByDesc('created_at')
+            ->orderByDesc('invoice_number')
             ->paginate(10);
 
         // Best Seller Produk: top 5 bulan ini berdasarkan total qty terjual

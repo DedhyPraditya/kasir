@@ -93,7 +93,12 @@ class Laporan extends Component
     /** @return array<int, string> */
     private function currentPageIds(): array
     {
-        return $this->baseQuery()->latest()->forPage($this->getPage(), self::PER_PAGE)->pluck('id')->all();
+        return $this->baseQuery()
+            ->orderByDesc('created_at')
+            ->orderByDesc('invoice_number')
+            ->forPage($this->getPage(), self::PER_PAGE)
+            ->pluck('id')
+            ->all();
     }
 
     public function confirmDelete(?string $orderId = null): void
@@ -179,7 +184,11 @@ class Laporan extends Component
         $totalPengeluaran = (float) $expenseQuery->sum('amount');
         $labaBersih      = (float) ($totalPendapatan - $totalPengeluaran);
 
-        $orders = (clone $base)->with('items')->latest()->paginate(self::PER_PAGE);
+        $orders = (clone $base)
+            ->with('items')
+            ->orderByDesc('created_at')
+            ->orderByDesc('invoice_number')
+            ->paginate(self::PER_PAGE);
         $pageIds = $orders->pluck('id')->all();
 
         return view('livewire.laporan', [

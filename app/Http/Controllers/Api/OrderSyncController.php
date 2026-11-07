@@ -144,7 +144,8 @@ class OrderSyncController extends Controller
     {
         $orders = Order::with(['items.toppings'])
             ->whereDate('created_at', today())
-            ->latest()
+            ->orderByDesc('created_at')
+            ->orderByDesc('invoice_number')
             ->get()
             ->map(function (Order $order) {
                 return [
