@@ -50,9 +50,11 @@ class ExpenseController extends Controller
         $user = auth()->user();
         $storeId = $user->tenantId();
 
-        // Idempotency: Jika ID dikirim dari mobile (antrean offline), cek apakah sudah ada
+        // M4: Idempotency hanya untuk toko yang sama agar tidak membocorkan pengeluaran toko lain
         if (! empty($data['id'])) {
-            $existing = Expense::withoutGlobalScopes()->find($data['id']);
+            $existing = Expense::withoutGlobalScopes()
+                ->where('store_id', $storeId)
+                ->find($data['id']);
             if ($existing) {
                 return response()->json([
                     'success' => true,
@@ -94,6 +96,15 @@ class ExpenseController extends Controller
     public function destroy(string $id): JsonResponse
     {
         $expense = Expense::findOrFail($id);
+        $user = auth()->user();
+
+        if (! $user->hasRole(['admin', 'developer']) && $expense->user_id !== $user->id) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Anda hanya dapat menghapus pengeluaran yang Anda catat sendiri.',
+            ], 403);
+        }
+
         $expense->delete();
 
         return response()->json([

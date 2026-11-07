@@ -14,7 +14,7 @@ Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:20
 Route::get('/app-version', [AppVersionController::class, 'check']);
 Route::get('/download-apk', [AppVersionController::class, 'download']);
 
-Route::middleware(['api.token'])->group(function () {
+Route::middleware(['api.token', 'throttle:60,1'])->group(function () {
     Route::get('/products', [ProductController::class, 'index']);
     Route::get('/categories', [App\Http\Controllers\Api\CategoryController::class, 'index']);
     Route::get('/toppings', [ToppingController::class, 'index']);

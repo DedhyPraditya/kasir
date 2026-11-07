@@ -2,6 +2,12 @@
 
 Semua perubahan pada aplikasi Mobile POS dicatat di file ini.
 
+## [1.6.4] - 2026-11-08
+
+### 🛡️ Proteksi Anti-Bentrok Invoice & Keamanan Sinkronisasi
+- **Kunci Idempotensi (`client_uuid`)**: Setiap transaksi dilengkapi UUID unik per perangkat sehingga sinkronisasi ulang saat sinyal putus-nyambung tidak pernah menimpa transaksi kasir lain.
+- **Sufiks Anti-Tabrakan (`INV-YYYYMMDD-HHmmss-XX`)**: Menambahkan 2 karakter unik di belakang jam-menit-detik untuk mencegah bentrok nomor invoice saat beberapa kasir bertransaksi di detik yang sama.
+
 ## [1.6.3] - 2026-11-07
 
 ### 🧾 Format Nomor Invoice Jam-Menit-Detik (Presisi Waktu)

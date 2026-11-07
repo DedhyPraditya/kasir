@@ -22,6 +22,11 @@ class QrisSettings extends Component
     public $manualPayload = '';
     public $useManualInput = false;
 
+    public function boot(): void
+    {
+        abort_unless(auth()->user()?->hasRole('admin'), 403);
+    }
+
     public function toggleManualInput()
     {
         $this->useManualInput = ! $this->useManualInput;
@@ -45,7 +50,7 @@ class QrisSettings extends Component
             $payload = trim($this->manualPayload);
         } else {
             $this->validate([
-                'qrisImage' => 'required|image|max:4096',
+                'qrisImage' => 'required|image|mimes:jpg,jpeg,png,webp|max:4096',
             ], [
                 'qrisImage.required' => 'Silakan pilih gambar QRIS.',
                 'qrisImage.image' => 'File harus berupa gambar.',

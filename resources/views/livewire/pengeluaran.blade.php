@@ -141,12 +141,16 @@
                                         <i class="bi bi-person me-1"></i>{{ $item->user?->username ?? 'Kasir' }}
                                     </td>
                                     <td class="text-center pe-3">
-                                        <button class="btn btn-sm btn-outline-primary me-1" wire:click="edit('{{ $item->id }}')" title="Edit">
-                                            <i class="bi bi-pencil"></i>
-                                        </button>
-                                        <button class="btn btn-sm btn-outline-danger" onclick="if(confirm('Yakin ingin menghapus catatan pengeluaran ini?')) { @this.delete('{{ $item->id }}') }" title="Hapus">
-                                            <i class="bi bi-trash"></i>
-                                        </button>
+                                        @if(auth()->user()->hasRole(['admin', 'developer']) || $item->user_id === auth()->id())
+                                            <button class="btn btn-sm btn-outline-primary me-1" wire:click="edit('{{ $item->id }}')" title="Edit">
+                                                <i class="bi bi-pencil"></i>
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-danger" onclick="if(confirm('Yakin ingin menghapus catatan pengeluaran ini?')) { @this.delete('{{ $item->id }}') }" title="Hapus">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                        @else
+                                            <span class="text-muted small">-</span>
+                                        @endif
                                     </td>
                                 </tr>
                             @empty

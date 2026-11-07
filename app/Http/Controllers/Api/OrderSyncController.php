@@ -19,6 +19,7 @@ class OrderSyncController extends Controller
     {
         $data = $request->validate([
             'invoice_number' => ['required', 'string', 'max:255'],
+            'client_uuid' => ['nullable', 'uuid'],
             'customer_name' => ['nullable', 'string', 'max:255'],
             // Nominal dari aplikasi hanya dibaca untuk kompatibilitas; harga dihitung ulang di server.
             'subtotal' => ['nullable', 'numeric', 'min:0'],
@@ -34,20 +35,46 @@ class OrderSyncController extends Controller
             'items.*.toppings.*.topping_id' => ['required_with:items.*.toppings', 'string'],
         ]);
 
-        // Kirim ulang invoice yang sudah tersimpan (mis. respons sebelumnya hilang di jaringan)
-        // dianggap berhasil, supaya antrean offline di aplikasi tidak macet.
-        $existing = Order::withoutGlobalScopes()->where('invoice_number', $data['invoice_number'])->first();
+        $storeId = auth()->user()->tenantId();
+        $clientUuid = $data['client_uuid'] ?? null;
 
-        if ($existing) {
-            if ($existing->store_id === auth()->user()->tenantId()) {
+        // 1. Idempotensi utama: cek berdasarkan client_uuid (per toko) jika dikirim oleh aplikasi.
+        if ($clientUuid) {
+            $existingByUuid = Order::withoutGlobalScopes()
+                ->where('store_id', $storeId)
+                ->where('client_uuid', $clientUuid)
+                ->first();
+
+            if ($existingByUuid) {
                 return response()->json([
                     'success' => true,
-                    'order_id' => $existing->id,
-                    'invoice_number' => $existing->invoice_number,
+                    'order_id' => $existingByUuid->id,
+                    'invoice_number' => $existingByUuid->invoice_number,
+                ], 201);
+            }
+        }
+
+        // 2. Fallback kompatibilitas & cegah tabrakan nomor invoice di toko yang sama.
+        $existingByInvoice = Order::withoutGlobalScopes()
+            ->where('store_id', $storeId)
+            ->where('invoice_number', $data['invoice_number'])
+            ->first();
+
+        if ($existingByInvoice) {
+            // Jika baik request maupun order lama sama-sama tidak punya client_uuid (APK lama <= 1.6.3),
+            // anggap sebagai kirim ulang agar antrean offline tidak macet.
+            if (! $clientUuid && ! $existingByInvoice->client_uuid) {
+                return response()->json([
+                    'success' => true,
+                    'order_id' => $existingByInvoice->id,
+                    'invoice_number' => $existingByInvoice->invoice_number,
                 ], 201);
             }
 
-            throw ValidationException::withMessages(['invoice_number' => 'Nomor invoice sudah dipakai.']);
+            // Jika ternyata ini transaksi berbeda yang kebetulan satu detik (tabrakan invoice),
+            // tambahkan sufiks acak agar transaksi kedua tetap tersimpan dan tidak hilang.
+            $suffix = strtoupper( substr(bin2hex(random_bytes(2)), 0, 2) );
+            $data['invoice_number'] = $data['invoice_number'] . '-' . $suffix;
         }
 
         // Harga, nama, dan total diambil dari database toko ini, bukan dari aplikasi.
@@ -99,15 +126,28 @@ class OrderSyncController extends Controller
 
         $total = collect($lines)->sum('subtotal');
 
-        $order = DB::transaction(function () use ($data, $lines, $total) {
+        // H3: Batasi rentang created_at agar tidak bisa dimanipulasi ke masa depan atau terlalu lampau (> 14 hari).
+        $orderTimestamp = now();
+        if (! empty($data['created_at'])) {
+            $parsedTime = Carbon::parse($data['created_at']);
+            $minAllowed = now()->subDays(14);
+            $maxAllowed = now()->addMinutes(5);
+
+            if ($parsedTime->between($minAllowed, $maxAllowed)) {
+                $orderTimestamp = $parsedTime;
+            }
+        }
+
+        $order = DB::transaction(function () use ($data, $lines, $total, $clientUuid, $orderTimestamp) {
             $order = Order::create([
                 'invoice_number' => $data['invoice_number'],
+                'client_uuid' => $clientUuid,
                 'customer_name' => $data['customer_name'] ?? null,
                 'subtotal' => $total,
                 'total' => $total,
                 'payment_method' => $data['payment_method'] ?? null,
                 'status' => $data['status'],
-                'created_at' => ! empty($data['created_at']) ? Carbon::parse($data['created_at']) : now(),
+                'created_at' => $orderTimestamp,
             ]);
 
             foreach ($lines as $line) {

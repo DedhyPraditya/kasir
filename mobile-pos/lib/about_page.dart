@@ -16,6 +16,14 @@ class _ChangelogEntry {
 
 const List<_ChangelogEntry> _changelog = [
   _ChangelogEntry(
+    version: '1.6.4',
+    date: '8 November 2026',
+    points: [
+      'Proteksi Anti-Bentrok Invoice Multi-Perangkat: Penambahan client_uuid dan kode unik 2 karakter (INV-YYYYMMDD-HHmmss-XX) agar transaksi dari beberapa HP di detik yang sama tidak bertabrakan.',
+      'Peningkatan Keamanan & Keandalan Sinkronisasi: Menjamin tidak ada transaksi offline/online yang tertimpa atau tertahan di antrean.',
+    ],
+  ),
+  _ChangelogEntry(
     version: '1.6.3',
     date: '7 November 2026',
     points: [

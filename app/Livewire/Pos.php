@@ -9,6 +9,7 @@ use App\Models\Order;
 use App\Services\QrisService;
 use Endroid\QrCode\QrCode;
 use Endroid\QrCode\Writer\PngWriter;
+use Illuminate\Support\Facades\DB;
 use Livewire\Component;
 use Illuminate\Support\Str;
 
@@ -150,7 +151,55 @@ class Pos extends Component
     {
         if (empty($this->cart)) return;
 
-        $total = $this->total;
+        // H2: Hitung ulang produk, varian, topping, dan harga langsung dari database (jangan percaya state klien).
+        $productIds = collect($this->cart)->pluck('product_id')->filter()->unique()->all();
+        $toppingIds = collect($this->cart)->flatMap(fn ($i) => collect($i['toppings'] ?? [])->pluck('id'))->filter()->unique()->all();
+
+        $products = Product::with('variants')->whereIn('id', $productIds)->get()->keyBy('id');
+        $toppings = Topping::whereIn('id', $toppingIds)->get()->keyBy('id');
+
+        $verifiedLines = [];
+        foreach ($this->cart as $item) {
+            $qty = max(1, min(1000, (int) ($item['quantity'] ?? 1)));
+            $product = $products->get($item['product_id'] ?? null);
+            if (! $product) {
+                continue;
+            }
+
+            $variant = null;
+            if (! empty($item['variant_id'])) {
+                $variant = $product->variants->firstWhere('id', $item['variant_id']);
+                if (! $variant) {
+                    continue;
+                }
+            }
+
+            $lineToppings = [];
+            foreach ($item['toppings'] ?? [] as $tData) {
+                $topping = $toppings->get($tData['id'] ?? null);
+                if ($topping) {
+                    $lineToppings[] = $topping;
+                }
+            }
+
+            $unitPrice = (float) ($variant ? $variant->price : $product->base_price) + collect($lineToppings)->sum('price');
+            $verifiedLines[] = [
+                'product' => $product,
+                'variant' => $variant,
+                'toppings' => $lineToppings,
+                'quantity' => $qty,
+                'price' => $unitPrice,
+                'subtotal' => $unitPrice * $qty,
+            ];
+        }
+
+        if (empty($verifiedLines)) {
+            $this->cart = [];
+            $this->showPaymentModal = false;
+            return;
+        }
+
+        $total = collect($verifiedLines)->sum('subtotal');
 
         $this->validate([
             'customerName' => 'required|string|max:255',
@@ -162,44 +211,44 @@ class Pos extends Component
             'amountPaid.min' => 'Nominal uang tidak cukup! Minimal Rp ' . number_format($total, 0, ',', '.'),
         ]);
 
-        // Generate Invoice: INV-YYYYMMDD-HHmmss
-        $invoiceNumber = 'INV-' . date('Ymd-His');
-        if (Order::withoutGlobalScopes()->where('invoice_number', $invoiceNumber)->exists()) {
-            $invoiceNumber = 'INV-' . date('Ymd-His') . '-' . rand(1, 9);
-        }
+        // H1: Generate Invoice dengan sufiks 2 karakter acak untuk mencegah tabrakan di detik yang sama
+        $chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+        $suffix = $chars[random_int(0, strlen($chars) - 1)] . $chars[random_int(0, strlen($chars) - 1)];
+        $invoiceNumber = 'INV-' . date('Ymd-His') . '-' . $suffix;
 
-        // Save Order
-        $order = Order::create([
-            'invoice_number' => $invoiceNumber,
-            'customer_name' => $this->customerName,
-            'subtotal' => $total,
-            'total' => $total,
-            'payment_method' => $this->paymentMethod,
-            'status' => 'completed',
-        ]);
-
-        // Save Items & Toppings
-        foreach ($this->cart as $item) {
-            $orderItem = $order->items()->create([
-                'product_id' => $item['product_id'],
-                'variant_id' => $item['variant_id'],
-                'product_name' => $item['product_name'],
-                'variant_name' => $item['variant_name'],
-                'quantity' => $item['quantity'],
-                'price' => $item['price'],
-                'subtotal' => $item['subtotal'],
+        // H2 & L7: Simpan Order + Items dalam satu transaksi database
+        $order = DB::transaction(function () use ($invoiceNumber, $total, $verifiedLines) {
+            $order = Order::create([
+                'invoice_number' => $invoiceNumber,
+                'customer_name' => $this->customerName,
+                'subtotal' => $total,
+                'total' => $total,
+                'payment_method' => $this->paymentMethod,
+                'status' => 'completed',
             ]);
 
-            if (!empty($item['toppings'])) {
-                foreach ($item['toppings'] as $topping) {
+            foreach ($verifiedLines as $line) {
+                $orderItem = $order->items()->create([
+                    'product_id' => $line['product']->id,
+                    'variant_id' => $line['variant']?->id,
+                    'product_name' => $line['product']->name,
+                    'variant_name' => $line['variant']?->name,
+                    'quantity' => $line['quantity'],
+                    'price' => $line['price'],
+                    'subtotal' => $line['subtotal'],
+                ]);
+
+                foreach ($line['toppings'] as $topping) {
                     $orderItem->toppings()->create([
-                        'topping_id' => $topping['id'],
-                        'topping_name' => $topping['name'],
-                        'price' => $topping['price'],
+                        'topping_id' => $topping->id,
+                        'topping_name' => $topping->name,
+                        'price' => $topping->price,
                     ]);
                 }
             }
-        }
+
+            return $order;
+        });
 
         $kembalian = $this->paymentMethod === 'cash' ? ((int)$this->amountPaid - $total) : 0;
         

@@ -1,6 +1,6 @@
 # Rangkuman Perkembangan & Pembaruan Sistem (8 November 2026)
 
-Dokumen ini merangkum seluruh perubahan, perbaikan bug, modernisasi UI, serta status rilis yang telah diselesaikan pada sistem kasir (Web Dashboard & Mobile POS).
+Dokumen ini merangkum seluruh perubahan, perbaikan bug, modernisasi UI, perbaikan celah keamanan, serta status rilis yang telah diselesaikan pada sistem kasir (Web Dashboard & Mobile POS).
 
 ---
 
@@ -15,21 +15,21 @@ Dokumen ini merangkum seluruh perubahan, perbaikan bug, modernisasi UI, serta st
 
 ## 2. Rincian Perbaikan yang Telah Diselesaikan
 
-### A. Akurasi Timestamp Transaksi Offline Kasir
+### A. Akurasi Timestamp Transaksi Offline Kasir & Pembatasan Backdating (H3)
 1. **Mobile POS (`mobile-pos/lib/pos_page.dart`):**
-   - Payload sinkronisasi ditambahkan `'created_at': DateTime.now().toIso8601String()`, menjaga waktu riil saat kasir menekan tombol bayar.
+   - Payload sinkronisasi menyertakan `'created_at': DateTime.now().toIso8601String()`, menjaga waktu riil saat kasir menekan tombol bayar.
 2. **Backend API (`app/Http/Controllers/Api/OrderSyncController.php`):**
    - Menerima validasi `'created_at' => ['nullable', 'date']`.
-   - Menggunakan `$data['created_at']` jika tersedia saat pembuatan order (fallback `now()`).
+   - Membatasi `created_at` hanya diterima jika dalam rentang **14 hari ke belakang s/d 5 menit ke depan** (mencegah manipulasi tanggal masa lalu/masa depan).
 3. **Model Database (`app/Models/Order.php`):**
-   - Menambahkan `'created_at'` ke dalam properti `$fillable`.
+   - Menambahkan `'created_at'` dan `'client_uuid'` ke dalam properti `$fillable`.
 
-### B. Format Nomor Invoice Baru (Tanpa Karakter Acak)
-1. **Web POS (`app/Livewire/Pos.php`):**
-   - Nomor invoice diubah menjadi format presisi waktu: `INV-YYYYMMDD-HHmmss` (contoh: `INV-20261108-011425`).
-2. **Mobile POS (`mobile-pos/lib/pos_page.dart`):**
-   - Fungsi `_generateInvoiceNumber()` diubah menjadi `INV-YYYYMMDD-HHmmss`.
-   - Peniadaan 4 karakter acak agar seluruh nomor struk mencerminkan tanggal & waktu pembuatan transaksi secara presisi.
+### B. Format Nomor Invoice Presisi & Anti-Bentrok Multi-Kasir (H1)
+1. **Format Invoice (`INV-YYYYMMDD-HHmmss-XX`):**
+   - Mencerminkan tanggal dan jam-menit-detik transaksi secara presisi, ditambah 2 karakter kode unik di ujung untuk mencegah tabrakan jika dua HP kasir membuat transaksi pada detik yang sama.
+2. **Idempotensi Berbasis `client_uuid`:**
+   - Migrasi `2026_11_08_000000_add_client_uuid_and_store_unique_invoice_to_orders.php` menambahkan kolom `client_uuid` dan mengubah unique index `invoice_number` menjadi per toko (`['store_id', 'invoice_number']`).
+   - Menjamin tidak ada transaksi yang hilang/tertimpa saat sinkronisasi ulang maupun saat banyak perangkat kasir aktif bersamaan.
 
 ### C. Normalisasi & Reset Otomatis Bulanan di Web
 1. **Dashboard Utama (`app/Livewire/Dashboard.php`):**
@@ -62,21 +62,25 @@ Dokumen ini merangkum seluruh perubahan, perbaikan bug, modernisasi UI, serta st
      `->orderByDesc('created_at')->orderByDesc('invoice_number')`.
    - Transaksi paling baru mutlak di paling atas tanpa dipengaruhi abjad pelanggan/invoice.
 
-### E. Command Artisan Pemulihan Data Transaksi Lama
-- **File:** `app/Console/Commands/FixOrderTimestamps.php`
-- **Fungsi:** Mendeteksi transaksi berpola `INV-YYYYMMDD-...` yang tanggal `created_at`-nya tidak sesuai (misal invoice 23 & 29 Oktober yang tertumpuk di 31 Oktober 01:13) dan memulihkannya ke tanggal riil.
-- **Perintah:**
-  - Simulasi: `php artisan orders:fix-timestamps --dry-run`
-  - Eksekusi: `php artisan orders:fix-timestamps`
+### F. Perbaikan Keamanan Backend & Livewire (H2, M1, M2, M4, M5, L6, L7)
+1. **Hitung Ulang Harga Keranjang Web POS (`Pos.php`):** Harga produk, varian, dan topping dihitung ulang dari database di dalam `DB::transaction()`, mencegah manipulasi harga/qty dari browser.
+2. **Proteksi Role Admin di Livewire (`Produk.php`, `QrisSettings.php`):** Penambahan `boot()` `abort_unless` untuk memastikan hanya admin yang dapat memodifikasi produk dan QRIS.
+3. **Otorisasi Pengeluaran (`Pengeluaran.php`, `ExpenseController.php`):** Kasir hanya dapat mengedit/menghapus pengeluaran yang dicatatnya sendiri; admin/developer dapat mengelola seluruhnya.
+4. **Isolasi Idempotensi Pengeluaran (`ExpenseController.php`):** Pengecekan duplikasi UUID pengeluaran dibatasi per `store_id`.
+5. **Rate Limiting API (`routes/api.php`):** Penambahan `throttle:60,1` pada grup endpoint `api.token`.
+6. **Validasi MIME Upload Gambar:** Pembatasan `mimes:jpg,jpeg,png,webp` pada upload gambar produk dan QRIS.
 
-### F. Rilis Versi Aplikasi Mobile (v1.6.3 Build 19)
-- **Versi:** Dinaikkan ke `1.6.3+19` mengikuti aturan `.agents/rules/mobile_release.md`:
+### G. Command Artisan Pemulihan Data Transaksi Lama
+- **File:** `app/Console/Commands/FixOrderTimestamps.php`
+- **Perintah:** `php artisan orders:fix-timestamps [--dry-run]`
+
+### H. Rilis Versi Aplikasi Mobile (v1.6.4 Build 20)
+- **Versi:** Dinaikkan ke `1.6.4+20` mengikuti aturan `.agents/rules/mobile_release.md`:
   - `config/app.php`
   - `mobile-pos/pubspec.yaml`
   - `mobile-pos/lib/about_page.dart`
   - `mobile-pos/CHANGELOG.md`
-- **File APK:** Telah dikompilasi ke `storage/app/public/mobile-pos-latest.apk` (55.5 MB) dan siap diunduh via `/download-apk` atau deteksi otomatis via `/api/app-version`.
-- **Git:** Seluruh commit telah ter-push ke cabang utama `origin/main`.
+- **File APK:** `storage/app/public/mobile-pos-latest.apk` siap diunduh via `/download-apk` atau deteksi otomatis via `/api/app-version`.
 
 ---
 
@@ -84,10 +88,9 @@ Dokumen ini merangkum seluruh perubahan, perbaikan bug, modernisasi UI, serta st
 
 | No | Tindakan | Lokasi | Status |
 |:---|:---|:---|:---|
-| 1 | **Koreksi Data Lama di Production** | VPS (`kasir.madignet.site`) | **SELESAI (SUKSES)** - 22 transaksi tertumpuk berhasil dinormalkan via `php artisan orders:fix-timestamps`. |
-| 2 | **Optimasi Cache Server** | VPS (`kasir.madignet.site`) | **SELESAI** - Cache dibersihkan via `php artisan optimize:clear`. |
-| 3 | **Update Aplikasi Kasir di HP Toko** | HP / Tablet Kasir Toko | Siap unduh / update ke versi `1.6.3 (build 19)`. |
+| 1 | **Koreksi Data Lama di Production** | VPS (`kasir.madignet.site`) | **SELESAI** - 22 transaksi tertumpuk berhasil dinormalkan. |
+| 2 | **Jalankan Migrasi Baru (v1.6.4)** | VPS (`kasir.madignet.site`) | Jalankan `git pull origin main && php artisan migrate --force && php artisan optimize:clear`. |
+| 3 | **Update Aplikasi Kasir di HP Toko** | HP / Tablet Kasir Toko | Update ke versi `1.6.4 (build 20)`. |
 
 ---
-*Status Sistem: 100% Selesai, Teruji, Bersih, dan Beroperasi Normal.*
-
+*Status Sistem: Seluruh perbaikan fungsional, tampilan, dan keamanan telah diterapkan.*

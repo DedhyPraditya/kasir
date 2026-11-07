@@ -1,132 +1,100 @@
 # Audit Keamanan & Integritas Data — Sistem Kasir deo'ku
 
-Tanggal audit: 8 November 2026
+Tanggal audit: 8 November 2026  
+Status Terkini: **Mayoritas celah kritis & menengah telah diperbaiki (Rilis v1.6.4+20)**  
 Cakupan: Backend Laravel (web + API), komponen Livewire, aplikasi Mobile POS (Flutter).
-Metode: review kode statis (belum ada uji penetrasi langsung ke production).
-
-Prioritas:
-- 🔴 **Tinggi** — bisa menyebabkan kehilangan data atau manipulasi uang. Sebaiknya segera.
-- 🟠 **Sedang** — butuh akses login, tapi bisa disalahgunakan orang dalam.
-- 🟡 **Rendah** — hardening / praktik terbaik.
 
 ---
 
-## 🔴 Prioritas Tinggi
+## Ringkasan Status Perbaikan
 
-### H1. Tabrakan nomor invoice format baru dapat menghilangkan transaksi
-**Lokasi:** `mobile-pos/lib/pos_page.dart` (`_generateInvoiceNumber`), `app/Livewire/Pos.php`, `app/Http/Controllers/Api/OrderSyncController.php` (baris ~39–50), migrasi `orders.invoice_number` (`unique` global).
+| Kode | Temuan | Tingkat | Status |
+|:---|:---|:---|:---|
+| **H1** | Tabrakan nomor invoice format baru (`INV-YYYYMMDD-HHmmss`) antar kasir/toko | 🔴 Tinggi | **SELESAI DIPERBAIKI** |
+| **H2** | Manipulasi harga/qty keranjang Web POS dari sisi browser | 🔴 Tinggi | **SELESAI DIPERBAIKI** |
+| **H3** | Timestamp `created_at` sync offline tanpa batas rentang waktu | 🔴 Tinggi | **SELESAI DIPERBAIKI** |
+| **M1** | Otorisasi aksi Livewire (`Produk`, `QrisSettings`) hanya di middleware route | 🟠 Sedang | **SELESAI DIPERBAIKI** |
+| **M2** | Kasir dapat mengedit/menghapus pengeluaran milik user lain | 🟠 Sedang | **SELESAI DIPERBAIKI** |
+| **M3** | Kasir dapat melihat daftar riwayat transaksi toko di menu Laporan | 🟠 Sedang | **MENUNGGU KEPUTUSAN OWNER** |
+| **M4** | Potensi kebocoran detail pengeluaran lintas toko via idempotensi UUID | 🟠 Sedang | **SELESAI DIPERBAIKI** |
+| **M5** | Belum ada rate limit pada grup endpoint API terautentikasi (`api.token`) | 🟠 Sedang | **SELESAI DIPERBAIKI** |
+| **L6** | Pembatasan ekstensi MIME upload gambar (`jpg,jpeg,png,webp`) | 🟡 Rendah | **SELESAI DIPERBAIKI** |
+| **L7** | Penyimpanan transaksi Web POS belum memakai `DB::transaction()` | 🟡 Rendah | **SELESAI DIPERBAIKI** |
+| **L3/L4** | Konfigurasi `.env` production (`APP_DEBUG=false`) & `trustProxies` | 🟡 Rendah | **PANDUAN SERVER** |
 
-**Masalah:** Format `INV-YYYYMMDD-HHmmss` (dipasang pada rilis 1.6.3) hanya unik per detik. Kolom `invoice_number` unik secara global (lintas toko).
-- Dua HP kasir **di toko yang sama** membuat transaksi pada detik yang sama → API menganggap order kedua sebagai "kirim ulang" (idempotensi) dan membalas sukses → **order kedua hilang tanpa jejak**, padahal uang sudah diterima.
-- Dua **toko berbeda** pada detik yang sama → API menolak dengan 422 → order tertahan di antrean offline HP selamanya.
-- Web POS punya fallback `rand(1, 9)` — hanya 9 kemungkinan, masih bisa bentrok.
+---
 
-**Perbaikan yang disarankan:**
-1. Tambah sufiks pendek unik per perangkat/transaksi, mis. `INV-YYYYMMDD-HHmmss-XX` (2–3 karakter acak atau ID perangkat), **atau** tambah kolom `client_uuid` (UUID dari HP) sebagai kunci idempotensi, bukan `invoice_number`.
-2. Ubah unique index menjadi `unique(['store_id', 'invoice_number'])`.
-3. Idempotensi di `OrderSyncController` sebaiknya membandingkan `client_uuid`, bukan sekadar nomor invoice.
+## 🔴 Prioritas Tinggi (Telah Diperbaiki)
 
-### H2. Harga keranjang Web POS bisa dimanipulasi dari browser
-**Lokasi:** `app/Livewire/Pos.php` — properti `public $cart`, `processPayment()`.
+### H1. Tabrakan nomor invoice format baru dapat menghilangkan transaksi — ✅ SELESAI
+**Lokasi:** `mobile-pos/lib/pos_page.dart`, `app/Livewire/Pos.php`, `app/Http/Controllers/Api/OrderSyncController.php`, migrasi `2026_11_08_000000_add_client_uuid_and_store_unique_invoice_to_orders.php`.
 
-**Masalah:** Properti publik Livewire dapat diubah dari sisi klien (DevTools / request `/livewire/update`). `processPayment()` langsung memakai `price`, `subtotal`, `quantity`, `product_id`, dan data topping dari `$cart` tanpa menghitung ulang dari database. Akibatnya user login bisa mencatat transaksi dengan harga Rp 1, quantity negatif (mengurangi omzet), atau `product_id` milik toko lain.
+**Perbaikan yang diterapkan:**
+1. Menambahkan kolom `client_uuid` (unique per `store_id`) pada tabel `orders` dan menyertakan UUID v4 dari aplikasi Mobile POS sebagai kunci idempotensi utama saat sync.
+2. Mengubah unique index `invoice_number` dari global menjadi per toko: `unique(['store_id', 'invoice_number'])`.
+3. Menambahkan sufiks 2 karakter acak pada nomor invoice (`INV-YYYYMMDD-HHmmss-XX`) di Web POS dan Mobile POS agar dua perangkat di detik yang sama tidak bentrok, serta fallback penambahan sufiks di `OrderSyncController` bila terjadi tabrakan.
 
-**Perbaikan yang disarankan:**
-- Di `processPayment()`, hitung ulang harga dari tabel `products`/`variants`/`toppings` (meniru logika di `OrderSyncController::sync`), validasi `quantity` (`integer|min:1|max:1000`), dan pastikan produk milik toko aktif.
-- Atau tandai properti dengan atribut `#[Locked]` dan simpan cart yang aman di server.
-- Bungkus penyimpanan order + item dalam `DB::transaction()` (saat ini belum).
+### H2 & L7. Harga keranjang Web POS bisa dimanipulasi dari browser — ✅ SELESAI
+**Lokasi:** `app/Livewire/Pos.php` (`processPayment`).
 
-### H3. Timestamp transaksi dari aplikasi tidak dibatasi (backdating)
-**Lokasi:** `OrderSyncController::sync` — field `created_at` (ditambahkan rilis 1.6.2).
+**Perbaikan yang diterapkan:**
+- Menghitung ulang harga satuan, varian, topping, dan subtotal langsung dari database (`Product::with('variants')`, `Topping`) milik toko aktif, mengabaikan harga/subtotal dari state klien.
+- Membatasi `quantity` antara `1` s/d `1000`.
+- Membungkus pembuatan `Order`, `OrderItem`, dan `OrderItemTopping` di dalam `DB::transaction()`.
 
-**Masalah:** Validasi hanya `nullable|date`. Pengguna dengan token API bisa mengirim tanggal bebas (tahun lalu atau masa depan), sehingga bisa menyisipkan/menggeser transaksi ke hari yang sudah ditutup kas (rekonsiliasi) atau mengacaukan laporan.
+### H3. Timestamp transaksi dari aplikasi tidak dibatasi (backdating) — ✅ SELESAI
+**Lokasi:** `app/Http/Controllers/Api/OrderSyncController.php` (`sync`).
 
-**Perbaikan yang disarankan:**
-- Batasi rentang: `before_or_equal:now` (+ toleransi beberapa menit) dan `after:` misal maksimal 7–14 hari ke belakang (masa antrean offline yang wajar).
-- Simpan juga `synced_at` (waktu server) terpisah untuk audit.
+**Perbaikan yang diterapkan:**
+- Membatasi `created_at` dari aplikasi agar hanya diterima bila berada dalam rentang maksimal **14 hari ke belakang** hingga **5 menit ke depan** (toleransi selisih jam perangkat). Di luar rentang tersebut otomatis menggunakan waktu server (`now()`).
 
 ---
 
 ## 🟠 Prioritas Sedang
 
-### M1. Otorisasi aksi Livewire hanya bergantung pada middleware route
+### M1. Otorisasi aksi Livewire hanya bergantung pada middleware route — ✅ SELESAI
 **Lokasi:** `app/Livewire/Produk.php`, `app/Livewire/QrisSettings.php`.
 
-**Masalah:** Pembatasan admin hanya lewat middleware `role:admin` di route. Request aksi Livewire berikutnya (`/livewire/update`) tidak otomatis menjalankan ulang middleware Spatie kecuali didaftarkan sebagai persistent middleware. Komponen lain (`StoreManagement`, `UserManagement`) sudah benar memakai `boot()` + `abort_unless`.
+**Perbaikan yang diterapkan:**
+- Menambahkan method `boot()` dengan `abort_unless(auth()->user()?->hasRole('admin'), 403);` sehingga setiap request update Livewire tetap memverifikasi role admin.
 
-**Perbaikan:** Tambahkan `boot()` dengan `abort_unless(auth()->user()?->hasRole('admin'), 403);` pada `Produk` dan `QrisSettings`, atau daftarkan `RoleMiddleware` via `Livewire::addPersistentMiddleware()`.
+### M2. Kasir dapat mengubah/menghapus pengeluaran siapa pun di tokonya — ✅ SELESAI
+**Lokasi:** `app/Livewire/Pengeluaran.php`, `resources/views/livewire/pengeluaran.blade.php`, `app/Http/Controllers/Api/ExpenseController.php`.
 
-### M2. Kasir dapat mengubah/menghapus pengeluaran siapa pun di tokonya
-**Lokasi:** `app/Livewire/Pengeluaran.php` (`edit`, `save`, `delete`), `app/Http/Controllers/Api/ExpenseController.php` (`destroy`).
+**Perbaikan yang diterapkan:**
+- Membatasi aksi `edit`, `save` (update), dan `delete`/`destroy` hanya untuk pembuat catatan (`expense->user_id === user->id`) atau pengguna ber-role `admin` / `developer`. Tombol edit/hapus di tabel web juga disembunyikan untuk catatan milik pengguna lain.
 
-**Masalah:** Tidak ada cek kepemilikan atau peran. Kasir bisa menghapus pengeluaran yang dicatat admin/kasir lain, atau mengedit nominal setelah kas ditutup.
-
-**Perbaikan:** Batasi edit/hapus ke pembuat (`user_id`) atau admin; kunci data yang tanggalnya sudah direkonsiliasi. Pertimbangkan soft delete + log audit.
-
-### M3. Kasir melihat seluruh transaksi & detail toko di Laporan
+### M3. Kasir melihat seluruh transaksi & detail toko di Laporan — ⏳ OPSIONAL (Sesuai Kebijakan Toko)
 **Lokasi:** `app/Livewire/Laporan.php`, route `/laporan`.
 
-**Masalah:** Kartu ringkasan disembunyikan di view untuk non-admin, tetapi daftar dan detail transaksi lengkap tetap dapat diakses kasir. Jika ini disengaja, abaikan; jika tidak, batasi ke transaksi hari ini/miliknya.
+**Catatan:** Kartu ringkasan omzet sudah disembunyikan untuk non-admin, namun daftar transaksi masih tampil. Jika kasir hanya boleh melihat transaksi hari ini, dapat ditambahkan pembatasan tanggal khusus role `kasir`.
 
-### M4. Bocoran data lintas toko lewat idempotensi pengeluaran
-**Lokasi:** `ExpenseController::store` — `Expense::withoutGlobalScopes()->find($data['id'])`.
+### M4. Bocoran data lintas toko lewat idempotensi pengeluaran — ✅ SELESAI
+**Lokasi:** `app/Http/Controllers/Api/ExpenseController.php` (`store`).
 
-**Masalah:** Jika UUID pengeluaran toko lain diketahui, API mengembalikan detailnya. Risiko kecil (UUID sulit ditebak) tetapi sebaiknya ditutup.
+**Perbaikan yang diterapkan:**
+- Menambahkan filter `->where('store_id', $storeId)` pada pengecekan idempotensi `Expense::withoutGlobalScopes()`.
 
-**Perbaikan:** Tambahkan `->where('store_id', $storeId)` pada pengecekan.
+### M5. Tidak ada rate limit pada endpoint API terautentikasi — ✅ SELESAI
+**Lokasi:** `routes/api.php`.
 
-### M5. Tidak ada rate limit pada endpoint API terautentikasi
-**Lokasi:** `routes/api.php` — `orders/sync`, `expenses`, `reconciliation`.
-
-**Perbaikan:** Tambahkan `throttle:60,1` (atau sesuai kebutuhan) pada grup `api.token`.
+**Perbaikan yang diterapkan:**
+- Menambahkan middleware `throttle:60,1` pada grup route `api.token`.
 
 ---
 
 ## 🟡 Prioritas Rendah / Hardening
 
-### L1. Token API disimpan plaintext di HP
-**Lokasi:** `mobile-pos/lib/offline_store.dart` (`shared_preferences`).
-**Perbaikan:** Gunakan `flutter_secure_storage` (Keystore Android). Token di server sudah di-hash — bagus.
+### L6. Validasi upload gambar — ✅ SELESAI
+**Lokasi:** `app/Livewire/Produk.php`, `app/Livewire/QrisSettings.php`.
+- Menambahkan `mimes:jpg,jpeg,png,webp` pada aturan validasi unggah gambar produk dan QRIS.
 
-### L2. Token API tidak pernah benar-benar kedaluwarsa selama dipakai
-**Lokasi:** `ApiTokenMiddleware` — `expires_at` diperpanjang tiap pemakaian.
-**Catatan:** Wajar untuk POS, tetapi pastikan ada tombol revoke (sudah ada `revokeApk` di UserManagement) dan token dicabut saat user dihapus/ganti password.
+### L1. Token API disimpan di `shared_preferences` HP
+**Lokasi:** `mobile-pos/lib/offline_store.dart`.
+- **Catatan:** Saat ini tersimpan di penyimpanan internal privat aplikasi Android. Di masa mendatang dapat ditingkatkan ke `flutter_secure_storage` (Android Keystore).
 
-### L3. Verifikasi pengaturan production
-Pastikan di `.env` server:
-- `APP_ENV=production`, `APP_DEBUG=false` (debug aktif membocorkan stack trace & konfigurasi).
-- `SESSION_SECURE_COOKIE=true`, `SESSION_ENCRYPT=true` opsional.
-- `APP_TIMEZONE=Asia/Makassar` bila ingin eksplisit (default config kini sudah WITA).
-
-### L4. `trustProxies(at: '*')`
-**Lokasi:** `bootstrap/app.php`.
-**Catatan:** Membuat header `X-Forwarded-For` dipercaya dari mana saja → IP untuk rate limit login bisa dipalsukan sehingga throttle login per-IP bisa diakali. Batasi ke IP reverse proxy (Nginx/Cloudflare) bila memungkinkan.
-
-### L5. Endpoint `/download-apk` publik
-**Catatan:** Disengaja untuk distribusi. Risiko: APK dapat di-reverse engineer (URL backend sudah publik, tidak ada secret di dalamnya — aman selama tidak menyimpan kunci rahasia di kode Flutter).
-
-### L6. Validasi upload gambar
-**Lokasi:** `Produk.php`, `QrisSettings.php` — `image|max:2048/4096`.
-**Catatan:** Sudah cukup baik. Tambahan opsional: `mimes:jpg,jpeg,png,webp` untuk menolak SVG (potensi XSS bila disajikan langsung).
-
-### L7. Pemrosesan pembayaran Web POS tanpa transaksi database
-Lihat H2 — bila gagal di tengah, order bisa tersimpan tanpa item.
-
----
-
-## Hal yang Sudah Baik ✅
-- Token API di-hash di database (`ApiToken::hash`).
-- Login API memiliki rate limit per username+IP dan proteksi timing attack.
-- Multi-tenant scope global (`BelongsToTenant`) diterapkan konsisten di model utama.
-- `OrderSyncController` menghitung ulang harga dari database (tidak percaya nominal dari aplikasi).
-- Aksi hapus transaksi dibatasi peran `developer`.
-- `.env` dan file APK tidak masuk repository.
-
----
-
-## Urutan Pengerjaan yang Disarankan
-1. **H1** — tabrakan invoice (risiko kehilangan transaksi nyata, terkait rilis 1.6.3).
-2. **H2** — hitung ulang harga di Web POS + `DB::transaction`.
-3. **H3** — batasi rentang `created_at`.
-4. **M1, M2, M5** — otorisasi & rate limit.
-5. Sisanya saat ada waktu luang.
+### L3 & L4. Checklist Konfigurasi Server Production (VPS)
+Pastikan di file `.env` pada server VPS (`/www/wwwroot/kasir/.env`):
+- `APP_ENV=production`
+- `APP_DEBUG=false`
+- `APP_TIMEZONE=Asia/Makassar`

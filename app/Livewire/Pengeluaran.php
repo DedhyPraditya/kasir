@@ -59,10 +59,18 @@ class Pengeluaran extends Component
         $this->isModalOpen = true;
     }
 
+    private function canModify(Expense $expense): bool
+    {
+        $user = auth()->user();
+
+        return $user && ($user->hasRole(['admin', 'developer']) || $expense->user_id === $user->id);
+    }
+
     public function edit(string $id): void
     {
         $this->resetValidation();
         $expense = Expense::findOrFail($id);
+        abort_unless($this->canModify($expense), 403, 'Anda hanya dapat mengubah pengeluaran yang Anda catat sendiri.');
 
         $this->editingId = $expense->id;
         $this->amount = (string) (int) $expense->amount;
@@ -86,6 +94,7 @@ class Pengeluaran extends Component
 
         if ($this->editingId) {
             $expense = Expense::findOrFail($this->editingId);
+            abort_unless($this->canModify($expense), 403, 'Anda hanya dapat mengubah pengeluaran yang Anda catat sendiri.');
             $expense->update([
                 'amount' => $this->amount,
                 'category' => $this->category,
@@ -111,6 +120,7 @@ class Pengeluaran extends Component
     public function delete(string $id): void
     {
         $expense = Expense::findOrFail($id);
+        abort_unless($this->canModify($expense), 403, 'Anda hanya dapat menghapus pengeluaran yang Anda catat sendiri.');
         $expense->delete();
         session()->flash('message', 'Catatan pengeluaran berhasil dihapus.');
     }

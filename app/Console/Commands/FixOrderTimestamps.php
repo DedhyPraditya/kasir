@@ -42,8 +42,8 @@ class FixOrderTimestamps extends Command
         $fixedCount = 0;
 
         foreach ($orders as $order) {
-            // A. Format baru presisi waktu: INV-YYYYMMDD-HHmmss (misal: INV-20261108-013506)
-            if (preg_match('/^INV-(\d{4})(\d{2})(\d{2})-(\d{2})(\d{2})(\d{2})$/', $order->invoice_number, $matches)) {
+            // A. Format baru presisi waktu: INV-YYYYMMDD-HHmmss atau INV-YYYYMMDD-HHmmss-XX
+            if (preg_match('/^INV-(\d{4})(\d{2})(\d{2})-(\d{2})(\d{2})(\d{2})(?:-[A-Z0-9]{1,4})?$/i', $order->invoice_number, $matches)) {
                 $targetTimestamp = Carbon::create(
                     (int) $matches[1],
                     (int) $matches[2],

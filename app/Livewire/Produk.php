@@ -61,8 +61,13 @@ class Produk extends Component
         'base_price'  => 'required|numeric|min:0',
         'description' => 'nullable|string',
         'is_active'   => 'boolean',
-        'image'       => 'nullable|image|max:2048',
+        'image'       => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
     ];
+
+    public function boot(): void
+    {
+        abort_unless(auth()->user()?->hasRole('admin'), 403);
+    }
 
     public function switchTab($tab)
     {
@@ -229,7 +234,7 @@ class Produk extends Component
             'category_id' => ['required', Rule::exists('categories', 'id')->where('store_id', auth()->user()->tenantId())],
             'base_price'  => 'required|numeric|min:0',
             'description' => 'nullable|string',
-            'image'       => 'nullable|image|max:2048',
+            'image'       => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
             'is_active'   => 'boolean',
             'variants.*.name' => 'required|string|max:255',
             'variants.*.price' => 'required|numeric|min:0',

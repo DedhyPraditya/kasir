@@ -123,10 +123,10 @@ return [
         'store' => env('APP_MAINTENANCE_STORE', 'database'),
     ],
 
-    'mobile_version' => '1.6.3',
-    'mobile_build_number' => 19,
-    'mobile_changelog' => "Pembaruan Versi 1.6.3:
-• Format nomor invoice baru INV-YYYYMMDD-HHmmss sesuai jam menit detik transaksi.
-• Peniadaan 4 karakter acak pada nomor invoice kasir.
-• Akurasi timestamp offline dan kestabilan sinkronisasi server.",
+    'mobile_version' => '1.6.4',
+    'mobile_build_number' => 20,
+    'mobile_changelog' => "Pembaruan Versi 1.6.4:
+• Proteksi anti-bentrok nomor invoice multi-kasir (INV-YYYYMMDD-HHmmss-XX).
+• Kunci idempotensi UUID untuk menjamin tidak ada transaksi hilang saat sinkronisasi.
+• Peningkatan keamanan API & otorisasi pengeluaran.",
 ];
