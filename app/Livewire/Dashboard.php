@@ -64,6 +64,9 @@ class Dashboard extends Component
             ];
         });
 
+        $avgDailyIncome = (float) ($dailyIncome->avg('income') ?: 0);
+        $maxDailyIncome = (float) ($dailyIncome->max('income') ?: 0);
+
         return view('livewire.dashboard', [
             'totalIncomeToday' => $totalIncomeToday,
             'totalOrdersToday' => $totalOrdersToday,
@@ -72,6 +75,8 @@ class Dashboard extends Component
             'bestSellers'      => $bestSellers,
             'bestToppings'     => $bestToppings,
             'dailyIncome'      => $dailyIncome,
+            'avgDailyIncome'   => $avgDailyIncome,
+            'maxDailyIncome'   => $maxDailyIncome,
         ])->layout('layouts.app');
     }
 }
