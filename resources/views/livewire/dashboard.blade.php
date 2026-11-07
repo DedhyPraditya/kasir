@@ -135,7 +135,7 @@
         {{-- Riwayat Transaksi --}}
         <div class="card border-0 shadow-sm">
             <div class="card-header bg-white border-bottom-0 pt-4 pb-0">
-                <h5 class="fw-bold mb-0">Riwayat Transaksi</h5>
+                <h5 class="fw-bold mb-0">Riwayat Transaksi (Bulan Ini)</h5>
             </div>
             <div class="card-body">
                 <div class="table-responsive">
@@ -168,7 +168,7 @@
                             </tr>
                             @empty
                             <tr>
-                                <td colspan="6" class="text-center py-4 text-muted">Belum ada transaksi</td>
+                                <td colspan="6" class="text-center py-4 text-muted">Belum ada transaksi pada bulan ini</td>
                             </tr>
                             @endforelse
                         </tbody>

@@ -26,7 +26,11 @@ class Dashboard extends Component
                                  ->whereYear('created_at', $today->year)
                                  ->sum('total');
 
-        $recentOrders = Order::with('items')->latest()->paginate(10);
+        $recentOrders = Order::with('items')
+            ->whereMonth('created_at', $today->month)
+            ->whereYear('created_at', $today->year)
+            ->latest()
+            ->paginate(10);
 
         // Best Seller Produk: top 5 bulan ini berdasarkan total qty terjual
         $bestSellers = OrderItem::whereHas('order', function ($q) use ($today) {
