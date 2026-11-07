@@ -16,6 +16,14 @@ class _ChangelogEntry {
 
 const List<_ChangelogEntry> _changelog = [
   _ChangelogEntry(
+    version: '1.6.3',
+    date: '7 November 2026',
+    points: [
+      'Format Nomor Invoice Jam-Menit-Detik: Nomor invoice baru INV-YYYYMMDD-HHmmss sesuai waktu riil transaksi kasir tanpa karakter acak.',
+      'Akurasi Struk & Pencatatan: Nomor invoice dan jam transaksi sepenuhnya presisi hingga satuan detik.',
+    ],
+  ),
+  _ChangelogEntry(
     version: '1.6.2',
     date: '7 November 2026',
     points: [

@@ -2,6 +2,12 @@
 
 Semua perubahan pada aplikasi Mobile POS dicatat di file ini.
 
+## [1.6.3] - 2026-11-07
+
+### 🧾 Format Nomor Invoice Jam-Menit-Detik (Presisi Waktu)
+- **Format Invoice Riil**: Mengubah nomor invoice menjadi `INV-YYYYMMDD-HHmmss` (Tahun-Bulan-Tanggal-JamMenitDetik).
+- **Hapus Karakter Acak**: Menghilangkan 4 digit/huruf acak sehingga nomor invoice sepenuhnya mencerminkan tanggal dan jam transaksi riil kasir.
+
 ## [1.6.2] - 2026-11-07
 
 ### ⏱️ Akurasi Waktu Transaksi Offline & Sinkronisasi

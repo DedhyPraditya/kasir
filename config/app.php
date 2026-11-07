@@ -123,9 +123,10 @@ return [
         'store' => env('APP_MAINTENANCE_STORE', 'database'),
     ],
 
-    'mobile_version' => '1.6.2',
-    'mobile_build_number' => 18,
-    'mobile_changelog' => "Pembaruan Versi 1.6.2:
-• Perbaikan waktu transaksi offline agar akurat sesuai jam pembuatan struk saat kasir offline.
-• Peningkatan keandalan sinkronisasi antrean pesanan ke server.",
+    'mobile_version' => '1.6.3',
+    'mobile_build_number' => 19,
+    'mobile_changelog' => "Pembaruan Versi 1.6.3:
+• Format nomor invoice baru INV-YYYYMMDD-HHmmss sesuai jam menit detik transaksi.
+• Peniadaan 4 karakter acak pada nomor invoice kasir.
+• Akurasi timestamp offline dan kestabilan sinkronisasi server.",
 ];
