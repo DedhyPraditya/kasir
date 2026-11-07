@@ -43,6 +43,7 @@ Dokumen ini merangkum seluruh perubahan, perbaikan bug, modernisasi UI, serta st
 ### D. Modernisasi Tampilan Dashboard
 1. **Smooth Gradient Area Chart (`resources/views/livewire/dashboard.blade.php`):**
    - Mengganti grafik bar hijau kaku menjadi kurva lengkung modern (*emerald line* dengan arsiran gradien vertikal memudar).
+   - Default rentang hari disetel ke **7 Hari** (bisa diganti ke 14 Hari / 30 Hari).
    - Interaksi hover cerdas dengan dark tooltip dan format mata uang ringkas (`jt` / `rb`).
 2. **Kartu Ringkasan Finansial Lengkap (4 Kartu Stat):**
    - **Pendapatan Hari Ini** (lengkap dengan badge total pesanan).
@@ -50,8 +51,16 @@ Dokumen ini merangkum seluruh perubahan, perbaikan bug, modernisasi UI, serta st
    - **Pengeluaran Bulan Ini** (biaya operasional toko).
    - **Laba Bersih Bulan Ini** (otomatis berwarna hijau surplus atau merah defisit).
 3. **Pills Pilihan Periode Tren Dinamis:**
-   - Tombol pilihan `[ 7 Hari ] [ 14 Hari ] [ 30 Hari ]` di atas grafik.
+   - Tombol pilihan `[ 7 Hari ] [ 14 Hari ] [ 30 Hari ]` di atas grafik (default: 7 Hari).
    - Transisi instan via JavaScript (0 ms) beserta pembaruan otomatis metrik *Rata-rata/hari* dan *Puncak*.
+
+### E. Sinkronisasi Timezone & Pengurutan Kronologis Ketat
+1. **Timezone Toko (`config/app.php`):**
+   - Default timezone disinkronkan ke `Asia/Makassar` (WITA, UTC+8) agar jam kasir lokal dan jam server tepat sama tanpa selisih 1 jam.
+2. **Pengurutan Kronologis Mutlak:**
+   - Seluruh query daftar order (`Laporan.php`, `Dashboard.php`, `LaporanController.php`, `OrderSyncController.php`) dikunci dengan:
+     `->orderByDesc('created_at')->orderByDesc('invoice_number')`.
+   - Transaksi paling baru mutlak di paling atas tanpa dipengaruhi abjad pelanggan/invoice.
 
 ### E. Command Artisan Pemulihan Data Transaksi Lama
 - **File:** `app/Console/Commands/FixOrderTimestamps.php`
