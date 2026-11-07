@@ -70,9 +70,9 @@ class Dashboard extends Component
             ];
         });
 
-        $recent14 = $dailyIncome->slice(-14);
-        $avgDailyIncome = (float) ($recent14->avg('income') ?: 0);
-        $maxDailyIncome = (float) ($recent14->max('income') ?: 0);
+        $recent7 = $dailyIncome->slice(-7);
+        $avgDailyIncome = (float) ($recent7->avg('income') ?: 0);
+        $maxDailyIncome = (float) ($recent7->max('income') ?: 0);
 
         return view('livewire.dashboard', [
             'totalIncomeToday'  => $totalIncomeToday,

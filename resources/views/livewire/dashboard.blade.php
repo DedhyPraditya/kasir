@@ -95,8 +95,8 @@
                             </div>
                             <div class="d-flex flex-wrap align-items-center gap-2">
                                 <div class="btn-group btn-group-sm me-md-2" role="group">
-                                    <button type="button" class="btn btn-outline-secondary period-btn" data-days="7" onclick="switchPeriod(7)">7 Hari</button>
-                                    <button type="button" class="btn btn-success text-white period-btn active" data-days="14" onclick="switchPeriod(14)">14 Hari</button>
+                                    <button type="button" class="btn btn-success text-white period-btn active" data-days="7" onclick="switchPeriod(7)">7 Hari</button>
+                                    <button type="button" class="btn btn-outline-secondary period-btn" data-days="14" onclick="switchPeriod(14)">14 Hari</button>
                                     <button type="button" class="btn btn-outline-secondary period-btn" data-days="30" onclick="switchPeriod(30)">30 Hari</button>
                                 </div>
                                 <span class="badge bg-light text-dark border py-2 px-3">
@@ -283,9 +283,9 @@
                 gradient.addColorStop(0.7, 'rgba(16, 185, 129, 0.05)');
                 gradient.addColorStop(1, 'rgba(16, 185, 129, 0.00)');
 
-                // Awal 14 hari
-                const initialLabels = allLabels.slice(-14);
-                const initialData   = allData.slice(-14);
+                // Awal 7 hari
+                const initialLabels = allLabels.slice(-7);
+                const initialData   = allData.slice(-7);
 
                 dailyChart = new Chart(ctx, {
                     type: 'line',
