@@ -68,7 +68,7 @@
                                 <h4 class="fw-bold {{ $netProfitMonth >= 0 ? 'text-primary' : 'text-danger' }} mb-2">
                                     Rp {{ number_format($netProfitMonth, 0, ',', '.') }}
                                 </h4>
-                                <span class="badge {{ $netProfitMonth >= 0 ? 'bg-success bg-opacity-15 text-success' : 'bg-danger bg-opacity-15 text-danger' }} fw-normal">
+                                <span class="badge {{ $netProfitMonth >= 0 ? 'bg-success bg-opacity-10 text-success border border-success border-opacity-25' : 'bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25' }} fw-normal">
                                     {{ $netProfitMonth >= 0 ? 'Surplus / Profit' : 'Defisit' }}
                                 </span>
                             </div>
